@@ -1,4 +1,14 @@
-export { createHttpClient, httpClient } from './client';
-export { toApiError, isApiError } from './errors';
+export { apiClient, createApiClient, parseApiResult, REQUEST_ID_HEADER } from './client';
+export {
+  toApiError,
+  toApiErrorFromResponse,
+  isApiError,
+  isProblemDetails,
+  isAbortError,
+  isTimeoutError,
+  fieldErrorsToMap,
+} from './errors';
 export { fetchHealth } from './health.service';
-export type { ApiError, ApiErrorCode, HealthResponse } from './types';
+export { createTimedFetch } from './timed-fetch';
+export { ApiError } from './types';
+export type { ApiErrorKind, FieldViolation, ProblemDetailsPayload } from './types';

@@ -39,11 +39,13 @@ function readPositiveInt(value: string | undefined, fallback: number): number {
 
 export function loadAppEnv(metaEnv: ImportMetaEnv = import.meta.env): AppEnv {
   const apiBaseUrl = metaEnv.VITE_API_BASE_URL?.trim() || 'http://localhost:3000';
+  // Prefer VITE_API_TIMEOUT_MS; accept VITE_API_TIMEOUT as a documented alias.
+  const timeoutRaw = metaEnv.VITE_API_TIMEOUT_MS || metaEnv.VITE_API_TIMEOUT;
 
   return {
     appTitle: metaEnv.VITE_APP_TITLE?.trim() || 'Altium CRM',
     apiBaseUrl: apiBaseUrl.replace(/\/$/, ''),
-    apiTimeoutMs: readPositiveInt(metaEnv.VITE_API_TIMEOUT_MS, 15_000),
+    apiTimeoutMs: readPositiveInt(timeoutRaw, 15_000),
     apiWithCredentials: readBoolean(metaEnv.VITE_API_WITH_CREDENTIALS, true),
     enableHealthCheck: readBoolean(metaEnv.VITE_ENABLE_HEALTH_CHECK, false),
     isDev: Boolean(import.meta.env.DEV),

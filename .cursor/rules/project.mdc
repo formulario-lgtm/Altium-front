@@ -17,7 +17,8 @@ Canonical instructions live in [AGENTS.md](../../AGENTS.md). Do not invent paral
 
 - No `git commit` / `git push` / tags / remote changes unless the user explicitly asks.
 - No CRM business screens, auth, or Netlify connection unless requested.
-- No HTTP calls from presentational components — use `src/services/http/`.
+- No HTTP calls from presentational components — use `src/services/http/` (`openapi-fetch`).
+- Do not use Axios; typed HTTP goes through generated OpenAPI paths.
 - Pinia for app/UI state; TanStack Query for remote data — no duplication.
 - TypeScript strict; no `any` / `@ts-ignore` without justification.
 - Source files ≤ 1000 lines (prefer ≤ 500).

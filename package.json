@@ -23,12 +23,14 @@
     "test:e2e": "playwright test",
     "docs:check": "tsx scripts/docs-check.ts",
     "check:lines": "tsx scripts/check-line-limits.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build && pnpm docs:check && pnpm check:lines"
+    "api:generate": "tsx scripts/api-generate.ts",
+    "api:check": "tsx scripts/api-check.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build && pnpm docs:check && pnpm check:lines && pnpm api:check"
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "@tanstack/vue-query": "^5.90.5",
-    "axios": "^1.13.2",
+    "openapi-fetch": "^0.17.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3",
@@ -47,6 +49,7 @@
     "eslint-plugin-vue": "^10.5.1",
     "globals": "^16.4.0",
     "jsdom": "^27.0.1",
+    "openapi-typescript": "^7.13.0",
     "prettier": "^3.6.2",
     "sass": "^1.93.2",
     "tsx": "^4.20.6",

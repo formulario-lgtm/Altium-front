@@ -1,7 +1,11 @@
-import { httpClient } from './client';
-import type { HealthResponse } from './types';
+import type { paths } from '@/types/generated/api';
+import { apiClient, parseApiResult } from './client';
 
-export async function fetchHealth(): Promise<HealthResponse> {
-  const { data } = await httpClient.get<HealthResponse>('/health');
-  return data;
+type HealthOk = paths['/health']['get']['responses']['200']['content']['application/json'];
+
+export async function fetchHealth(options?: { signal?: AbortSignal }): Promise<HealthOk> {
+  const result = await apiClient.GET('/health', {
+    signal: options?.signal,
+  });
+  return parseApiResult(result);
 }

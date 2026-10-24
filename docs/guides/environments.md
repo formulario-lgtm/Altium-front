@@ -17,13 +17,13 @@ Vite loads `.env`, `.env.local`, `.env.[mode]`. Never commit real `.env` files.
 
 ## Variables
 
-| Variable                    | Role                               |
-| --------------------------- | ---------------------------------- |
-| `VITE_APP_TITLE`            | Document title prefix              |
-| `VITE_API_BASE_URL`         | Axios base URL                     |
-| `VITE_API_TIMEOUT_MS`       | Request timeout                    |
-| `VITE_API_WITH_CREDENTIALS` | Cookie credentials for future auth |
-| `VITE_ENABLE_HEALTH_CHECK`  | Optional `GET /health` probe       |
+| Variable                                   | Role                               |
+| ------------------------------------------ | ---------------------------------- |
+| `VITE_APP_TITLE`                           | Document title prefix              |
+| `VITE_API_BASE_URL`                        | openapi-fetch `baseUrl`            |
+| `VITE_API_TIMEOUT_MS` / `VITE_API_TIMEOUT` | Request timeout (ms)               |
+| `VITE_API_WITH_CREDENTIALS`                | Cookie credentials for future auth |
+| `VITE_ENABLE_HEALTH_CHECK`                 | Optional `GET /health` probe       |
 
 **Never** put secrets in `VITE_*` — they are embedded in the client bundle.
 

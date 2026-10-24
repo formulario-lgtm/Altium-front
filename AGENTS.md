@@ -10,25 +10,28 @@ This repository currently contains **technical foundations only** — no CRM bus
 
 ## Stack
 
-| Area         | Choice                                     |
-| ------------ | ------------------------------------------ |
-| Framework    | Vue 3 (`<script setup>` + Composition API) |
-| Build        | Vite                                       |
-| UI           | Vuetify 3 + MDI                            |
-| Routing      | Vue Router                                 |
-| App state    | Pinia                                      |
-| Server state | TanStack Vue Query                         |
-| HTTP         | Axios (central client)                     |
-| Tests        | Vitest + Vue Test Utils; Playwright E2E    |
-| Tooling      | TypeScript strict, ESLint, Prettier, pnpm  |
+| Area         | Choice                                          |
+| ------------ | ----------------------------------------------- |
+| Framework    | Vue 3 (`<script setup>` + Composition API)      |
+| Build        | Vite                                            |
+| UI           | Vuetify 3 + MDI                                 |
+| Routing      | Vue Router                                      |
+| App state    | Pinia                                           |
+| Server state | TanStack Vue Query                              |
+| HTTP         | `openapi-fetch` (native fetch) + typed paths    |
+| API contract | `contracts/openapi.json` + `openapi-typescript` |
+| Tests        | Vitest + Vue Test Utils; Playwright E2E         |
+| Tooling      | TypeScript strict, ESLint, Prettier, pnpm       |
 
 **Deferred (documented, not installed):** VeeValidate + Zod, Apache ECharts, AG Grid. See ADR `0002`.
+
+Contract sync: [docs/architecture/api-integration.md](docs/architecture/api-integration.md), [docs/guides/openapi-types.md](docs/guides/openapi-types.md).
 
 ## Architecture
 
 - Feature-based modules under `src/features/`.
 - Shared UI in `src/components/` (`base` / `common` / `layout`) — create folders when needed.
-- HTTP only via `src/services/http/` — never call Axios from presentational components.
+- HTTP only via `src/services/http/` (`openapi-fetch`) — never call `fetch`/`apiClient` from presentational components.
 - Pinia = shared app/UI state. TanStack Query = remote data. Do not duplicate the same data in both.
 - Layouts in `src/layouts/`. App wiring in `src/app/`.
 
@@ -43,9 +46,11 @@ src/composables/  # shared composables
 src/config/       # env / app config
 src/features/     # feature modules (views, local components, composables)
 src/layouts/      # shell layouts
-src/services/http # Axios client + API services
+src/services/http # openapi-fetch client + API services
+src/types/generated # OpenAPI types (do not edit)
 src/stores/       # Pinia
 src/styles/       # theme tokens / global SCSS
+contracts/        # vendored openapi.json from Altium-back
 docs/features/    # feature Markdown (mandatory)
 docs/components/  # global component Markdown
 ```
@@ -62,10 +67,13 @@ Full standards: [docs/standards/coding-standards.md](docs/standards/coding-stand
 
 ## HTTP & security
 
-- Base URL, timeout, `withCredentials` from `VITE_*` env.
-- Central error mapping (incl. 401/403 hooks for future auth).
+- Base URL, AbortController timeout, `credentials: 'include'` from `VITE_*` env.
+- Use `openapi-fetch` + generated OpenAPI types; do not invent backend DTOs.
+- Never manually edit `src/types/generated/**`. Do not reintroduce Axios.
+- Central Problem Details mapping (incl. 401/403 hooks for future auth/CSRF).
 - No JWT/session in `localStorage`. No secrets in `VITE_*`.
 - Optional `/health` probe behind `VITE_ENABLE_HEALTH_CHECK` — UI must run without API.
+- Keep HTTP out of presentational components.
 
 ## Testing
 
@@ -118,7 +126,9 @@ pnpm test:coverage
 pnpm test:e2e          # requires: pnpm exec playwright install
 pnpm docs:check
 pnpm check:lines
-pnpm check             # typecheck, lint, format, unit tests, build, docs, lines
+pnpm api:generate
+pnpm api:check
+pnpm check             # includes api:check
 ```
 
 ## Agent workflow
@@ -127,13 +137,14 @@ pnpm check             # typecheck, lint, format, unit tests, build, docs, lines
 2. Open only related feature/component docs and code.
 3. Design the smallest correct change.
 4. Implement + tests + Markdown + CHANGELOG.
-5. Run `pnpm check` (and `pnpm test:e2e` when UI flows change).
-6. Report files and results.
-7. No commit/push without explicit authorization.
-8. No unrelated refactors; no unjustified new dependencies.
+5. If the backend contract changed: sync `contracts/openapi.json` then `pnpm api:generate`.
+6. Run `pnpm check` (and `pnpm test:e2e` when UI flows change).
+7. Report files and results.
+8. No commit/push without explicit authorization.
+9. No unrelated refactors; no unjustified new dependencies.
 
 ## Scope boundaries
 
-**In scope now:** Vite/Vue/Vuetify bootstrap, themes, router shell, HTTP client, optional health probe, tooling, docs, CI.
+**In scope now:** Vite/Vue/Vuetify bootstrap, themes, router shell, OpenAPI-typed HTTP client, optional health probe, tooling, docs, CI.
 
 **Out of scope now:** Login, CRM modules, real auth, Netlify connection, AG Grid, charts, form library install.

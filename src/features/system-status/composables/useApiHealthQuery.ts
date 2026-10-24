@@ -2,13 +2,14 @@ import { useQuery } from '@tanstack/vue-query';
 import { computed } from 'vue';
 import { appEnv } from '@/config/env';
 import { fetchHealth, isApiError } from '@/services/http';
+import { queryKeys } from '@/services/http/query-keys';
 
 export function useApiHealthQuery() {
   const enabled = computed(() => appEnv.enableHealthCheck);
 
   const query = useQuery({
-    queryKey: ['system', 'health'],
-    queryFn: fetchHealth,
+    queryKey: queryKeys.system.health(),
+    queryFn: ({ signal }) => fetchHealth({ signal }),
     enabled,
     retry: false,
   });

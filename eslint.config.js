@@ -14,6 +14,7 @@ export default tseslint.config(
       'playwright-report/**',
       'test-results/**',
       'netlify/**',
+      'src/types/generated/**',
     ],
   },
   eslint.configs.recommended,

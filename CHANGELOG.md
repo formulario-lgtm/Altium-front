@@ -18,19 +18,23 @@ Section headings used in this repository:
 
 ### Nuevo
 
-- Estructura inicial del frontend CRM (Vue 3, Vite, Vuetify, Router, Pinia, TanStack Query, Axios).
-- Pantalla bootstrap de system status con temas claro/oscuro.
-- Documentación para agentes (`AGENTS.md`), estándares, ADRs y reglas Cursor.
-- Pipeline CI de validación (sin despliegue) y `netlify.toml` preparado.
+- Integración contract-first con OpenAPI del backend (`contracts/openapi.json` + tipos generados).
+- Scripts `pnpm api:generate` / `pnpm api:check`.
+- Normalización de errores Problem Details (RFC 9457) y convenciones TanStack Query.
+- Documentación de integración API, cliente HTTP y generación de tipos.
 
 ### Cambios técnicos
 
-- Tooling: TypeScript strict (`vue-tsc`), ESLint, Prettier, Vitest, Playwright, scripts `pnpm check`.
-- Verificaciones de documentación y límite de 1000 líneas.
+- Cliente HTTP migrado de Axios a `openapi-fetch` (fetch nativo) tipado con OpenAPI.
+- Timeouts y cancelación mediante `AbortController` (`createTimedFetch`).
+- `openapi-typescript` para generar `src/types/generated/api.ts`.
+- Query keys y QueryClient compartidos; health tipado desde el contrato.
+- Tooling: TypeScript strict (`vue-tsc`), ESLint, Prettier, Vitest, Playwright, `pnpm check`.
 
 ### Seguridad
 
-- Cliente HTTP centralizado con `withCredentials`, timeouts y mapeo de errores 401/403 (sin autenticación real).
+- `credentials: 'include'` preparado para cookies HttpOnly; middleware listo para CSRF futuro.
+- `x-request-id`, timeouts y mensajes de error seguros (Problem Details, sin stacks).
 - Política de no secretos en variables `VITE_*`.
 
 ## [0.1.0] - 2026-10-24

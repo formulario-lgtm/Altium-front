@@ -9,6 +9,8 @@ node_modules/.tmp/
 
 # Environment
 .env
+.env.development
+.env.production
 .env.local
 .env.*.local
 !.env.example
