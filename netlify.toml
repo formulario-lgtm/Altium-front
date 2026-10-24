@@ -1,0 +1,13 @@
+# Future Netlify hosting — not connected in this bootstrap stage.
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  PNPM_VERSION = "10.33.2"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

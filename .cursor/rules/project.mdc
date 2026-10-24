@@ -1,0 +1,33 @@
+---
+description: Altium CRM Frontend — primary agent rules. Always apply for this repository.
+alwaysApply: true
+---
+
+# Altium CRM Frontend
+
+Canonical instructions live in [AGENTS.md](../../AGENTS.md). Do not invent parallel policies.
+
+## Before coding
+
+1. Read `AGENTS.md`.
+2. Open only the docs needed for the task.
+3. Inspect existing features/components/patterns.
+
+## Hard constraints
+
+- No `git commit` / `git push` / tags / remote changes unless the user explicitly asks.
+- No CRM business screens, auth, or Netlify connection unless requested.
+- No HTTP calls from presentational components — use `src/services/http/`.
+- Pinia for app/UI state; TanStack Query for remote data — no duplication.
+- TypeScript strict; no `any` / `@ts-ignore` without justification.
+- Source files ≤ 1000 lines (prefer ≤ 500).
+- Update feature/component Markdown + CHANGELOG in the same task.
+- Run `pnpm check` before reporting completion of non-trivial changes.
+
+## References
+
+- Architecture: `docs/architecture/`
+- Standards: `docs/standards/`
+- Features: `docs/features/`
+- Components: `docs/components/`
+- ADRs: `docs/decisions/`

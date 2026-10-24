@@ -1,0 +1,15 @@
+---
+description: Rules for shared Vue components
+globs:
+  - src/components/**/*
+  - docs/components/**/*.md
+alwaysApply: false
+---
+
+# Global components
+
+Canonical rules: [docs/standards/components.md](../../docs/standards/components.md).
+
+- Promote to `src/components/` only when reused across features.
+- Document each global component in `docs/components/`.
+- Prefer Vuetify building blocks before custom UI.

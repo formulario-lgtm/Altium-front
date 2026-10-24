@@ -1,0 +1,16 @@
+---
+description: Rules when creating or changing feature modules and screens
+globs:
+  - src/features/**/*
+  - docs/features/**/*.md
+alwaysApply: false
+---
+
+# Features
+
+Follow [docs/standards/documentation.md](../../docs/standards/documentation.md) and [docs/features/README.md](../../docs/features/README.md).
+
+- Keep feature code under `src/features/<feature>/`.
+- Document behavior under `docs/features/<feature>/` in the same task.
+- Update the features index.
+- Do not mark unimplemented CRM flows as shipped.
