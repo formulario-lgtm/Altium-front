@@ -4,7 +4,7 @@ import { useUiStore } from '@/stores/ui.store';
 
 const uiStore = useUiStore();
 
-const label = computed(() => (uiStore.isDark ? 'Switch to light theme' : 'Switch to dark theme'));
+const label = computed(() => (uiStore.isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'));
 const icon = computed(() => (uiStore.isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'));
 </script>
 

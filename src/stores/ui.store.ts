@@ -7,11 +7,15 @@ const STORAGE_KEY = 'altium.ui.theme';
 
 function readStoredTheme(): ThemeMode {
   if (typeof window === 'undefined') {
-    return 'light';
+    return 'dark';
   }
 
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === 'dark' ? 'dark' : 'light';
+  if (stored === 'light' || stored === 'dark') {
+    return stored;
+  }
+  // Default for first visit (and unknown values): dark mode.
+  return 'dark';
 }
 
 function persistTheme(mode: ThemeMode): void {

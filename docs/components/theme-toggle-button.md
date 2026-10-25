@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Icon button that toggles the application light/dark theme via the UI store.
+Icon button that toggles the application light/dark theme via the UI store. Present in `AuthLayout` and `AppHeader`.
 
 ## Code location
 
@@ -25,8 +25,8 @@ None. Uses `useUiStore` internally.
 
 ## States
 
-- Light mode → shows night icon; aria-label “Switch to dark theme”.
-- Dark mode → shows sunny icon; aria-label “Switch to light theme”.
+- Light mode → night icon; aria-label “Cambiar a tema oscuro”.
+- Dark mode → sunny icon; aria-label “Cambiar a tema claro”.
 
 ## Responsive
 
@@ -46,3 +46,4 @@ Icon button; usable on all breakpoints.
 
 - Do not call HTTP from this component.
 - Theme persistence is limited to a non-sensitive preference key in `localStorage` (`altium.ui.theme`).
+- Colors come from `src/styles/tokens.ts` — see [visual identity](../architecture/visual-identity.md).

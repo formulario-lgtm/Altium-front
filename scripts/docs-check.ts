@@ -10,6 +10,7 @@ const requiredFiles = [
   'docs/architecture/overview.md',
   'docs/architecture/project-structure.md',
   'docs/architecture/api-integration.md',
+  'docs/architecture/visual-identity.md',
   'docs/standards/coding-standards.md',
   'docs/standards/ui-ux.md',
   'docs/standards/components.md',
@@ -21,10 +22,9 @@ const requiredFiles = [
   'docs/guides/development.md',
   'docs/guides/environments.md',
   'docs/guides/openapi-types.md',
+  'docs/guides/authentication.md',
   'docs/features/README.md',
-  'docs/features/system-status/overview.md',
   'docs/components/README.md',
-  'docs/components/theme-toggle-button.md',
   'docs/decisions/README.md',
   'docs/decisions/0001-project-root-and-stack.md',
   'docs/decisions/0002-deferred-form-and-chart-libraries.md',
@@ -32,6 +32,18 @@ const requiredFiles = [
   'docs/decisions/0004-openapi-fetch-over-axios.md',
   'contracts/openapi.json',
   'src/types/generated/api.ts',
+];
+
+/** Feature folders: each needs `docs/features/<name>/overview.md` and an index entry. */
+const requiredFeatures = [
+  'system-status',
+  'auth',
+  'account',
+  'home',
+  'users',
+  'teams',
+  'roles',
+  'audit',
 ];
 
 const requiredCursorRules = ['.cursor/rules/project.mdc'];
@@ -76,6 +88,7 @@ function main(): void {
     ...walkVueComponents(join(root, 'src/components/common')),
     ...walkVueComponents(join(root, 'src/components/layout')),
   ];
+  const globalComponentDocs: Array<{ baseName: string; kebab: string }> = [];
 
   for (const componentPath of globalComponents) {
     const baseName =
@@ -94,15 +107,33 @@ function main(): void {
         message: `Global component ${baseName} requires docs/components/${kebab}.md`,
       });
     }
+    globalComponentDocs.push({ baseName, kebab });
   }
 
   const featuresIndex = join(root, 'docs/features/README.md');
-  if (existsSync(featuresIndex)) {
-    const content = readFileSync(featuresIndex, 'utf8');
-    if (!content.includes('system-status')) {
+  const indexContent = existsSync(featuresIndex) ? readFileSync(featuresIndex, 'utf8') : '';
+  for (const feature of requiredFeatures) {
+    const docPath = `docs/features/${feature}/overview.md`;
+    if (!existsSync(join(root, docPath))) {
+      findings.push({ level: 'error', message: `Missing feature documentation: ${docPath}` });
+    }
+    if (!indexContent.includes(`${feature}/overview.md`)) {
       findings.push({
         level: 'error',
-        message: 'docs/features/README.md must index system-status',
+        message: `docs/features/README.md must index ${feature}`,
+      });
+    }
+  }
+
+  const componentsIndex = join(root, 'docs/components/README.md');
+  const componentsContent = existsSync(componentsIndex)
+    ? readFileSync(componentsIndex, 'utf8')
+    : '';
+  for (const { baseName, kebab } of globalComponentDocs) {
+    if (!componentsContent.includes(`${kebab}.md`)) {
+      findings.push({
+        level: 'error',
+        message: `docs/components/README.md must index ${baseName} (${kebab}.md)`,
       });
     }
   }

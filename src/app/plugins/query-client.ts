@@ -28,6 +28,9 @@ export function createAppQueryClient(): QueryClient {
   });
 }
 
+/** Shared instance so session handlers can clear cached remote data on logout/401. */
+export const appQueryClient = createAppQueryClient();
+
 export const vueQueryPluginOptions: VueQueryPluginOptions = {
-  queryClient: createAppQueryClient(),
+  queryClient: appQueryClient,
 };

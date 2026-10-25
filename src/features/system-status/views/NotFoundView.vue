@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useThemeSync } from '@/composables/useThemeSync';
 
-const router = useRouter();
+useThemeSync();
 </script>
 
 <template>
   <v-app>
     <v-main class="d-flex align-center justify-center">
       <div class="text-center pa-6">
-        <h1 class="text-h4 mb-2">Page not found</h1>
-        <p class="text-medium-emphasis mb-6">The requested route does not exist.</p>
-        <v-btn color="primary" @click="router.push({ name: 'system-status' })">
-          Back to system status
-        </v-btn>
+        <p class="altium-brand text-primary mb-6">Altium</p>
+        <h1 class="text-h4 mb-2">Página no encontrada</h1>
+        <p class="text-medium-emphasis mb-6">La ruta solicitada no existe.</p>
+        <v-btn color="primary" :to="{ name: 'home' }">Volver al inicio</v-btn>
       </div>
     </v-main>
   </v-app>

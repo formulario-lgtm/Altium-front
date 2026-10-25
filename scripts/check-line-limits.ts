@@ -5,6 +5,8 @@ const root = process.cwd();
 const MAX_LINES = 1000;
 const SOFT_LIMIT = 500;
 const targets = ['src', 'tests', 'scripts'];
+/** Generated from the OpenAPI contract; must not be hand-edited or split (also ignored by ESLint/Prettier). */
+const excludedPrefixes = ['src/types/generated/'];
 
 function walk(dir: string): string[] {
   if (!existsSync(dir)) {
@@ -33,6 +35,9 @@ function main(): void {
       const content = readFileSync(file, 'utf8');
       const lineCount = content.length === 0 ? 0 : content.split(/\r?\n/).length;
       const rel = relative(root, file).replace(/\\/g, '/');
+      if (excludedPrefixes.some((prefix) => rel.startsWith(prefix))) {
+        continue;
+      }
 
       if (lineCount > MAX_LINES) {
         violations.push(`${rel}: ${lineCount} lines (max ${MAX_LINES})`);

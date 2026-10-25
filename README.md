@@ -2,7 +2,7 @@
 
 Vue 3 + Vuetify frontend foundations for the Altium enterprise CRM.
 
-> Status: **bootstrap / configuration stage** (`0.1.0`). No CRM business modules or auth yet. Minimal shell: system status + theme toggle + optional API health probe.
+> Status: **Stage 5** (`0.1.0`, unreleased changes). Cookie-session authentication against Altium-back, plus admin screens: users, teams, roles/permissions, audit and own account. No commercial CRM modules yet. See [docs/features/README.md](docs/features/README.md) and [docs/guides/authentication.md](docs/guides/authentication.md).
 
 ## Quick start
 

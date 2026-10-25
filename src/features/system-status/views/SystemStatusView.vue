@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import PageHeader from '@/components/common/PageHeader.vue';
 import { appEnv } from '@/config/env';
 import { useApiHealthQuery } from '@/features/system-status/composables/useApiHealthQuery';
 
@@ -15,9 +16,9 @@ const healthChipColor = computed(() => {
 });
 
 const healthLabel = computed(() => {
-  if (!enabled.value) return 'Health check disabled';
-  if (query.isPending.value) return 'Checking API…';
-  if (query.isError.value) return 'API unavailable';
+  if (!enabled.value) return 'Sonda deshabilitada';
+  if (query.isPending.value) return 'Verificando API…';
+  if (query.isError.value) return 'API no disponible';
   return `API ${query.data.value?.status ?? 'ok'}`;
 });
 
@@ -27,14 +28,11 @@ function retryHealth(): void {
 </script>
 
 <template>
-  <div class="mx-auto" style="max-width: 720px">
-    <header class="mb-6">
-      <h1 class="text-h4 font-weight-bold mb-2">System status</h1>
-      <p class="text-body-1 text-medium-emphasis mb-0">
-        Minimal bootstrap screen to verify Vue, Vuetify, routing, and theming. CRM modules are not
-        implemented yet.
-      </p>
-    </header>
+  <div style="max-width: 720px">
+    <PageHeader
+      title="Estado del sistema"
+      subtitle="Información técnica del frontend y sonda opcional de la API."
+    />
 
     <v-row dense>
       <v-col cols="12" md="6">
@@ -43,8 +41,8 @@ function retryHealth(): void {
           <v-card-text>
             <v-list density="compact" class="bg-transparent pa-0">
               <v-list-item title="Framework" subtitle="Vue 3 + Vite + Vuetify 3" />
-              <v-list-item title="State" subtitle="Pinia (UI) · TanStack Query (remote)" />
-              <v-list-item title="HTTP" :subtitle="appEnv.apiBaseUrl" />
+              <v-list-item title="Estado" subtitle="Pinia (UI/sesión) · TanStack Query (remoto)" />
+              <v-list-item title="API" :subtitle="appEnv.apiBaseUrl" />
             </v-list>
           </v-card-text>
         </v-card>
@@ -52,14 +50,14 @@ function retryHealth(): void {
 
       <v-col cols="12" md="6">
         <v-card>
-          <v-card-title>API probe</v-card-title>
+          <v-card-title>Sonda de API</v-card-title>
           <v-card-text>
             <v-chip class="mb-3" :color="healthChipColor" variant="tonal" label>
               {{ healthLabel }}
             </v-chip>
             <p v-if="!enabled" class="text-body-2 text-medium-emphasis mb-0">
-              Set <code>VITE_ENABLE_HEALTH_CHECK=true</code> to call <code>GET /health</code>. The
-              UI runs without the backend.
+              Define <code>VITE_ENABLE_HEALTH_CHECK=true</code> para consultar
+              <code>GET /health</code>.
             </p>
             <p v-else-if="errorMessage" class="text-body-2 text-error mb-3" role="alert">
               {{ errorMessage }}
@@ -71,7 +69,7 @@ function retryHealth(): void {
               prepend-icon="mdi-refresh"
               @click="retryHealth"
             >
-              Retry
+              Reintentar
             </v-btn>
           </v-card-text>
         </v-card>

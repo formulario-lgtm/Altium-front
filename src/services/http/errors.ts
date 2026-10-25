@@ -15,19 +15,49 @@ const KIND_BY_STATUS: Record<number, ApiErrorKind> = {
 };
 
 const SAFE_MESSAGE_BY_KIND: Record<ApiErrorKind, string> = {
-  validation: 'Please review the highlighted fields.',
-  bad_request: 'The request could not be processed.',
-  unauthorized: 'You need to sign in to continue.',
-  forbidden: 'You do not have permission to perform this action.',
-  not_found: 'The requested resource was not found.',
-  conflict: 'This action conflicts with the current state.',
-  rate_limited: 'Too many requests. Please wait and try again.',
-  server: 'Something went wrong on the server. Please try again later.',
-  network: 'Unable to reach the API. Check your connection or API URL.',
-  timeout: 'The request timed out. Please try again.',
-  cancelled: 'The request was cancelled.',
-  unknown: 'An unexpected error occurred.',
+  validation: 'Revisa los campos marcados.',
+  bad_request: 'No se pudo procesar la solicitud.',
+  unauthorized: 'Debes iniciar sesión para continuar.',
+  forbidden: 'No tienes permiso para realizar esta acción.',
+  not_found: 'No se encontró el recurso solicitado.',
+  conflict: 'La acción entra en conflicto con el estado actual.',
+  rate_limited: 'Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.',
+  server: 'Ocurrió un error en el servidor. Inténtalo más tarde.',
+  network: 'No se pudo conectar con la API. Revisa tu conexión o la URL de la API.',
+  timeout: 'La solicitud tardó demasiado. Inténtalo de nuevo.',
+  cancelled: 'La solicitud fue cancelada.',
+  unknown: 'Ocurrió un error inesperado.',
 };
+
+/** User-facing copy for backend error codes documented in Altium-back (auth guide). */
+const SAFE_MESSAGE_BY_CODE: Record<string, string> = {
+  AUTH_INVALID_CREDENTIALS: 'Correo o contraseña incorrectos.',
+  AUTH_ACCOUNT_PENDING: 'La cuenta aún no fue activada. Revisa el enlace de activación.',
+  AUTH_ACCOUNT_SUSPENDED: 'La cuenta está suspendida. Contacta a un administrador.',
+  AUTH_ACCOUNT_DISABLED: 'La cuenta está deshabilitada. Contacta a un administrador.',
+  AUTH_SESSION_EXPIRED: 'Tu sesión expiró. Inicia sesión nuevamente.',
+  AUTH_SESSION_REVOKED: 'Tu sesión fue cerrada. Inicia sesión nuevamente.',
+  AUTH_CSRF_INVALID: 'La sesión no pudo validarse. Recarga la página e inténtalo de nuevo.',
+  AUTH_PASSWORD_CHANGE_REQUIRED: 'Debes cambiar tu contraseña antes de continuar.',
+  AUTH_TOKEN_INVALID: 'El enlace no es válido o expiró. Solicita uno nuevo.',
+  AUTH_RATE_LIMITED: 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.',
+};
+
+/** Safe, user-facing message for any thrown value (prefers known backend codes). */
+export function apiErrorMessage(error: unknown, fallback = SAFE_MESSAGE_BY_KIND.unknown): string {
+  if (!isApiError(error)) {
+    return fallback;
+  }
+  const known = SAFE_MESSAGE_BY_CODE[error.code];
+  if (known) {
+    return known;
+  }
+  // 409 details explain business rules (e.g. last SUPER_ADMIN) and never contain secrets.
+  if (error.kind === 'conflict' && error.detail && error.detail !== error.title) {
+    return `${error.message} ${error.detail}`;
+  }
+  return error.message;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;

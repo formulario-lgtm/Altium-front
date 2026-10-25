@@ -16,7 +16,7 @@
 
 ## Size limits
 
-- Hard max **1000** lines (`pnpm check:lines`).
+- Hard max **1000** lines (`pnpm check:lines`). Generated files under `src/types/generated/` are excluded (never hand-edited or split).
 - Soft target **300–500**.
 
 ## Naming

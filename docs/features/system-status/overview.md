@@ -1,72 +1,40 @@
 # System status
 
-| Field        | Value                        |
-| ------------ | ---------------------------- |
-| Last updated | 2026-10-24                   |
-| Version      | 0.1.0                        |
-| Status       | Implemented (bootstrap only) |
+| Field        | Value       |
+| ------------ | ----------- |
+| Last updated | 2026-10-24  |
+| Version      | 0.1.0       |
+| Status       | Implemented |
 
 ## Goal
 
-Provide a minimal screen to verify Vue, Vuetify, routing, theming, and optional API connectivity. Not a CRM module.
+Technical screen to verify runtime and optional API connectivity, plus the forbidden and not-found pages. Not a CRM module.
 
-## Route
+## Routes
 
-- `/` → `system-status`
-- Unknown paths → not-found view
+- `/system` → `system-status` (authenticated shell)
+- `/forbidden` → `forbidden` (authenticated shell; target of the permission guard)
+- Unknown paths → `not-found` (`meta.public`, standalone)
 
 ## Expected behavior
 
-- Show app title and runtime summary.
-- Toggle light/dark theme from the app bar.
-- If `VITE_ENABLE_HEALTH_CHECK=true`, probe `GET {API}/health` via TanStack Query.
-- UI remains usable when the API is down or the probe is disabled.
+- Runtime summary (framework, state libs, API base URL).
+- If `VITE_ENABLE_HEALTH_CHECK=true`, probe `GET {API}/health` via TanStack Query; otherwise an informative chip.
+- Forbidden: `EmptyState` with “Ir al inicio”.
 
 ## Components
 
-- Layout: `AppShellLayout`
-- `ThemeToggleButton`
-- Views: `SystemStatusView`, `NotFoundView`
+`PageHeader`, `EmptyState`; views `SystemStatusView`, `ForbiddenView`, `NotFoundView`.
 
 ## Composables / stores
 
-- `useThemeSync`
-- `useApiHealthQuery`
-- `useUiStore` (theme)
+`useApiHealthQuery`, `useThemeSync`, `useUiStore`.
 
 ## Services / endpoints
 
-- `fetchHealth()` → `GET /health` (optional)
-
-## Validations
-
-None (no forms).
-
-## Loading / empty / error
-
-- Disabled probe: informative chip + instructions.
-- Pending: “Checking API…”.
-- Error: message from centralized API error mapper + Retry.
-- Success: chip shows API status string.
-
-## Permissions
-
-None.
-
-## Business rules
-
-N/A — technical bootstrap screen.
-
-## User interactions
-
-- Theme toggle.
-- Retry health check when enabled.
-
-## Responsive
-
-Cards stack on small screens (`cols="12"` / `md="6"`).
+`fetchHealth()` → `GET /health` (optional).
 
 ## Tests
 
 - Unit: `tests/unit/ThemeToggleButton.spec.ts`, `src/stores/ui.store.spec.ts`, `src/config/env.spec.ts`
-- E2E: `tests/e2e/system-status.spec.ts`
+- E2E: `tests/e2e/system-status.spec.ts` (theme toggle on login, system page in shell)

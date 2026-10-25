@@ -1,6 +1,90 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createApiClient, parseApiResult, REQUEST_ID_HEADER } from './client';
+import {
+  createApiClient,
+  onUnauthorized,
+  parseApiResult,
+  parseEmptyResult,
+  REQUEST_ID_HEADER,
+} from './client';
+import { clearCsrfToken, getCsrfToken, setCsrfToken } from './csrf';
 import { isApiError } from './errors';
+
+function problem(status: number, code: string): Response {
+  return new Response(JSON.stringify({ type: 'about:blank', title: code, status, code }), {
+    status,
+    headers: { 'content-type': 'application/problem+json' },
+  });
+}
+
+describe('session middleware', () => {
+  afterEach(() => {
+    clearCsrfToken();
+  });
+
+  it('attaches x-csrf-token on mutating requests from memory', async () => {
+    setCsrfToken('csrf-memory');
+    const seen: Array<string | null> = [];
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      seen.push(new Request(input, init).headers.get('x-csrf-token'));
+      return new Response(null, { status: 204 });
+    });
+    const client = createApiClient({
+      baseUrl: 'http://api.test',
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    const result = await client.POST('/api/v1/auth/logout', {
+      params: { header: { 'x-csrf-token': '' } },
+    });
+    expect(() => parseEmptyResult(result)).not.toThrow();
+    expect(seen).toEqual(['csrf-memory']);
+  });
+
+  it('does not attach x-csrf-token on GET', async () => {
+    setCsrfToken('csrf-memory');
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      expect(new Request(input, init).headers.get('x-csrf-token')).toBeNull();
+      return Response.json({ status: 'ok' });
+    });
+    const client = createApiClient({
+      baseUrl: 'http://api.test',
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+    await client.GET('/health');
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it('notifies 401 handlers and clears CSRF for authenticated routes', async () => {
+    setCsrfToken('csrf-memory');
+    const handler = vi.fn();
+    const unregister = onUnauthorized(handler);
+    const client = createApiClient({
+      baseUrl: 'http://api.test',
+      fetch: vi.fn(async () => problem(401, 'AUTH_SESSION_EXPIRED')) as unknown as typeof fetch,
+    });
+
+    const result = await client.GET('/api/v1/users');
+    unregister();
+
+    expect(handler).toHaveBeenCalledOnce();
+    expect(getCsrfToken()).toBeNull();
+    expect(() => parseApiResult(result)).toThrow();
+  });
+
+  it('does not notify 401 handlers for login failures', async () => {
+    const handler = vi.fn();
+    const unregister = onUnauthorized(handler);
+    const client = createApiClient({
+      baseUrl: 'http://api.test',
+      fetch: vi.fn(async () => problem(401, 'AUTH_INVALID_CREDENTIALS')) as unknown as typeof fetch,
+    });
+
+    await client.POST('/api/v1/auth/login', { body: { email: 'a@b.co', password: 'x' } });
+    unregister();
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+});
 
 describe('createApiClient', () => {
   afterEach(() => {

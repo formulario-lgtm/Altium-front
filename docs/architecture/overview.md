@@ -12,7 +12,7 @@ Altium CRM frontend is a **feature-oriented SPA**: Vue 3 + Vite, Vuetify for UI,
 | Shared UI            | `src/components/*`   | Only when reused across features           |
 | Layouts              | `src/layouts/`       | App chrome                                 |
 | HTTP                 | `src/services/http/` | `openapi-fetch` client + domain services   |
-| App state            | `src/stores/`        | Theme, session shell (future), UI prefs    |
+| App state            | `src/stores/`        | Theme, authenticated session, UI prefs     |
 | Remote state         | TanStack Query       | Cache, retries, loading/error for API data |
 | Config               | `src/config/`        | Env-derived settings                       |
 
@@ -22,9 +22,14 @@ Altium CRM frontend is a **feature-oriented SPA**: Vue 3 + Vite, Vuetify for UI,
 2. Services call `apiClient` — never raw `fetch` in components.
 3. Query cache holds remote entities; Pinia holds cross-cutting UI/app state only.
 
+## Auth & admin (Stage 5)
+
+- Cookie session + CSRF double submit, router guards and RBAC-aware navigation: [guides/authentication.md](../guides/authentication.md).
+- Admin modules: users, teams, roles/permissions, audit, own account (see `docs/features/`).
+- Forms: VeeValidate + Zod (ADR 0002 amendment). Visual tokens: [visual-identity.md](visual-identity.md).
+
 ## Extension points
 
-- Auth/session (cookie-based with backend) — not implemented.
-- Feature modules (customers, opportunities, dashboard).
-- Form validation (VeeValidate + Zod) and charts (ECharts) when first needed.
+- Commercial CRM modules (customers, opportunities, sales, dashboard).
+- Charts (ECharts) and advanced grids (AG Grid) when first needed.
 - Netlify deploy using `netlify.toml`.

@@ -1,5 +1,11 @@
+@use './settings.scss';
+
 :root {
   color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html,
@@ -10,4 +16,42 @@ body,
 
 body {
   margin: 0;
+  background: rgb(var(--v-theme-background));
+  color: rgb(var(--v-theme-on-background));
+}
+
+a {
+  color: rgb(var(--v-theme-primary));
+}
+
+.altium-page {
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.altium-clickable-rows tbody tr {
+  cursor: pointer;
+}
+
+.altium-json {
+  margin: 0;
+  padding: 0.75rem;
+  max-height: 280px;
+  overflow: auto;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  background: rgb(var(--v-theme-background));
+}
+
+.altium-subtle-border {
+  border-color: rgba(var(--v-border-color), var(--v-border-opacity)) !important;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 2px;
 }

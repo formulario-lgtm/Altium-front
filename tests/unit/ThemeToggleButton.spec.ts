@@ -14,8 +14,8 @@ describe('ThemeToggleButton', () => {
     const wrapper = mount(ThemeToggleButton);
     const store = useUiStore();
 
-    expect(store.themeMode).toBe('light');
-    await wrapper.get('button').trigger('click');
     expect(store.themeMode).toBe('dark');
+    await wrapper.get('button').trigger('click');
+    expect(store.themeMode).toBe('light');
   });
 });

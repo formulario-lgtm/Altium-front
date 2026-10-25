@@ -31,7 +31,7 @@ describe('toApiErrorFromResponse', () => {
 
     expect(apiError.kind).toBe('validation');
     expect(apiError.code).toBe('VALIDATION_ERROR');
-    expect(apiError.message).toBe('Please review the highlighted fields.');
+    expect(apiError.message).toBe('Revisa los campos marcados.');
     expect(apiError.fieldErrors).toHaveLength(1);
     expect(fieldErrorsToMap(apiError)).toEqual({ email: 'email must be an email' });
   });

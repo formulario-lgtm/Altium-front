@@ -6,7 +6,7 @@ Entry point for Codex and Cursor. Keep this file short; follow linked docs for d
 
 Single-tenant enterprise CRM UI for Altium (~20 users initially). Talks to a NestJS + Fastify REST API. Hosting target: Netlify (not connected yet).
 
-This repository currently contains **technical foundations only** — no CRM business screens.
+This repository contains the technical foundations plus **Stage 5: authentication (cookie session + CSRF), own account, users, teams, roles/permissions and audit**. No commercial CRM screens (customers, sales, dashboards) yet.
 
 ## Stack
 
@@ -20,10 +20,13 @@ This repository currently contains **technical foundations only** — no CRM bus
 | Server state | TanStack Vue Query                              |
 | HTTP         | `openapi-fetch` (native fetch) + typed paths    |
 | API contract | `contracts/openapi.json` + `openapi-typescript` |
+| Forms        | VeeValidate + Zod (`@vee-validate/zod`)         |
 | Tests        | Vitest + Vue Test Utils; Playwright E2E         |
 | Tooling      | TypeScript strict, ESLint, Prettier, pnpm       |
 
-**Deferred (documented, not installed):** VeeValidate + Zod, Apache ECharts, AG Grid. See ADR `0002`.
+**Deferred (documented, not installed):** Apache ECharts, AG Grid. See ADR `0002` (amended: VeeValidate + Zod installed in Stage 5).
+
+Auth/session: [docs/guides/authentication.md](docs/guides/authentication.md). Visual tokens: [docs/architecture/visual-identity.md](docs/architecture/visual-identity.md).
 
 Contract sync: [docs/architecture/api-integration.md](docs/architecture/api-integration.md), [docs/guides/openapi-types.md](docs/guides/openapi-types.md).
 
@@ -70,15 +73,17 @@ Full standards: [docs/standards/coding-standards.md](docs/standards/coding-stand
 - Base URL, AbortController timeout, `credentials: 'include'` from `VITE_*` env.
 - Use `openapi-fetch` + generated OpenAPI types; do not invent backend DTOs.
 - Never manually edit `src/types/generated/**`. Do not reintroduce Axios.
-- Central Problem Details mapping (incl. 401/403 hooks for future auth/CSRF).
-- No JWT/session in `localStorage`. No secrets in `VITE_*`.
+- Central Problem Details mapping; `apiErrorMessage()` for user-facing copy.
+- Cookie session (`altium_session`, HttpOnly) + CSRF double submit: `x-csrf-token` on mutating calls from the in-memory store `src/services/http/csrf.ts` (fallback: `altium_csrf` cookie). 401 → `onUnauthorized` hook clears session and redirects to `/login`.
+- Session state in `src/stores/auth.store.ts` (Pinia, memory only). Routes use `meta.requiresAuth` / `guestOnly` / `permissions` (`src/app/router/guards.ts`).
+- No JWT/session/CSRF/password in `localStorage` (only theme and opt-in remembered email `altium.auth.rememberedEmail`). No secrets in `VITE_*`.
 - Optional `/health` probe behind `VITE_ENABLE_HEALTH_CHECK` — UI must run without API.
 - Keep HTTP out of presentational components.
 
 ## Testing
 
 - Unit: Vitest + VTU (`*.spec.ts`).
-- E2E: Playwright (`tests/e2e`).
+- E2E: Playwright (`tests/e2e`) with typed API mocks (`tests/e2e/support/api-mock.ts`) — no live backend.
 - New behavior ships with tests in the same task.
 
 See [docs/standards/testing.md](docs/standards/testing.md).
@@ -145,6 +150,6 @@ pnpm check             # includes api:check
 
 ## Scope boundaries
 
-**In scope now:** Vite/Vue/Vuetify bootstrap, themes, router shell, OpenAPI-typed HTTP client, optional health probe, tooling, docs, CI.
+**In scope now:** Vite/Vue/Vuetify bootstrap, themes, OpenAPI-typed HTTP client, optional health probe, tooling, docs, CI, **Stage 5**: login/forgot/reset/activate, guards + RBAC navigation, own account (password, sessions), users, teams, roles/permissions, audit.
 
-**Out of scope now:** Login, CRM modules, real auth, Netlify connection, AG Grid, charts, form library install.
+**Out of scope now:** Commercial CRM modules (customers, sales, dashboards/KPIs), Netlify connection, AG Grid, charts, MFA.

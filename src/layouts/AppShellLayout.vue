@@ -1,29 +1,57 @@
 <script setup lang="ts">
-import ThemeToggleButton from '@/components/layout/ThemeToggleButton.vue';
+import { ref, watch } from 'vue';
+import { useDisplay } from 'vuetify';
+import AppHeader from '@/components/layout/AppHeader.vue';
+import AppNavigation from '@/components/layout/AppNavigation.vue';
+import { useNavigationItems } from '@/composables/useNavigationItems';
 import { useThemeSync } from '@/composables/useThemeSync';
-import { appEnv } from '@/config/env';
+import { useLogoutMutation } from '@/features/auth/composables/useAuthMutations';
+import { useAuthStore } from '@/stores/auth.store';
 
 useThemeSync();
+
+const auth = useAuthStore();
+const { mdAndUp } = useDisplay();
+const { items } = useNavigationItems();
+const logoutMutation = useLogoutMutation();
+
+const drawer = ref(mdAndUp.value);
+watch(mdAndUp, (desktop) => {
+  drawer.value = desktop;
+});
+
+function logout(): void {
+  logoutMutation.mutate();
+}
 </script>
 
 <template>
   <v-app>
-    <v-app-bar flat border color="surface" density="comfortable">
-      <v-app-bar-title class="text-primary font-weight-bold">
-        {{ appEnv.appTitle }}
-      </v-app-bar-title>
-      <v-spacer />
-      <ThemeToggleButton />
-    </v-app-bar>
+    <AppHeader
+      :user-name="auth.displayName"
+      :role-code="auth.roleCode"
+      :show-nav-toggle="!auth.mustChangePassword"
+      :logging-out="logoutMutation.isPending.value"
+      @toggle-nav="drawer = !drawer"
+      @logout="logout"
+    />
+
+    <v-navigation-drawer
+      v-if="!auth.mustChangePassword"
+      v-model="drawer"
+      :permanent="mdAndUp"
+      :temporary="!mdAndUp"
+      width="248"
+      border
+      elevation="0"
+    >
+      <AppNavigation :items="items" />
+    </v-navigation-drawer>
 
     <v-main>
-      <v-container class="py-8" fluid>
+      <v-container class="py-6 py-md-8 altium-page" fluid>
         <router-view />
       </v-container>
     </v-main>
-
-    <v-footer app class="justify-center text-medium-emphasis text-caption py-3">
-      Bootstrap stage · Vue 3 + Vuetify
-    </v-footer>
   </v-app>
 </template>

@@ -2,39 +2,85 @@ import '@mdi/font/css/materialdesignicons.css';
 import 'vuetify/styles';
 import { createVuetify } from 'vuetify';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
+import { en, es } from 'vuetify/locale';
+import { altiumTokens } from '@/styles/tokens';
+
+const light = altiumTokens.light;
+const dark = altiumTokens.dark;
 
 export const lightTheme = {
   dark: false,
   colors: {
-    background: '#F5F7FA',
-    surface: '#FFFFFF',
-    primary: '#1565C0',
-    secondary: '#455A64',
-    success: '#2E7D32',
-    warning: '#ED6C02',
-    error: '#C62828',
-    info: '#0277BD',
+    background: light.background,
+    surface: light.surface,
+    'surface-bright': light.surfaceElevated,
+    'surface-variant': light.border,
+    primary: light.primary,
+    'on-primary': light.onPrimary,
+    secondary: light.textSecondary,
+    'on-secondary': light.surface,
+    success: light.success,
+    warning: light.warning,
+    error: light.error,
+    info: light.info,
+    'on-background': light.textPrimary,
+    'on-surface': light.textPrimary,
+    'on-surface-variant': light.textSecondary,
+  },
+  variables: {
+    'border-color': light.border,
+    'border-opacity': 1,
+    'high-emphasis-opacity': 0.92,
+    'medium-emphasis-opacity': 0.72,
+    'disabled-opacity': 0.42,
+    'hover-opacity': 0.04,
+    'focus-opacity': 0.08,
+    'selected-opacity': 0.08,
+    'activated-opacity': 0.1,
   },
 };
 
 export const darkTheme = {
   dark: true,
   colors: {
-    background: '#0F1419',
-    surface: '#1A222C',
-    primary: '#90CAF9',
-    secondary: '#90A4AE',
-    success: '#81C784',
-    warning: '#FFB74D',
-    error: '#EF9A9A',
-    info: '#4FC3F7',
+    background: dark.background,
+    surface: dark.surface,
+    'surface-bright': dark.surfaceElevated,
+    'surface-variant': dark.border,
+    primary: dark.primary,
+    'on-primary': dark.onPrimary,
+    secondary: dark.textSecondary,
+    'on-secondary': dark.background,
+    success: dark.success,
+    warning: dark.warning,
+    error: dark.error,
+    info: dark.info,
+    'on-background': dark.textPrimary,
+    'on-surface': dark.textPrimary,
+    'on-surface-variant': dark.textSecondary,
+  },
+  variables: {
+    'border-color': dark.border,
+    'border-opacity': 1,
+    'high-emphasis-opacity': 0.95,
+    'medium-emphasis-opacity': 0.72,
+    'disabled-opacity': 0.4,
+    'hover-opacity': 0.06,
+    'focus-opacity': 0.1,
+    'selected-opacity': 0.12,
+    'activated-opacity': 0.12,
   },
 };
 
 export function createVuetifyPlugin() {
   return createVuetify({
+    locale: {
+      locale: 'es',
+      fallback: 'en',
+      messages: { es, en },
+    },
     theme: {
-      defaultTheme: 'light',
+      defaultTheme: 'dark',
       themes: {
         light: lightTheme,
         dark: darkTheme,
@@ -48,10 +94,44 @@ export function createVuetifyPlugin() {
     defaults: {
       VBtn: {
         rounded: 'md',
+        elevation: 0,
       },
       VCard: {
         rounded: 'lg',
-        elevation: 1,
+        elevation: 0,
+        border: true,
+      },
+      VTextField: {
+        variant: 'outlined',
+        density: 'comfortable',
+        color: 'primary',
+        hideDetails: 'auto',
+      },
+      VSelect: {
+        variant: 'outlined',
+        density: 'comfortable',
+        color: 'primary',
+        hideDetails: 'auto',
+      },
+      VTextarea: {
+        variant: 'outlined',
+        density: 'comfortable',
+        color: 'primary',
+        hideDetails: 'auto',
+      },
+      VChip: {
+        rounded: 'md',
+        size: 'small',
+      },
+      VDialog: {
+        scrim: true,
+      },
+      VDataTable: {
+        hover: true,
+      },
+      VAlert: {
+        rounded: 'lg',
+        variant: 'tonal',
       },
     },
   });

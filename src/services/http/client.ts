@@ -1,10 +1,47 @@
 import createClient, { type Client, type Middleware } from 'openapi-fetch';
 import { apiConfig } from '@/config/api';
 import type { paths } from '@/types/generated/api';
+import { clearCsrfToken, CSRF_HEADER, getCsrfToken, isMutatingMethod } from './csrf';
 import { toApiError, toApiErrorFromResponse } from './errors';
 import { createTimedFetch } from './timed-fetch';
 
 export const REQUEST_ID_HEADER = 'x-request-id';
+
+/** Public auth routes answer 401 for bad credentials; they must not end the session. */
+const UNAUTHORIZED_EXEMPT_PATHS = [
+  '/api/v1/auth/login',
+  '/api/v1/auth/forgot-password',
+  '/api/v1/auth/reset-password',
+  '/api/v1/auth/activate',
+];
+
+export type UnauthorizedHandler = (context: { url: string }) => void;
+
+const unauthorizedHandlers = new Set<UnauthorizedHandler>();
+
+/** Registers a 401 listener (auth store / router). Returns an unregister function. */
+export function onUnauthorized(handler: UnauthorizedHandler): () => void {
+  unauthorizedHandlers.add(handler);
+  return () => {
+    unauthorizedHandlers.delete(handler);
+  };
+}
+
+function isUnauthorizedExempt(url: string): boolean {
+  try {
+    const { pathname } = new URL(url);
+    return UNAUTHORIZED_EXEMPT_PATHS.some((path) => pathname.endsWith(path));
+  } catch {
+    return false;
+  }
+}
+
+function notifyUnauthorized(url: string): void {
+  clearCsrfToken();
+  for (const handler of unauthorizedHandlers) {
+    handler({ url });
+  }
+}
 
 export type CreateApiClientOptions = {
   baseUrl?: string;
@@ -28,14 +65,34 @@ function createTracingMiddleware(): Middleware {
       if (!request.headers.has(REQUEST_ID_HEADER)) {
         request.headers.set(REQUEST_ID_HEADER, createRequestId());
       }
-
-      // Future cookie auth: attach CSRF header here when the backend issues a CSRF cookie.
-      // Example: request.headers.set('x-csrf-token', readCsrfCookie());
-
       return request;
     },
     async onError({ error }) {
       return toApiError(error);
+    },
+  };
+}
+
+function createSessionMiddleware(): Middleware {
+  return {
+    async onRequest({ request }) {
+      if (!isMutatingMethod(request.method)) {
+        return request;
+      }
+
+      const token = getCsrfToken();
+      if (token) {
+        request.headers.set(CSRF_HEADER, token);
+      } else if (!request.headers.get(CSRF_HEADER)) {
+        request.headers.delete(CSRF_HEADER);
+      }
+      return request;
+    },
+    async onResponse({ request, response }) {
+      if (response.status === 401 && !isUnauthorizedExempt(request.url)) {
+        notifyUnauthorized(request.url);
+      }
+      return response;
     },
   };
 }
@@ -55,7 +112,7 @@ export function createApiClient(options: CreateApiClientOptions = {}): Client<pa
     fetch: createTimedFetch(timeoutMs, baseFetch),
   });
 
-  client.use(createTracingMiddleware());
+  client.use(createTracingMiddleware(), createSessionMiddleware());
   return client;
 }
 
@@ -72,6 +129,15 @@ export function parseApiResult<TData>(result: {
 }): TData {
   if (result.response.ok && result.data !== undefined) {
     return result.data;
+  }
+
+  throw toApiErrorFromResponse(result.response, result.error);
+}
+
+/** Same as `parseApiResult` for `204 No Content` operations. */
+export function parseEmptyResult(result: { error?: unknown; response: Response }): void {
+  if (result.response.ok) {
+    return;
   }
 
   throw toApiErrorFromResponse(result.response, result.error);
