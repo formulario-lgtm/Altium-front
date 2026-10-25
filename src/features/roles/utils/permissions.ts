@@ -12,7 +12,7 @@ export const PROTECTED_SUPER_ADMIN_PERMISSIONS: readonly string[] = [
 
 export const SUPER_ADMIN_ROLE_CODE = 'SUPER_ADMIN';
 
-/** Spanish labels for permission `resource` groups (codes stay English). */
+/** Spanish labels for permission `resource` groups (codes stay English in the API). */
 export const RESOURCE_LABELS: Record<string, string> = {
   users: 'Usuarios',
   teams: 'Equipos',
@@ -21,6 +21,10 @@ export const RESOURCE_LABELS: Record<string, string> = {
   auth: 'Sesiones y acceso',
   audit: 'Auditoría',
   sales: 'Ventas',
+  administrative: 'Administrativo',
+  supervision: 'Supervisión',
+  notifications: 'Notificaciones',
+  home: 'Inicio',
 };
 
 const RESOURCE_ORDER = [
@@ -31,6 +35,10 @@ const RESOURCE_ORDER = [
   'auth',
   'audit',
   'sales',
+  'administrative',
+  'supervision',
+  'notifications',
+  'home',
 ] as const;
 
 export type PermissionGroup = {

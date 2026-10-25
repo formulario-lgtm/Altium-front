@@ -15,7 +15,19 @@ import {
   sameCodes,
 } from '@/features/roles/utils/permissions';
 import { toCreateTeamBody, toUpdateTeamBody } from '@/features/teams/utils/team-payload';
-import { ageFromBirthDate, canEditSaleStatus, showFum } from '@/features/sales/utils/sale-labels';
+import {
+  ageFromBirthDate,
+  canEditSaleStatus,
+  canReturnForCorrection,
+  canStartReview,
+  documentTypeLabel,
+  healthPlanOptionLabel,
+  observationTypeLabel,
+  saleHistoryReasonLabel,
+  showFum,
+} from '@/features/sales/utils/sale-labels';
+import { auditActionLabel } from '@/utils/audit-labels';
+import { roleLabel } from '@/utils/role-labels';
 import { formModelToUpdateBody, saleToFormModel } from '@/features/sales/utils/sale-form-model';
 import { saleListSearchParams } from '@/features/sales/utils/sale-search';
 import { availableStatusTargets, canSendPasswordLink } from '@/features/users/utils/user-actions';
@@ -63,9 +75,21 @@ describe('role permissions helpers', () => {
       permission('users.update'),
       permission('audit.read'),
       permission('users.read'),
+      permission('administrative.dashboard.read'),
+      permission('notifications.read'),
     ]);
-    expect(groups.map((g) => g.resource)).toEqual(['users', 'audit']);
-    expect(groups.map((g) => g.label)).toEqual(['Usuarios', 'Auditoría']);
+    expect(groups.map((g) => g.resource)).toEqual([
+      'users',
+      'audit',
+      'administrative',
+      'notifications',
+    ]);
+    expect(groups.map((g) => g.label)).toEqual([
+      'Usuarios',
+      'Auditoría',
+      'Administrativo',
+      'Notificaciones',
+    ]);
     expect(groups[0]?.items.map((p) => p.code)).toEqual(['users.read', 'users.update']);
   });
 
@@ -114,6 +138,17 @@ describe('sales helpers', () => {
     expect(canEditSaleStatus('DRAFT')).toBe(true);
     expect(canEditSaleStatus('RETURNED')).toBe(true);
     expect(canEditSaleStatus('SUBMITTED')).toBe(false);
+    expect(canEditSaleStatus('IN_REVIEW')).toBe(false);
+  });
+
+  it('gates administrative review transitions', () => {
+    expect(canStartReview('SUBMITTED')).toBe(true);
+    expect(canStartReview('IN_REVIEW')).toBe(false);
+    expect(canReturnForCorrection('SUBMITTED')).toBe(true);
+    expect(canReturnForCorrection('IN_REVIEW')).toBe(true);
+    expect(canReturnForCorrection('RETURNED')).toBe(false);
+    expect(observationTypeLabel('INTERNAL_NOTE')).toBe('Nota interna');
+    expect(observationTypeLabel('CORRECTION_REQUEST')).toBe('Solicitud de corrección');
   });
 
   it('clears incompatible employment/tax payloads by customer type', () => {
@@ -135,6 +170,9 @@ describe('sales helpers', () => {
         firstName: 'Sol',
         lastName: 'Ruiz',
       },
+      administrativeAssignee: null,
+      reviewStartedAt: null,
+      lastReviewedAt: null,
       members: [],
       contact: null,
       employment: {
@@ -193,5 +231,24 @@ describe('team payloads', () => {
         isActive: true,
       }),
     ).toEqual({});
+  });
+});
+
+describe('Spanish display labels', () => {
+  it('maps roles, document types and audit actions', () => {
+    expect(roleLabel('SELLER')).toBe('Vendedor');
+    expect(documentTypeLabel('DNI_FRONT')).toBe('DNI frente');
+    expect(auditActionLabel('sale.document.upload')).toBe('Subida de documento de venta');
+  });
+
+  it('avoids duplicate plan labels when code equals name', () => {
+    expect(healthPlanOptionLabel({ code: 'A1', name: 'A1' })).toBe('A1');
+    expect(healthPlanOptionLabel({ code: 'A1', name: 'Plan A1' })).toBe('A1 — Plan A1');
+  });
+
+  it('translates legacy English sale history reasons', () => {
+    expect(saleHistoryReasonLabel('Sale draft created')).toBe('Borrador creado');
+    expect(saleHistoryReasonLabel('Borrador creado')).toBe('Borrador creado');
+    expect(saleHistoryReasonLabel(null)).toBeNull();
   });
 });

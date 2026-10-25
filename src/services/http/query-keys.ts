@@ -1,4 +1,16 @@
-import type { AuditLogQuery, SaleListQuery, TeamListQuery, UserListQuery } from './api-types';
+import type {
+  AuditLogQuery,
+  HomePeriodQuery,
+  HomePeriodTeamQuery,
+  NotificationListQuery,
+  SaleListQuery,
+  SupervisionAdministrativeListQuery,
+  SupervisionGoalsQuery,
+  SupervisionPeriodQuery,
+  SupervisionSellerListQuery,
+  TeamListQuery,
+  UserListQuery,
+} from './api-types';
 
 /**
  * Hierarchical query keys.
@@ -46,5 +58,46 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.sales.all, 'detail', id] as const,
     documents: (id: string) => [...queryKeys.sales.all, 'documents', id] as const,
     history: (id: string) => [...queryKeys.sales.all, 'history', id] as const,
+    observations: (id: string) => [...queryKeys.sales.all, 'observations', id] as const,
+    followUps: (id: string) => [...queryKeys.sales.all, 'follow-ups', id] as const,
+  },
+  administrative: {
+    all: ['administrative'] as const,
+    dashboard: () => [...queryKeys.administrative.all, 'dashboard'] as const,
+  },
+  supervision: {
+    all: ['supervision'] as const,
+    dashboard: (query: SupervisionPeriodQuery) =>
+      [...queryKeys.supervision.all, 'dashboard', query] as const,
+    sellers: (query: SupervisionSellerListQuery) =>
+      [...queryKeys.supervision.all, 'sellers', query] as const,
+    seller: (id: string, query: SupervisionPeriodQuery) =>
+      [...queryKeys.supervision.all, 'seller', id, query] as const,
+    comparison: (query: SupervisionPeriodQuery & { sellerIds: string[] }) =>
+      [...queryKeys.supervision.all, 'comparison', query] as const,
+    administratives: (query: SupervisionAdministrativeListQuery) =>
+      [...queryKeys.supervision.all, 'administratives', query] as const,
+    administrative: (id: string, query: SupervisionPeriodQuery) =>
+      [...queryKeys.supervision.all, 'administrative', id, query] as const,
+    goals: (query: SupervisionGoalsQuery) =>
+      [...queryKeys.supervision.all, 'goals', query] as const,
+    goalHistory: (id: string) => [...queryKeys.supervision.all, 'goal-history', id] as const,
+  },
+  notifications: {
+    all: ['notifications'] as const,
+    list: (query: NotificationListQuery) =>
+      [...queryKeys.notifications.all, 'list', query] as const,
+    unreadCount: () => [...queryKeys.notifications.all, 'unread-count'] as const,
+  },
+  home: {
+    all: ['home'] as const,
+    seller: (userId: string, query: HomePeriodQuery) =>
+      [...queryKeys.home.all, 'seller', userId, query] as const,
+    administrative: (userId: string, query: HomePeriodQuery) =>
+      [...queryKeys.home.all, 'administrative', userId, query] as const,
+    supervisor: (userId: string, query: HomePeriodTeamQuery) =>
+      [...queryKeys.home.all, 'supervisor', userId, query] as const,
+    admin: (userId: string, query: HomePeriodTeamQuery) =>
+      [...queryKeys.home.all, 'admin', userId, query] as const,
   },
 } as const;

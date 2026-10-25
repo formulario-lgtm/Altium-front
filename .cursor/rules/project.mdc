@@ -16,9 +16,9 @@ Canonical instructions live in [AGENTS.md](../../AGENTS.md). Do not invent paral
 ## Hard constraints
 
 - No `git commit` / `git push` / tags / remote changes unless the user explicitly asks.
-- Stage 5 (auth, account, users, teams, roles, audit) and sales UI (Mis ventas) are in scope. No other commercial CRM screens (customers, opportunities, dashboards/KPIs) or Netlify connection unless requested.
+- Stage 5 (auth, account, users, teams, roles, audit), sales UI (Mis ventas), administrative UI (gestión/revisión de ventas, seguimientos, observaciones, notificaciones in-app), supervision UI (vendedores, administrativos, objetivos + ECharts), and role-specific Home (`home.*.read` → `/api/v1/home/*`) are in scope. No other commercial CRM screens (customers, opportunities, generic BI dashboards) or Netlify connection unless requested.
 - Auth: session cookie is HttpOnly; CSRF token in memory only (`src/services/http/csrf.ts`); never persist tokens/passwords. See `docs/guides/authentication.md`.
-- Forms use VeeValidate + Zod (installed). ECharts / AG Grid remain deferred.
+- Forms use VeeValidate + Zod (installed). Apache ECharts is installed for supervision charts. AG Grid remains deferred.
 - Design system mandatory: `tokens.ts` → Vuetify themes/defaults → `main.scss`; reuse `docs/components/*` patterns. No one-off hex/skins per feature. See `docs/architecture/visual-identity.md`.
 - **Never allow blank lazy-route screens:** any new Vuetify `<v-*>` in `src/` must be registered in `scripts/vuetify-optimize-deps.ts` (and `TAG_TO_OPTIMIZE_ENTRY` if new). Symptom otherwise: white screen / reload on first open (sales create/detail, users, audit, …). Prefer already-listed components. `pnpm check:vuetify-deps` must pass.
 - No HTTP calls from presentational components — use `src/services/http/` (`openapi-fetch`).

@@ -2,6 +2,8 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 import {
   createSale,
+  deleteSaleDocument,
+  downloadSaleDocument,
   exportSaleExcel,
   getSale,
   getSaleDocuments,
@@ -12,12 +14,25 @@ import {
   returnSale,
   submitSale,
   updateSale,
+  uploadSaleDocument,
   type CreateSaleBody,
   type ReturnSaleBody,
   type SaleListQuery,
   type UpdateSaleBody,
+  type UploadSaleDocumentInput,
 } from '@/services/http';
 import { queryKeys } from '@/services/http/query-keys';
+
+async function invalidateAfterStatusChange(
+  client: ReturnType<typeof useQueryClient>,
+  saleId: string,
+): Promise<void> {
+  await client.invalidateQueries({ queryKey: queryKeys.sales.all });
+  await client.invalidateQueries({ queryKey: queryKeys.sales.history(saleId) });
+  await client.invalidateQueries({ queryKey: queryKeys.sales.observations(saleId) });
+  await client.invalidateQueries({ queryKey: queryKeys.administrative.all });
+  await client.invalidateQueries({ queryKey: queryKeys.notifications.all });
+}
 
 export function useSalesQuery(query: MaybeRefOrGetter<SaleListQuery>) {
   return useQuery({
@@ -96,8 +111,7 @@ export function useSubmitSaleMutation() {
     mutationFn: (id: string) => submitSale(id),
     onSuccess: async (sale) => {
       client.setQueryData(queryKeys.sales.detail(sale.id), sale);
-      await client.invalidateQueries({ queryKey: queryKeys.sales.all });
-      await client.invalidateQueries({ queryKey: queryKeys.sales.history(sale.id) });
+      await invalidateAfterStatusChange(client, sale.id);
     },
   });
 }
@@ -108,8 +122,7 @@ export function useReturnSaleMutation() {
     mutationFn: ({ id, body }: { id: string; body: ReturnSaleBody }) => returnSale(id, body),
     onSuccess: async (sale) => {
       client.setQueryData(queryKeys.sales.detail(sale.id), sale);
-      await client.invalidateQueries({ queryKey: queryKeys.sales.all });
-      await client.invalidateQueries({ queryKey: queryKeys.sales.history(sale.id) });
+      await invalidateAfterStatusChange(client, sale.id);
     },
   });
 }
@@ -118,6 +131,44 @@ export function useExportSaleMutation() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { blob, filename } = await exportSaleExcel(id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    },
+  });
+}
+
+export function useUploadSaleDocumentMutation(saleId: MaybeRefOrGetter<string>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UploadSaleDocumentInput) => uploadSaleDocument(toValue(saleId), input),
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: queryKeys.sales.documents(toValue(saleId)) });
+    },
+  });
+}
+
+export function useDeleteSaleDocumentMutation(saleId: MaybeRefOrGetter<string>) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => deleteSaleDocument(toValue(saleId), documentId),
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: queryKeys.sales.documents(toValue(saleId)) });
+    },
+  });
+}
+
+export function useDownloadSaleDocumentMutation(saleId: MaybeRefOrGetter<string>) {
+  return useMutation({
+    mutationFn: async (input: { documentId: string; filename?: string | null }) => {
+      const { blob, filename } = await downloadSaleDocument(
+        toValue(saleId),
+        input.documentId,
+        input.filename ?? 'documento',
+      );
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

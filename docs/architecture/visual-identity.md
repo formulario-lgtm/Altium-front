@@ -4,12 +4,12 @@ Canonical look for the authenticated CRM shell and shared UI. Auth marketing (`A
 
 ## Sources of truth
 
-| File                         | Role                                                                                           |
-| ---------------------------- | ---------------------------------------------------------------------------------------------- |
-| `src/styles/tokens.ts`       | Brand palette (`altiumTokens.light` / `.dark`) + radii                                         |
-| `src/app/plugins/vuetify.ts` | Maps tokens → Vuetify theme colors/variables + **component defaults** (design-system variants) |
-| `src/styles/main.scss`       | Theme CSS vars (`--altium-*`), shell atmosphere, cards, nav active, primary glow               |
-| `src/styles/forms.scss`      | Global fields, selects, date inputs, menus, switches, table footer / dialog form chrome        |
+| File                         | Role                                                                                                           |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `src/styles/tokens.ts`       | Brand palette (`altiumTokens.light` / `.dark`) + radii                                                         |
+| `src/app/plugins/vuetify.ts` | Maps tokens → Vuetify theme colors/variables + **component defaults** (design-system variants)                 |
+| `src/styles/main.scss`       | Theme CSS vars (`--altium-*`), shell atmosphere, cards, nav active, primary glow                               |
+| `src/styles/forms.scss`      | Global fields, selects, date inputs, menus, switches, **field-row spacing**, table footer / dialog form chrome |
 
 **Rule for agents:** never invent one-off hex colors, card styles, or button variants in feature views. Change the system (tokens → Vuetify → global SCSS) so every screen stays consistent.
 
@@ -51,15 +51,16 @@ Configured once in `createVuetifyPlugin()`:
 
 ### Shared wrappers (prefer these)
 
-| Need                | Use                                                                    |
-| ------------------- | ---------------------------------------------------------------------- |
-| Page title/actions  | `PageHeader`                                                           |
-| Status pills        | `StatusBadge`                                                          |
-| User initials       | `UserAvatar` + `initialsFromPerson` / `initialsFromLabel`              |
-| Confirm destructive | `ConfirmDialog`                                                        |
-| Empty / error       | `EmptyState` / `ErrorState`                                            |
-| Filter row          | `v-row.altium-filters` + default fields                                |
-| Shell chrome        | `AppShellLayout` + `AppHeader` + `AppNavigation` + `ThemeToggleButton` |
+| Need                | Use                                                                         |
+| ------------------- | --------------------------------------------------------------------------- |
+| Page title/actions  | `PageHeader`                                                                |
+| Status pills        | `StatusBadge`                                                               |
+| User initials       | `UserAvatar` + `initialsFromPerson` / `initialsFromLabel`                   |
+| Confirm destructive | `ConfirmDialog`                                                             |
+| Empty / error       | `EmptyState` / `ErrorState`                                                 |
+| Blocking API wait   | `GlobalLoadingOverlay` (HTTP middleware; do not invent per-screen blockers) |
+| Filter row          | `v-row.altium-filters` + default fields                                     |
+| Shell chrome        | `AppShellLayout` + `AppHeader` + `AppNavigation` + `ThemeToggleButton`      |
 
 Do **not** create parallel buttons, badges, or table skins per feature.
 

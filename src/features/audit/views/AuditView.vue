@@ -6,6 +6,8 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import { useDebouncedRef } from '@/composables/useDebouncedRef';
 import { apiErrorMessage, isApiError, type AuditLog, type AuditLogQuery } from '@/services/http';
+import { auditActionLabel } from '@/utils/audit-labels';
+import { entityTypeLabel } from '@/utils/entity-labels';
 import { formatDateTime } from '@/utils/format';
 import AuditDetailDrawer from '../components/AuditDetailDrawer.vue';
 import { useAuditLogsQuery } from '../composables/useAuditLogs';
@@ -79,7 +81,9 @@ const headers = [
       <v-col cols="12" sm="6" md="3">
         <v-text-field
           v-model="action"
-          label="Acción exacta (p. ej. auth.login)"
+          label="Código de acción"
+          hint="Filtro técnico exacto (p. ej. auth.login)"
+          persistent-hint
           clearable
           maxlength="100"
           @click:clear="action = ''"
@@ -88,7 +92,9 @@ const headers = [
       <v-col cols="12" sm="6" md="3">
         <v-text-field
           v-model="entityType"
-          label="Entidad (p. ej. user)"
+          label="Código de entidad"
+          hint="Filtro técnico exacto (p. ej. sale)"
+          persistent-hint
           clearable
           maxlength="100"
           @click:clear="entityType = ''"
@@ -126,7 +132,10 @@ const headers = [
       >
         <template #[`item.occurredAt`]="{ item }">{{ formatDateTime(item.occurredAt) }}</template>
         <template #[`item.action`]="{ item }">
-          <code class="text-body-2">{{ item.action }}</code>
+          <span class="text-body-2">{{ auditActionLabel(item.action) }}</span>
+        </template>
+        <template #[`item.entityType`]="{ item }">
+          {{ entityTypeLabel(item.entityType) || item.entityType || '—' }}
         </template>
         <template #[`item.outcome`]="{ item }">
           <StatusBadge :status="item.outcome" />

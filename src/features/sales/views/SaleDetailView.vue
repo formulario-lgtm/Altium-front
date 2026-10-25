@@ -7,8 +7,9 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import { apiErrorMessage, isApiError } from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
-import { formatDateTime } from '@/utils/format';
+import { formatDateTime, formatSaleNumber } from '@/utils/format';
 import {
+  useDownloadSaleDocumentMutation,
   useExportSaleMutation,
   useReturnSaleMutation,
   useSaleDocumentsQuery,
@@ -16,10 +17,14 @@ import {
   useSaleQuery,
   useSubmitSaleMutation,
 } from '../composables/useSales';
+import SaleObservationsPanel from '@/features/administrative/components/SaleObservationsPanel.vue';
 import {
   canEditSaleStatus,
+  canReturnForCorrection,
   customerTypeLabel,
+  documentTypeLabel,
   memberTypeLabel,
+  saleHistoryReasonLabel,
   PAYMENT_METHOD_OPTIONS,
 } from '../utils/sale-labels';
 
@@ -33,6 +38,7 @@ const documentsQuery = useSaleDocumentsQuery(saleId);
 const submitMutation = useSubmitSaleMutation();
 const returnMutation = useReturnSaleMutation();
 const exportMutation = useExportSaleMutation();
+const downloadMutation = useDownloadSaleDocumentMutation(saleId);
 
 const canUpdate = computed(() => auth.hasPermission('sales.update'));
 /** Present uses the same backend permission as update (`sales.update`). */
@@ -40,9 +46,16 @@ const canSubmit = canUpdate;
 /** Export is gated by `sales.read` on the API. */
 const canExport = computed(() => auth.hasPermission('sales.read'));
 const canReturn = computed(() => auth.hasPermission('sales.return'));
+const canReviewAdmin = computed(() => auth.hasPermission('sales.review'));
 const sale = computed(() => saleQuery.data.value);
 const editable = computed(() => canEditSaleStatus(sale.value?.status));
-const canReturnSale = computed(() => canReturn.value && sale.value?.status === 'SUBMITTED');
+const canReturnSale = computed(() => canReturn.value && canReturnForCorrection(sale.value?.status));
+const showCorrections = computed(
+  () =>
+    sale.value?.status === 'RETURNED' ||
+    sale.value?.status === 'SUBMITTED' ||
+    sale.value?.status === 'IN_REVIEW',
+);
 
 const submitConfirm = ref(false);
 const returnConfirm = ref(false);
@@ -88,13 +101,20 @@ async function onReturn(): Promise<void> {
 <template>
   <div>
     <PageHeader
-      :title="sale?.saleNumber ?? 'Detalle de venta'"
+      :title="sale ? `Venta ${formatSaleNumber(sale.saleNumber)}` : 'Detalle de venta'"
       :subtitle="sale ? `Prepaga: ${sale.healthInsurer?.name ?? '—'}` : 'Cargando…'"
     >
       <template #actions>
         <div class="d-flex flex-wrap ga-2">
           <StatusBadge v-if="sale" :status="sale.status" />
           <v-btn variant="text" :to="{ name: 'sales' }">Volver</v-btn>
+          <v-btn
+            v-if="canReviewAdmin"
+            variant="tonal"
+            :to="{ name: 'admin-sale-review', params: { id: saleId } }"
+          >
+            Vista administrativa
+          </v-btn>
           <v-btn
             v-if="canUpdate && editable"
             color="primary"
@@ -121,7 +141,7 @@ async function onReturn(): Promise<void> {
             Devolver
           </v-btn>
           <v-btn
-            v-if="canExport && sale?.status === 'SUBMITTED'"
+            v-if="canExport && sale && sale.status !== 'DRAFT'"
             variant="tonal"
             :loading="exportMutation.isPending.value"
             @click="exportMutation.mutate(saleId)"
@@ -158,13 +178,19 @@ async function onReturn(): Promise<void> {
       />
 
       <v-alert
-        v-if="sale.documentationPending"
+        v-if="sale.status === 'RETURNED'"
         type="warning"
         variant="tonal"
         class="mb-4"
-        title="Documentación pendiente de integración"
-        text="La venta se presentó con documentación pendiente (entorno no productivo)."
-      />
+        title="Venta devuelta"
+        text="Revisá las solicitudes de corrección, editá los datos y presentá nuevamente."
+      >
+        <template v-if="canUpdate" #append>
+          <v-btn color="warning" variant="flat" :to="{ name: 'sale-edit', params: { id: saleId } }">
+            Corregir
+          </v-btn>
+        </template>
+      </v-alert>
 
       <v-row dense>
         <v-col cols="12" md="8">
@@ -266,43 +292,69 @@ async function onReturn(): Promise<void> {
             <div v-if="sale.billing?.cardLastFour">
               Tarjeta {{ sale.billing.cardBrand ?? '' }} **** {{ sale.billing.cardLastFour }}
             </div>
-            <v-alert
-              v-if="sale.billing?.cbuCapturePending"
-              type="info"
-              variant="tonal"
-              class="mt-3"
-              density="compact"
-              text="Captura segura de CBU pendiente."
-            />
+            <div
+              v-if="sale.billing?.paymentMethod === 'CBU' && sale.billing?.paymentMedium"
+            >
+              CBU/CVU/ALIAS: {{ sale.billing.paymentMedium }}
+            </div>
           </v-card>
 
           <v-card v-if="sale.observations" class="pa-4 pa-md-6 mb-4">
-            <h2 class="text-h6 mb-2">Observaciones</h2>
+            <h2 class="text-h6 mb-2">Observaciones del vendedor</h2>
             <p class="mb-0">{{ sale.observations }}</p>
+          </v-card>
+
+          <v-card v-if="showCorrections" class="pa-4 pa-md-6 mb-4" data-testid="sale-corrections">
+            <h2 class="text-h6 mb-4">Solicitudes de corrección</h2>
+            <SaleObservationsPanel :sale-id="saleId" />
           </v-card>
         </v-col>
 
         <v-col cols="12" md="4">
           <v-card class="pa-4 mb-4">
             <h2 class="text-h6 mb-3">Documentación</h2>
-            <v-alert
-              v-if="documentsQuery.data.value?.storageIntegrationPending !== false"
-              type="info"
-              variant="tonal"
-              density="compact"
-              class="mb-3"
-              text="Pendiente de integración con almacenamiento."
-            />
             <v-list density="compact">
               <v-list-item
                 v-for="category in documentsQuery.data.value?.requiredCategories ?? []"
                 :key="`${category.documentType}-${category.saleMemberId ?? 'sale'}`"
               >
-                <v-list-item-title>{{ category.label }}</v-list-item-title>
+                <v-list-item-title class="text-wrap">{{ category.label }}</v-list-item-title>
                 <template #append>
-                  <v-chip size="x-small" variant="tonal">
-                    {{ category.satisfied ? 'OK' : 'Pendiente' }}
+                  <v-chip
+                    size="x-small"
+                    variant="tonal"
+                    :color="category.satisfied ? 'success' : 'warning'"
+                  >
+                    {{ category.satisfied ? 'Completo' : 'Pendiente' }}
                   </v-chip>
+                </template>
+              </v-list-item>
+            </v-list>
+            <v-list v-if="documentsQuery.data.value?.items?.length" density="compact" class="mt-2">
+              <v-list-item v-for="doc in documentsQuery.data.value.items" :key="doc.id">
+                <v-list-item-title class="text-wrap">
+                  {{ doc.originalFilename || 'Archivo' }}
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ documentTypeLabel(doc.documentType) }}
+                </v-list-item-subtitle>
+                <template #append>
+                  <v-btn
+                    icon="mdi-download"
+                    variant="text"
+                    size="small"
+                    aria-label="Descargar"
+                    :loading="
+                      downloadMutation.isPending.value &&
+                      downloadMutation.variables.value?.documentId === doc.id
+                    "
+                    @click="
+                      downloadMutation.mutate({
+                        documentId: doc.id,
+                        filename: doc.originalFilename,
+                      })
+                    "
+                  />
                 </template>
               </v-list-item>
             </v-list>
@@ -331,8 +383,11 @@ async function onReturn(): Promise<void> {
                     <StatusBadge :status="entry.toStatus" />
                   </div>
                 </v-list-item-title>
-                <v-list-item-subtitle v-if="entry.reason" class="text-wrap mt-1">
-                  {{ entry.reason }}
+                <v-list-item-subtitle
+                  v-if="saleHistoryReasonLabel(entry.reason)"
+                  class="text-wrap mt-1"
+                >
+                  {{ saleHistoryReasonLabel(entry.reason) }}
                 </v-list-item-subtitle>
               </v-list-item>
             </v-list>

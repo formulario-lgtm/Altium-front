@@ -8,6 +8,7 @@ import {
 } from './client';
 import { clearCsrfToken, getCsrfToken, setCsrfToken } from './csrf';
 import { isApiError } from './errors';
+import { resetGlobalLoading, useGlobalLoadingState } from './loading';
 
 function problem(status: number, code: string): Response {
   return new Response(JSON.stringify({ type: 'about:blank', title: code, status, code }), {
@@ -19,6 +20,7 @@ function problem(status: number, code: string): Response {
 describe('session middleware', () => {
   afterEach(() => {
     clearCsrfToken();
+    resetGlobalLoading();
   });
 
   it('attaches x-csrf-token on mutating requests from memory', async () => {
@@ -106,6 +108,47 @@ describe('session middleware', () => {
 describe('createApiClient', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    resetGlobalLoading();
+  });
+
+  it('tracks global loading for API calls and skips silent unread-count', async () => {
+    const { isLoading, pendingCount } = useGlobalLoadingState();
+    let resolveSales!: (value: Response) => void;
+    const salesGate = new Promise<Response>((resolve) => {
+      resolveSales = resolve;
+    });
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = input instanceof Request ? input.url : String(input);
+      if (url.includes('/notifications/unread-count')) {
+        return Response.json({ count: 0 });
+      }
+      return salesGate;
+    });
+
+    const client = createApiClient({
+      baseUrl: 'http://api.test',
+      fetch: fetchMock as unknown as typeof fetch,
+    });
+
+    const salesPromise = client.GET('/api/v1/sales');
+    await vi.waitFor(() => {
+      expect(fetchMock.mock.calls.length).toBeGreaterThan(0);
+      expect(pendingCount.value).toBe(1);
+    });
+    expect(isLoading.value).toBe(true);
+
+    await client.GET('/api/v1/notifications/unread-count');
+    expect(pendingCount.value).toBe(1);
+
+    resolveSales(
+      Response.json({
+        items: [],
+        pageInfo: { limit: 25, offset: 0, total: 0, hasNextPage: false },
+      }),
+    );
+    await salesPromise;
+    expect(isLoading.value).toBe(false);
   });
 
   it('attaches x-request-id and credentials include', async () => {

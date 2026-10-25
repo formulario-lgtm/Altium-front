@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import type { AuditLog } from '@/services/http';
+import { auditActionLabel } from '@/utils/audit-labels';
+import { entityTypeLabel } from '@/utils/entity-labels';
 import { formatDateTime } from '@/utils/format';
 import { formatAuditPayload } from '../utils/sanitize-json';
 
@@ -11,14 +13,18 @@ const open = defineModel<boolean>({ default: false });
 const fields = computed(() => {
   const log = props.log;
   if (!log) return [];
+  const entity = entityTypeLabel(log.entityType) || '—';
   return [
     { label: 'Fecha', value: formatDateTime(log.occurredAt) },
-    { label: 'Acción', value: log.action },
-    { label: 'Entidad', value: `${log.entityType}${log.entityId ? ` · ${log.entityId}` : ''}` },
+    { label: 'Acción', value: auditActionLabel(log.action) },
+    {
+      label: 'Entidad',
+      value: `${entity}${log.entityId ? ` · ${log.entityId}` : ''}`,
+    },
     { label: 'Actor', value: log.actorUserId ?? 'Sistema / anónimo' },
     { label: 'IP', value: log.ipAddress ?? '—' },
-    { label: 'User agent', value: log.userAgent ?? '—' },
-    { label: 'Request ID', value: log.requestId ?? '—' },
+    { label: 'Agente', value: log.userAgent ?? '—' },
+    { label: 'ID de solicitud', value: log.requestId ?? '—' },
   ];
 });
 

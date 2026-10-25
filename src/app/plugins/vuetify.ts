@@ -14,7 +14,8 @@ export const lightTheme = {
     background: light.background,
     surface: light.surface,
     'surface-bright': light.surfaceElevated,
-    'surface-variant': light.border,
+    /** Muted surface (not border) — Vuetify may use this for field chrome; keep contrast. */
+    'surface-variant': '#E4EBF5',
     primary: light.primary,
     'on-primary': light.onPrimary,
     secondary: light.textSecondary,
@@ -30,8 +31,8 @@ export const lightTheme = {
   variables: {
     'border-color': light.border,
     'border-opacity': 1,
-    'high-emphasis-opacity': 0.92,
-    'medium-emphasis-opacity': 0.7,
+    'high-emphasis-opacity': 0.96,
+    'medium-emphasis-opacity': 0.88,
     'disabled-opacity': 0.42,
     'hover-opacity': 0.04,
     'focus-opacity': 0.08,
@@ -49,7 +50,8 @@ export const darkTheme = {
     background: dark.background,
     surface: dark.surface,
     'surface-bright': dark.surfaceElevated,
-    'surface-variant': dark.border,
+    /** Muted surface (not border) — keeps labels/placeholders readable on dark cards. */
+    'surface-variant': '#152748',
     primary: dark.primary,
     'on-primary': dark.onPrimary,
     secondary: dark.textSecondary,
@@ -65,8 +67,8 @@ export const darkTheme = {
   variables: {
     'border-color': dark.border,
     'border-opacity': 0.9,
-    'high-emphasis-opacity': 0.95,
-    'medium-emphasis-opacity': 0.72,
+    'high-emphasis-opacity': 0.98,
+    'medium-emphasis-opacity': 0.9,
     'disabled-opacity': 0.4,
     'hover-opacity': 0.08,
     'focus-opacity': 0.12,

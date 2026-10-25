@@ -9,6 +9,7 @@ import StatusBadge from '@/components/common/StatusBadge.vue';
 import { apiErrorMessage, isApiError, type TeamMember } from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
 import { formatDateTime, fullName } from '@/utils/format';
+import { roleLabel } from '@/utils/role-labels';
 import TeamFormDialog from '../components/TeamFormDialog.vue';
 import { useTeamEditor } from '../composables/useTeamEditor';
 import {
@@ -44,7 +45,7 @@ const candidateItems = computed(() => {
   const current = new Set(members.value.filter((m) => !m.leftAt).map((m) => m.userId));
   return candidatePicker.users.value
     .filter((user) => !current.has(user.id))
-    .map((user) => ({ title: `${fullName(user)} · ${user.role.code}`, value: user.id }));
+    .map((user) => ({ title: `${fullName(user)} · ${roleLabel(user.role.code)}`, value: user.id }));
 });
 const candidateId = ref<string | null>(null);
 const addMutation = useAddTeamMemberMutation();
@@ -183,7 +184,7 @@ async function confirmRemove(): Promise<void> {
             <v-divider v-if="index > 0" />
             <v-list-item
               :title="fullName(member)"
-              :subtitle="`${member.email} · ${member.roleCode}`"
+              :subtitle="`${member.email} · ${roleLabel(member.roleCode)}`"
             >
               <template #append>
                 <span class="text-caption text-medium-emphasis mr-3">

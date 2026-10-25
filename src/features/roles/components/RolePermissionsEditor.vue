@@ -70,7 +70,6 @@ function titleFor(permission: Permission): string {
                 aria-label="Permiso protegido: no se puede quitar de Super administrador"
               />
             </span>
-            <span class="role-permissions__code">{{ permission.code }}</span>
           </span>
         </label>
       </div>
@@ -143,12 +142,5 @@ function titleFor(permission: Permission): string {
   font-weight: 600;
   line-height: 1.35;
   color: rgb(var(--v-theme-on-surface));
-}
-
-.role-permissions__code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.01em;
-  color: rgb(var(--v-theme-on-surface-variant));
 }
 </style>

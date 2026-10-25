@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Top bar of the authenticated shell: nav toggle, `AltiumMark`, theme toggle, and user menu (pill activator with avatar + name + Spanish role, account links, logout).
+Top bar of the authenticated shell: nav toggle, `AltiumMark`, `NotificationsMenu` (when `notifications.read`), theme toggle, and user menu (pill activator with avatar + name + Spanish role, account links, logout).
 
 ## Code location
 

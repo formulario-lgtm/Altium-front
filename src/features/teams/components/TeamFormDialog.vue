@@ -74,7 +74,7 @@ const onSubmit = handleSubmit((values) => emit('submit', values));
             :items="supervisorItems"
             :loading="supervisorsLoading"
             label="Supervisor"
-            hint="Usuario activo con rol SUPERVISOR."
+            hint="Usuario activo con rol Supervisor."
             persistent-hint
             class="mb-3"
           />

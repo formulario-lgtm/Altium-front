@@ -44,11 +44,14 @@ const SAFE_MESSAGE_BY_CODE: Record<string, string> = {
   VERSION_CONFLICT:
     'Otro cambio actualizó esta venta. Recargá la versión actual antes de seguir editando.',
   PAYMENT_CBU_CAPTURE_UNAVAILABLE:
-    'El CBU todavía no se puede guardar de forma segura. Usá tarjeta con últimos 4 dígitos o esperá la integración.',
-  DOCUMENT_STORAGE_PENDING:
-    'El almacenamiento de documentos aún no está integrado. No se puede presentar en producción sin adjuntos.',
+    'No se pudo registrar el CBU/CVU/ALIAS. Revisá el dato e intentá de nuevo.',
+  DOCUMENT_STORAGE_PENDING: 'Faltan documentos requeridos. Adjuntálos antes de presentar la venta.',
+  DOCUMENT_REQUIRED: 'Faltan documentos requeridos. Revisá la sección Documentación.',
+  DOCUMENT_LOCKED: 'No se puede modificar la documentación de una venta ya presentada.',
+  FILE_INVALID: 'El archivo no es válido. Usá JPEG, PNG o PDF dentro del tamaño permitido.',
+  STORAGE_ERROR: 'No se pudo guardar el archivo. Intentá de nuevo en unos minutos.',
   PAYMENT_SENSITIVE_DATA_REJECTED:
-    'No envíes número completo de tarjeta, CVV ni CBU en texto plano.',
+    'No envíes número completo de tarjeta ni CVV. Usá CBU/CVU/ALIAS en el campo correspondiente.',
 };
 
 /** Safe, user-facing message for any thrown value (prefers known backend codes). */

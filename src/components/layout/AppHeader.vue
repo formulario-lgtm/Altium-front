@@ -4,6 +4,7 @@ import UserAvatar from '@/components/common/UserAvatar.vue';
 import { initialsFromLabel } from '@/utils/format';
 import { roleLabel } from '@/utils/role-labels';
 import AltiumMark from './AltiumMark.vue';
+import NotificationsMenu from './NotificationsMenu.vue';
 import ThemeToggleButton from './ThemeToggleButton.vue';
 
 const props = withDefaults(
@@ -37,6 +38,7 @@ const roleDisplay = computed(() => roleLabel(props.roleCode));
     </v-app-bar-title>
 
     <template #append>
+      <NotificationsMenu />
       <ThemeToggleButton />
       <v-divider vertical inset class="mx-3 my-3 d-none d-sm-flex" />
 

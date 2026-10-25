@@ -58,7 +58,104 @@ export type ReturnSaleBody = Schemas['ReturnSaleDto'];
 export type SaleMember = Schemas['SaleMemberDto'];
 export type SaleMemberInput = Schemas['SaleMemberInputDto'];
 export type SaleDocuments = Schemas['SaleDocumentsResponseDto'];
+export type SaleDocumentMeta = Schemas['SaleDocumentMetaDto'];
+export type RequiredDocumentCategory = Schemas['RequiredDocumentCategoryDto'];
 export type SaleStatusHistory = Schemas['SaleStatusHistoryResponseDto'];
+export type SaleObservation = Schemas['SaleObservationDto'];
+export type SaleObservationList = Schemas['SaleObservationListResponseDto'];
+export type CreateSaleObservationBody = Schemas['CreateSaleObservationDto'];
+export type SaleFollowUp = Schemas['SaleFollowUpDto'];
+export type SaleFollowUpList = Schemas['SaleFollowUpListResponseDto'];
+export type CreateSaleFollowUpBody = Schemas['CreateSaleFollowUpDto'];
+export type PatchSaleAssigneeBody = Schemas['PatchSaleAssigneeDto'];
+export type AdministrativeDashboard = Schemas['AdministrativeDashboardDto'];
+
+export type SupervisionDashboard = Schemas['SupervisionDashboardDto'];
+export type SupervisionCompliance = Schemas['ComplianceDto'];
+export type SupervisionReturnRate = Schemas['ReturnRateDto'];
+export type SupervisionAlert = Schemas['SupervisionAlertDto'];
+/** OpenAPI nullable UUID fields sometimes emit as `Record<string, never>`; normalize to string. */
+type NullableUuid = string | null;
+
+export type SellerListItem = Omit<Schemas['SellerListItemDto'], 'teamId' | 'teamName'> & {
+  teamId: NullableUuid;
+  teamName: NullableUuid;
+};
+export type SellerListResponse = Omit<Schemas['SellerListResponseDto'], 'items'> & {
+  items: SellerListItem[];
+};
+export type SellerDetail = Schemas['SellerDetailDto'];
+export type SellerComparisonResponse = Schemas['SellerComparisonResponseDto'];
+export type AdministrativeListItem = Omit<
+  Schemas['AdministrativeListItemDto'],
+  'teamId' | 'teamName'
+> & {
+  teamId: NullableUuid;
+  teamName: NullableUuid;
+};
+export type AdministrativeListResponse = Omit<Schemas['AdministrativeListResponseDto'], 'items'> & {
+  items: AdministrativeListItem[];
+};
+export type AdministrativeDetail = Schemas['AdministrativeDetailDto'];
+export type MonthlyGoal = Omit<Schemas['MonthlyGoalDto'], 'teamId' | 'userId'> & {
+  teamId: NullableUuid;
+  userId: NullableUuid;
+};
+export type MonthlyGoalList = Omit<Schemas['MonthlyGoalListResponseDto'], 'items'> & {
+  items: MonthlyGoal[];
+};
+export type MonthlyGoalHistoryItem = Omit<Schemas['MonthlyGoalHistoryItemDto'], 'reason'> & {
+  reason: string | null;
+};
+export type MonthlyGoalHistory = Omit<Schemas['MonthlyGoalHistoryResponseDto'], 'items'> & {
+  items: MonthlyGoalHistoryItem[];
+};
+export type CreateMonthlyGoalBody = Omit<Schemas['CreateMonthlyGoalDto'], 'teamId' | 'userId'> & {
+  teamId?: string | null;
+  userId?: string | null;
+};
+export type PatchMonthlyGoalBody = Schemas['PatchMonthlyGoalDto'];
+export type SupervisionPeriodQuery = NonNullable<
+  operations['Supervision_getDashboard']['parameters']['query']
+>;
+export type SupervisionSellerListQuery = NonNullable<
+  operations['Supervision_listSellers']['parameters']['query']
+>;
+export type SupervisionAdministrativeListQuery = NonNullable<
+  operations['Supervision_listAdministratives']['parameters']['query']
+>;
+export type SupervisionGoalsQuery = NonNullable<
+  operations['Supervision_listGoals']['parameters']['query']
+>;
+export type MonthlyGoalType = MonthlyGoal['goalType'];
+export type MonthlyGoalTargetType = MonthlyGoal['targetType'];
+export type MonthlyGoalUnit = MonthlyGoal['unit'];
+
+export type SellerHome = Schemas['SellerHomeResponseDto'];
+export type AdministrativeHome = Schemas['AdministrativeHomeResponseDto'];
+export type SupervisorHome = Schemas['SupervisorHomeResponseDto'];
+export type AdminHome = Schemas['AdminHomeResponseDto'];
+export type HomeKpi = Schemas['HomeKpiDto'];
+export type HomeAlert = Schemas['HomeAlertDto'];
+export type HomeSaleRef = Schemas['HomeSaleRefDto'];
+export type HomeSeriesPoint = Schemas['HomeSeriesPointDto'];
+export type HomeCompliance = Schemas['HomeComplianceDto'];
+export type HomeFollowUpRef = Schemas['HomeFollowUpRefDto'];
+export type HomeAuditRef = Schemas['HomeAuditRefDto'];
+export type HomeNotificationRef = Schemas['HomeNotificationRefDto'];
+export type HomeSellerPace = Schemas['HomeSellerPaceDto'];
+export type HomeTeamPerformance = Schemas['HomeTeamPerformanceDto'];
+export type HomePeriodQuery = NonNullable<operations['Home_getSeller']['parameters']['query']>;
+export type HomePeriodTeamQuery = NonNullable<
+  operations['Home_getSupervisor']['parameters']['query']
+>;
+
+export type UserNotification = Schemas['UserNotificationDto'];
+export type UserNotificationList = Schemas['UserNotificationListResponseDto'];
+export type NotificationListQuery = NonNullable<
+  operations['Notifications_listMine']['parameters']['query']
+>;
+export type UnreadCount = Schemas['UnreadCountResponseDto'];
 /** Inline OpenAPI enums (no standalone schema names in the generated contract). */
 export type SaleStatus = Sale['status'];
 export type SaleCustomerType = NonNullable<Sale['customerType']>;
@@ -66,3 +163,9 @@ export type SalePaymentMethod = NonNullable<NonNullable<Sale['billing']>['paymen
 export type SaleMemberType = SaleMember['memberType'];
 export type SaleMemberSex = NonNullable<SaleMember['sex']>;
 export type SaleMaritalStatus = NonNullable<SaleMember['maritalStatus']>;
+export type SaleDocumentType = SaleDocumentMeta['documentType'];
+export type SaleDocumentStatus = SaleDocumentMeta['status'];
+export type SaleObservationType = SaleObservation['type'];
+export type SaleObservationStatus = SaleObservation['status'];
+export type SaleFollowUpType = SaleFollowUp['followUpType'];
+export type UserNotificationType = UserNotification['type'];

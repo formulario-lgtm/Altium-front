@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import EmptyState from '@/components/common/EmptyState.vue';
 import ErrorState from '@/components/common/ErrorState.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
@@ -15,7 +15,7 @@ import {
   type SaleStatus,
 } from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
-import { formatDateTime } from '@/utils/format';
+import { formatDateTime, formatSaleNumber } from '@/utils/format';
 import {
   useHealthInsurersQuery,
   useHealthPlansQuery,
@@ -30,17 +30,25 @@ import {
 import { saleListSearchParams } from '../utils/sale-search';
 
 const auth = useAuthStore();
+const route = useRoute();
 const router = useRouter();
 const canCreate = computed(() => auth.hasPermission('sales.create'));
 /** Backend gates both edit and present with `sales.update` (no separate submit permission). */
 const canUpdate = computed(() => auth.hasPermission('sales.update'));
 const canSubmit = canUpdate;
 
+function statusFromQuery(value: unknown): SaleStatus | null {
+  if (typeof value !== 'string') return null;
+  return SALE_STATUS_OPTIONS.some((option) => option.value === value)
+    ? (value as SaleStatus)
+    : null;
+}
+
 const page = ref(1);
 const itemsPerPage = ref(25);
 const search = ref('');
 const debouncedSearch = useDebouncedRef(search);
-const statusFilter = ref<SaleStatus | null>(null);
+const statusFilter = ref<SaleStatus | null>(statusFromQuery(route.query.status));
 const customerTypeFilter = ref<SaleCustomerType | null>(null);
 const insurerFilter = ref<string | null>(null);
 const planFilter = ref<string | null>(null);
@@ -62,6 +70,13 @@ watch(
   },
 );
 
+watch(
+  () => route.query.status,
+  (value) => {
+    statusFilter.value = statusFromQuery(value);
+  },
+);
+
 watch(insurerFilter, () => {
   planFilter.value = null;
 });
@@ -73,7 +88,7 @@ const listQuery = computed<SaleListQuery>(() => {
   const query: SaleListQuery = {
     limit: itemsPerPage.value,
     offset: (page.value - 1) * itemsPerPage.value,
-    sortBy: 'updatedAt',
+    sortBy: 'createdAt',
     sortOrder: 'desc',
   };
   Object.assign(query, saleListSearchParams(debouncedSearch.value));
@@ -104,9 +119,8 @@ const headers = [
   { title: 'Prepaga', key: 'healthInsurerName', sortable: false },
   { title: 'Plan', key: 'healthPlanName', sortable: false },
   { title: 'Tipo', key: 'customerType', sortable: false },
-  { title: 'Fecha', key: 'date', sortable: false },
+  { title: 'Fecha de creación', key: 'createdAt', sortable: false },
   { title: 'Estado', key: 'status', sortable: false },
-  { title: 'Última modificación', key: 'updatedAt', sortable: false },
   { title: 'Acciones', key: 'actions', sortable: false, align: 'end' as const },
 ];
 
@@ -175,10 +189,15 @@ function openEdit(id: string): void {
         />
       </v-col>
       <v-col cols="12" sm="6" md="2">
-        <v-text-field v-model="createdFrom" type="date" label="Desde" clearable />
+        <v-text-field
+          v-model="createdFrom"
+          type="date"
+          label="Creada desde"
+          clearable
+        />
       </v-col>
       <v-col cols="12" sm="6" md="2">
-        <v-text-field v-model="createdTo" type="date" label="Hasta" clearable />
+        <v-text-field v-model="createdTo" type="date" label="Creada hasta" clearable />
       </v-col>
     </v-row>
 
@@ -206,7 +225,7 @@ function openEdit(id: string): void {
         @click:row="(_e: unknown, row: { item: SaleListItem }) => openDetail(row.item.id)"
       >
         <template #[`item.saleNumber`]="{ item }">
-          <span class="font-weight-medium">{{ item.saleNumber }}</span>
+          <span class="font-weight-medium">{{ formatSaleNumber(item.saleNumber) }}</span>
         </template>
         <template #[`item.holder`]="{ item }">
           <div>{{ holderLabel(item) }}</div>
@@ -218,13 +237,19 @@ function openEdit(id: string): void {
         <template #[`item.customerType`]="{ item }">
           {{ customerTypeLabel(item.customerType) }}
         </template>
-        <template #[`item.date`]="{ item }">
-          {{ item.submittedAt ? formatDateTime(item.submittedAt) : '—' }}
-        </template>
+        <template #[`item.createdAt`]="{ item }">{{ formatDateTime(item.createdAt) }}</template>
         <template #[`item.status`]="{ item }">
-          <StatusBadge :status="item.status" />
+          <div class="d-flex align-center ga-2">
+            <StatusBadge :status="item.status" />
+            <v-icon
+              v-if="item.status === 'RETURNED'"
+              icon="mdi-alert-circle-outline"
+              size="18"
+              color="warning"
+              aria-label="Requiere corrección"
+            />
+          </div>
         </template>
-        <template #[`item.updatedAt`]="{ item }">{{ formatDateTime(item.updatedAt) }}</template>
         <template #[`item.actions`]="{ item }">
           <div class="d-flex justify-end ga-1" @click.stop>
             <v-btn

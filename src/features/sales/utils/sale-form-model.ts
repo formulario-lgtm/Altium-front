@@ -129,7 +129,11 @@ export function formModelToUpdateBody(model: SaleFormModel): UpdateSaleBody {
     billing: {
       paymentMethod: model.billing.paymentMethod,
       holderIsPayer: model.billing.holderIsPayer,
-      paymentMedium: model.billing.paymentMedium,
+      // CARD: paymentMedium mirrors brand for submit validation; CBU: free-text CBU/CVU/ALIAS.
+      paymentMedium:
+        model.billing.paymentMethod === 'CARD'
+          ? model.billing.paymentMedium?.trim() || model.billing.cardBrand
+          : model.billing.paymentMedium,
       payerIdentifier: model.billing.payerIdentifier,
       payerEmail: model.billing.payerEmail,
       payerPhone: model.billing.payerPhone,

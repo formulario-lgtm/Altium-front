@@ -6,6 +6,7 @@ import ErrorState from '@/components/common/ErrorState.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import { apiErrorMessage, isApiError } from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
+import { roleLabel } from '@/utils/role-labels';
 import RolePermissionsEditor from '../components/RolePermissionsEditor.vue';
 import {
   usePermissionsQuery,
@@ -127,7 +128,7 @@ async function save(): Promise<void> {
             >
               <template #append>
                 <span class="text-caption text-medium-emphasis font-weight-medium">{{
-                  role.code
+                  roleLabel(role.code)
                 }}</span>
               </template>
             </v-list-item>
@@ -180,11 +181,11 @@ async function save(): Promise<void> {
               :catalog="catalog"
               :readonly="!canEdit"
             />
-            <div v-else class="d-flex flex-wrap ga-2">
-              <v-chip v-for="code in selectedRole.permissionCodes" :key="code" label>
-                {{ code }}
-              </v-chip>
-            </div>
+            <p v-else class="text-body-2 text-medium-emphasis mb-0">
+              Este rol tiene {{ selectedRole.permissionCodes.length }} permiso{{
+                selectedRole.permissionCodes.length === 1 ? '' : 's'
+              }}. Necesitás permiso para leer el catálogo y ver el detalle.
+            </p>
           </v-card-text>
         </v-card>
         <EmptyState

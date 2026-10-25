@@ -3,16 +3,22 @@
    (that creates the “box inside box” / vertical seams). */
 
 .v-theme--dark {
-  --altium-field-border: rgba(160, 190, 230, 0.32);
-  --altium-field-border-hover: rgba(160, 190, 230, 0.5);
+  --altium-field-border: rgba(160, 190, 230, 0.42);
+  --altium-field-border-hover: rgba(190, 210, 240, 0.62);
   --altium-field-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  /* Labels stay white (never primary blue on focus) — better contrast. */
+  --altium-field-label: #ffffff;
+  --altium-field-placeholder: #c9d7eb;
   --altium-menu-bg: rgba(14, 27, 53, 0.96);
 }
 
 .v-theme--light {
-  --altium-field-border: rgba(36, 59, 90, 0.18);
-  --altium-field-border-hover: rgba(36, 59, 90, 0.3);
+  --altium-field-border: rgba(36, 59, 90, 0.28);
+  --altium-field-border-hover: rgba(36, 59, 90, 0.42);
   --altium-field-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  /* Labels stay near-black (never primary blue on focus). */
+  --altium-field-label: #15233a;
+  --altium-field-placeholder: #3a4d66;
   --altium-menu-bg: rgba(255, 255, 255, 0.98);
 }
 
@@ -51,26 +57,70 @@
 .v-field__input {
   font-size: 0.95rem;
   letter-spacing: -0.01em;
+  color: rgb(var(--v-theme-on-surface)) !important;
+  opacity: 1 !important;
 }
 
-.v-label.v-field-label {
+.v-field__input::placeholder {
+  color: var(--altium-field-placeholder) !important;
+  opacity: 1 !important;
+}
+
+/* Labels: readable contrast; never turn primary-blue on focus. */
+.v-label.v-field-label,
+.v-field--focused .v-label.v-field-label,
+.v-field--dirty .v-label.v-field-label {
   font-size: 0.9rem;
   letter-spacing: -0.01em;
+  opacity: 1 !important;
+  color: var(--altium-field-label) !important;
 }
 
-.v-field .v-icon {
-  opacity: 0.9;
-  color: rgb(var(--v-theme-on-surface-variant));
+.v-field--error .v-label.v-field-label,
+.v-field--error.v-field--focused .v-label.v-field-label {
+  color: rgb(var(--v-theme-error)) !important;
 }
 
+.v-select__selection-text,
+.v-autocomplete__selection-text {
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.v-field .v-icon,
 .v-field--focused .v-icon {
-  color: rgb(var(--v-theme-primary));
   opacity: 1;
+  color: var(--altium-field-label);
+}
+
+.v-field--error .v-icon,
+.v-field--error.v-field--focused .v-icon {
+  color: rgb(var(--v-theme-error));
 }
 
 .v-messages {
   font-size: 0.78rem;
   opacity: 0.95;
+}
+
+/* ——— Vertical rhythm ———
+   Floating outlined labels sit on the top border and need air above.
+   Vuetify injects `.v-row--dense > .v-col { padding: 4px }` after app SCSS,
+   so gutters must use !important or they never win. */
+
+.v-row--dense > .v-col,
+.v-row--dense > [class*='v-col-'] {
+  padding: 0.85rem 0.5rem !important;
+}
+
+.v-row:not(.v-row--dense) > .v-col,
+.v-row:not(.v-row--dense) > [class*='v-col-'] {
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+.altium-filters.v-row--dense > .v-col,
+.altium-filters.v-row--dense > [class*='v-col-'] {
+  padding: 0.65rem 0.5rem !important;
 }
 
 /* ——— Native date / time inside fields ——— */
@@ -141,6 +191,10 @@
 }
 
 /* ——— Filters / table footer / dialogs ——— */
+
+.altium-filters {
+  row-gap: 0.5rem;
+}
 
 .altium-filters .v-input {
   margin-bottom: 0;

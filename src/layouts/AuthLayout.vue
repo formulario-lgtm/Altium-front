@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GlobalLoadingOverlay from '@/components/common/GlobalLoadingOverlay.vue';
 import AltiumMark from '@/components/layout/AltiumMark.vue';
 import ThemeToggleButton from '@/components/layout/ThemeToggleButton.vue';
 import { useThemeSync } from '@/composables/useThemeSync';
@@ -61,6 +62,8 @@ const highlights = [
         </section>
       </div>
     </v-main>
+
+    <GlobalLoadingOverlay />
   </v-app>
 </template>
 

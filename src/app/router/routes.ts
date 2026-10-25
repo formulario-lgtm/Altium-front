@@ -52,6 +52,58 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'Inicio' },
       },
       {
+        path: 'supervision/sellers',
+        name: 'supervision-sellers',
+        component: () => import('@/features/supervision/views/SupervisionSellersView.vue'),
+        meta: { title: 'Vendedores', permissions: ['supervision.analytics.read'] },
+      },
+      {
+        path: 'supervision/sellers/:id',
+        name: 'supervision-seller-detail',
+        component: () => import('@/features/supervision/views/SupervisionSellerDetailView.vue'),
+        meta: { title: 'Detalle de vendedor', permissions: ['supervision.analytics.read'] },
+      },
+      {
+        path: 'supervision/administratives',
+        name: 'supervision-administratives',
+        component: () => import('@/features/supervision/views/SupervisionAdministrativesView.vue'),
+        meta: { title: 'Administrativos', permissions: ['supervision.analytics.read'] },
+      },
+      {
+        path: 'supervision/administratives/:id',
+        name: 'supervision-administrative-detail',
+        component: () =>
+          import('@/features/supervision/views/SupervisionAdministrativeDetailView.vue'),
+        meta: {
+          title: 'Detalle de administrativo',
+          permissions: ['supervision.analytics.read'],
+        },
+      },
+      {
+        path: 'supervision/goals',
+        name: 'supervision-goals',
+        component: () => import('@/features/supervision/views/SupervisionGoalsView.vue'),
+        meta: { title: 'Objetivos', permissions: ['supervision.analytics.read'] },
+      },
+      {
+        path: 'administrative/sales',
+        name: 'admin-sales',
+        component: () => import('@/features/administrative/views/AdminSalesListView.vue'),
+        meta: { title: 'Gestión de ventas', permissions: ['sales.review'] },
+      },
+      {
+        path: 'administrative/sales/:id',
+        name: 'admin-sale-review',
+        component: () => import('@/features/administrative/views/AdminSaleReviewView.vue'),
+        meta: { title: 'Revisión de venta', permissions: ['sales.review'] },
+      },
+      {
+        path: 'administrative/follow-ups',
+        name: 'admin-follow-ups',
+        component: () => import('@/features/administrative/views/AdminFollowUpsView.vue'),
+        meta: { title: 'Seguimientos', permissions: ['sales.follow_up'] },
+      },
+      {
         path: 'account/change-password',
         name: 'account-change-password',
         component: () => import('@/features/account/views/ChangePasswordView.vue'),
@@ -67,7 +119,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'sales',
         name: 'sales',
         component: () => import('@/features/sales/views/SalesListView.vue'),
-        meta: { title: 'Mis ventas', permissions: ['sales.read'] },
+        meta: { title: 'Mis ventas', permissions: ['sales.create'] },
       },
       {
         path: 'sales/new',

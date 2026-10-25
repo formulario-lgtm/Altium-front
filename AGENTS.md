@@ -6,7 +6,7 @@ Entry point for Codex and Cursor. Keep this file short; follow linked docs for d
 
 Single-tenant enterprise CRM UI for Altium (~20 users initially). Talks to a NestJS + Fastify REST API. Hosting target: Netlify (not connected yet).
 
-This repository contains the technical foundations plus **Stage 5: authentication (cookie session + CSRF), own account, users, teams, roles/permissions and audit**, and **Paso 3: sales UI (Mis ventas / nueva venta / detalle)** against the Nest sales API. Other commercial CRM screens (customers, opportunities, dashboards/KPIs) are not in scope yet.
+This repository contains the technical foundations plus **Stage 5: authentication (cookie session + CSRF), own account, users, teams, roles/permissions and audit**, **sales UI (Mis ventas / nueva venta / detalle)**, **administrative UI (gestión de ventas, revisión, seguimientos, observaciones, notificaciones in-app)**, **supervision UI (vendedores, administrativos, objetivos mensuales + ECharts)**, and **role-specific Home (`/api/v1/home/*`)** against the Nest API. Other commercial CRM screens (customers, opportunities, generic BI dashboards) are not in scope yet.
 
 ## Stack
 
@@ -24,7 +24,7 @@ This repository contains the technical foundations plus **Stage 5: authenticatio
 | Tests        | Vitest + Vue Test Utils; Playwright E2E         |
 | Tooling      | TypeScript strict, ESLint, Prettier, pnpm       |
 
-**Deferred (documented, not installed):** Apache ECharts, AG Grid. See ADR `0002` (amended: VeeValidate + Zod installed in Stage 5).
+**Deferred (documented, not installed):** AG Grid. See ADR `0002` (amended: VeeValidate + Zod in Stage 5; Apache ECharts in supervision).
 
 Auth/session: [docs/guides/authentication.md](docs/guides/authentication.md).
 
@@ -155,6 +155,6 @@ pnpm check             # includes api:check + check:vuetify-deps
 
 ## Scope boundaries
 
-**In scope now:** Vite/Vue/Vuetify bootstrap, themes, OpenAPI-typed HTTP client, optional health probe, tooling, docs, CI, **Stage 5**: login/forgot/reset/activate, guards + RBAC navigation, own account (password, sessions), users, teams, roles/permissions, audit, **sales (Mis ventas)**: list/filters, draft form with conditional sections, autosave + version conflict, submit (`sales.update`), return (`sales.return`), Excel export (`sales.read`), document/CBU pending states.
+**In scope now:** Vite/Vue/Vuetify bootstrap, themes, OpenAPI-typed HTTP client, optional health probe, tooling, docs, CI, **Stage 5**: login/forgot/reset/activate, guards + RBAC navigation, own account (password, sessions), users, teams, roles/permissions, audit, **sales (Mis ventas)**: list/filters, draft form with conditional sections, autosave + version conflict, submit (`sales.update`), return (`sales.return`), Excel export (`sales.read`), document upload/download/delete via Spaces, **administrative**: sales review queue/detail, follow-ups, observations, in-app notifications, **supervision**: sellers/administratives analytics, monthly goals (`supervision.analytics.read` / `supervision.goals.manage`), **home by role** (`home.seller|administrative|supervisor|admin.read` → `GET /api/v1/home/*`).
 
-**Out of scope now:** Other commercial CRM modules (customers, opportunities, dashboards/KPIs), Netlify connection, AG Grid, charts, MFA, real document uploads (Spaces), payment tokenization / CBU capture.
+**Out of scope now:** Other commercial CRM modules (customers, opportunities, generic BI dashboards), Netlify connection, AG Grid, MFA, payment tokenization / CBU capture, email/push notifications, assignment-admin UI.

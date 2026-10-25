@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import { useDisplay } from 'vuetify';
+import { ref } from 'vue';
+import GlobalLoadingOverlay from '@/components/common/GlobalLoadingOverlay.vue';
 import AppHeader from '@/components/layout/AppHeader.vue';
 import AppNavigation from '@/components/layout/AppNavigation.vue';
 import { useNavigationItems } from '@/composables/useNavigationItems';
@@ -11,14 +11,11 @@ import { useAuthStore } from '@/stores/auth.store';
 useThemeSync();
 
 const auth = useAuthStore();
-const { mdAndUp } = useDisplay();
 const { items } = useNavigationItems();
 const logoutMutation = useLogoutMutation();
 
-const drawer = ref(mdAndUp.value);
-watch(mdAndUp, (desktop) => {
-  drawer.value = desktop;
-});
+/** Closed by default; open via header hamburger on any breakpoint. */
+const drawer = ref(false);
 
 function logout(): void {
   logoutMutation.mutate();
@@ -45,8 +42,7 @@ function logout(): void {
     <v-navigation-drawer
       v-if="!auth.mustChangePassword"
       v-model="drawer"
-      :permanent="mdAndUp"
-      :temporary="!mdAndUp"
+      temporary
       width="248"
     >
       <AppNavigation :items="items" />
@@ -57,5 +53,7 @@ function logout(): void {
         <router-view />
       </v-container>
     </v-main>
+
+    <GlobalLoadingOverlay />
   </v-app>
 </template>

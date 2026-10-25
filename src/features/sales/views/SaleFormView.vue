@@ -23,9 +23,12 @@ import {
   useSubmitSaleMutation,
 } from '../composables/useSales';
 import { emptyMember } from '../utils/sale-form-model';
+import { fieldErrorProps, saleFieldPathLabel } from '../utils/sale-field-errors';
+import { formatSaleNumber } from '@/utils/format';
 import {
   ARGENTINA_PROVINCES,
   CUSTOMER_TYPE_OPTIONS,
+  healthPlanOptionLabel,
   MONOTAX_CATEGORIES,
   PAYMENT_METHOD_OPTIONS,
 } from '../utils/sale-labels';
@@ -44,6 +47,32 @@ const section = ref<SaleSectionId>('details');
 const submitConfirm = ref(false);
 const submitError = ref<string | null>(null);
 const submitFieldErrors = ref<Record<string, string>>({});
+
+/** Save + submit Problem Details paths (`members[0].cuil`, `contact.email`, …). */
+const allFieldErrors = computed(() => ({
+  ...form.fieldErrors.value,
+  ...submitFieldErrors.value,
+}));
+
+function fieldProps(path: string) {
+  return fieldErrorProps(allFieldErrors.value, path);
+}
+
+function clearFieldError(path: string): void {
+  if (path in submitFieldErrors.value) {
+    const next = { ...submitFieldErrors.value };
+    delete next[path];
+    submitFieldErrors.value = next;
+  }
+  if (path in form.fieldErrors.value) {
+    const next = { ...form.fieldErrors.value };
+    delete next[path];
+    form.fieldErrors.value = next;
+  }
+  if (Object.keys(submitFieldErrors.value).length === 0 && submitError.value) {
+    submitError.value = null;
+  }
+}
 
 const sections = computed(() => {
   const customerType = form.model.value?.customerType;
@@ -96,7 +125,7 @@ const insurerItems = computed(() =>
 );
 const planItems = computed(() =>
   (plansQuery.data.value?.items ?? []).map((row) => ({
-    title: `${row.code} — ${row.name}`,
+    title: healthPlanOptionLabel(row),
     value: row.id,
   })),
 );
@@ -185,7 +214,11 @@ async function onSubmitConfirm(): Promise<void> {
 <template>
   <div>
     <PageHeader
-      :title="form.sale.value?.saleNumber ?? 'Editar venta'"
+      :title="
+        form.sale.value
+          ? `Venta ${formatSaleNumber(form.sale.value.saleNumber)}`
+          : 'Editar venta'
+      "
       subtitle="Completá las secciones. El borrador se guarda automáticamente."
     >
       <template #actions>
@@ -228,11 +261,14 @@ async function onSubmitConfirm(): Promise<void> {
       class="mb-4"
       :title="submitError"
       closable
-      @click:close="submitError = null"
+      @click:close="
+        submitError = null;
+        submitFieldErrors = {};
+      "
     >
       <ul v-if="Object.keys(submitFieldErrors).length" class="mt-2 mb-0">
         <li v-for="(message, field) in submitFieldErrors" :key="field">
-          <strong>{{ field }}:</strong> {{ message }}
+          <strong>{{ saleFieldPathLabel(field) }}:</strong> {{ message }}
         </li>
       </ul>
     </v-alert>
@@ -265,6 +301,8 @@ async function onSubmitConfirm(): Promise<void> {
                   :loading="insurersQuery.isFetching.value"
                   label="Prepaga"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('healthInsurerId')"
+                  @update:model-value="clearFieldError('healthInsurerId')"
                 />
               </v-col>
               <v-col cols="12" md="4">
@@ -274,6 +312,8 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Tipo de venta"
                   clearable
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('customerType')"
+                  @update:model-value="clearFieldError('customerType')"
                 />
               </v-col>
               <v-col cols="12" md="4">
@@ -284,6 +324,8 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Plan"
                   clearable
                   :disabled="!form.editable.value || !form.model.value.healthInsurerId"
+                  v-bind="fieldProps('healthPlanId')"
+                  @update:model-value="clearFieldError('healthPlanId')"
                 />
               </v-col>
             </v-row>
@@ -294,12 +336,22 @@ async function onSubmitConfirm(): Promise<void> {
             <p class="text-medium-emphasis mb-4">
               El titular está incluido. Sumá cónyuge e hijos según corresponda.
             </p>
+            <v-alert
+              v-if="allFieldErrors.members"
+              type="error"
+              variant="tonal"
+              density="compact"
+              class="mb-4"
+              :text="allFieldErrors.members"
+            />
             <FamilyMemberCard
               v-if="holderIndex >= 0 && form.model.value.members[holderIndex]"
               :member="form.model.value.members[holderIndex]!"
               :index="holderIndex"
               :disabled="!form.editable.value"
+              :field-errors="allFieldErrors"
               @update:member="updateMemberAt(holderIndex, $event)"
+              @clear-field-error="clearFieldError"
             />
             <FamilyMemberCard
               v-for="row in spouseRows"
@@ -308,8 +360,10 @@ async function onSubmitConfirm(): Promise<void> {
               :index="row.index"
               removable
               :disabled="!form.editable.value"
+              :field-errors="allFieldErrors"
               @remove="removeMemberAt(row.index)"
               @update:member="updateMemberAt(row.index, $event)"
+              @clear-field-error="clearFieldError"
             />
             <FamilyMemberCard
               v-for="(row, childIndex) in children"
@@ -319,8 +373,10 @@ async function onSubmitConfirm(): Promise<void> {
               :child-index="childIndex + 1"
               removable
               :disabled="!form.editable.value"
+              :field-errors="allFieldErrors"
               @remove="removeMemberAt(row.index)"
               @update:member="updateMemberAt(row.index, $event)"
+              @clear-field-error="clearFieldError"
             />
             <div v-if="form.editable.value" class="d-flex flex-wrap ga-2">
               <v-btn variant="tonal" :disabled="Boolean(spouse)" @click="addSpouse">
@@ -338,6 +394,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.contact.areaCode"
                   label="Código de área"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('contact.areaCode')"
+                  @update:model-value="clearFieldError('contact.areaCode')"
                 />
               </v-col>
               <v-col cols="12" md="3">
@@ -345,6 +403,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.contact.phone"
                   label="Teléfono"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('contact.phone')"
+                  @update:model-value="clearFieldError('contact.phone')"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -353,6 +413,8 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Email"
                   type="email"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('contact.email')"
+                  @update:model-value="clearFieldError('contact.email')"
                 />
               </v-col>
               <v-col cols="12">
@@ -360,6 +422,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.contact.address"
                   label="Domicilio"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('contact.address')"
+                  @update:model-value="clearFieldError('contact.address')"
                 />
               </v-col>
               <v-col cols="12" md="4">
@@ -367,6 +431,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.contact.postalCode"
                   label="Código postal"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('contact.postalCode')"
+                  @update:model-value="clearFieldError('contact.postalCode')"
                 />
               </v-col>
               <v-col cols="12" md="8">
@@ -376,6 +442,8 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Provincia"
                   clearable
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('contact.province')"
+                  @update:model-value="clearFieldError('contact.province')"
                 />
               </v-col>
             </v-row>
@@ -393,6 +461,8 @@ async function onSubmitConfirm(): Promise<void> {
                 :label="`CUIT empleador ${index + 1}`"
                 maxlength="11"
                 :disabled="!form.editable.value"
+                v-bind="fieldProps(`employment.employers[${index}].employerCuit`)"
+                @update:model-value="clearFieldError(`employment.employers[${index}].employerCuit`)"
               />
               <v-btn
                 v-if="index > 0 && form.editable.value"
@@ -411,6 +481,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.employment.currentInsurance"
                   label="Obra social actual"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('employment.currentInsurance')"
+                  @update:model-value="clearFieldError('employment.currentInsurance')"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -420,8 +492,11 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Sueldo bruto (s/ aporte)"
                   step="0.01"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('employment.grossSalary')"
                   @update:model-value="
-                    form.model.value!.employment.grossSalary = $event === '' ? null : Number($event)
+                    clearFieldError('employment.grossSalary');
+                    form.model.value!.employment.grossSalary =
+                      $event === '' ? null : Number($event);
                   "
                 />
               </v-col>
@@ -438,6 +513,8 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Categoría de monotributo"
                   clearable
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('taxInfo.monotaxCategory')"
+                  @update:model-value="clearFieldError('taxInfo.monotaxCategory')"
                 />
               </v-col>
               <v-col cols="12" md="8">
@@ -445,6 +522,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.taxInfo.currentInsurance"
                   label="Obra social actual"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('taxInfo.currentInsurance')"
+                  @update:model-value="clearFieldError('taxInfo.currentInsurance')"
                 />
               </v-col>
             </v-row>
@@ -453,8 +532,8 @@ async function onSubmitConfirm(): Promise<void> {
           <template v-else-if="section === 'billing'">
             <h2 class="text-h6 mb-2">Cobranza y facturación</h2>
             <v-alert type="info" variant="tonal" class="mb-4" density="compact">
-              No se aceptan número completo de tarjeta, CVV ni CBU en texto plano. La tokenización y
-              el cifrado de CBU están pendientes en el backend.
+              No envíes el número completo de tarjeta ni el CVV. Con CBU/CVU/ALIAS alcanza el dato
+              textual.
             </v-alert>
             <v-row dense>
               <v-col cols="12" md="4">
@@ -464,6 +543,8 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Forma de pago"
                   clearable
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('billing.paymentMethod')"
+                  @update:model-value="clearFieldError('billing.paymentMethod')"
                 />
               </v-col>
               <v-col cols="12" md="4">
@@ -479,9 +560,11 @@ async function onSubmitConfirm(): Promise<void> {
                   label="¿El titular es el pagador?"
                   clearable
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('billing.holderIsPayer')"
                   @update:model-value="
+                    clearFieldError('billing.holderIsPayer');
                     form.model.value!.billing.holderIsPayer =
-                      $event === 'Si' ? true : $event === 'No' ? false : null
+                      $event === 'Si' ? true : $event === 'No' ? false : null;
                   "
                 />
               </v-col>
@@ -489,18 +572,13 @@ async function onSubmitConfirm(): Promise<void> {
 
             <template v-if="form.model.value.billing.holderIsPayer === true">
               <v-text-field
+                v-if="form.model.value.billing.paymentMethod === 'CBU'"
                 v-model="form.model.value.billing.paymentMedium"
                 class="mt-2"
-                label="Medio de pago"
+                label="CBU/CVU/ALIAS"
                 :disabled="!form.editable.value"
-              />
-              <v-alert
-                v-if="form.model.value.billing.paymentMethod === 'CBU'"
-                type="warning"
-                variant="tonal"
-                class="mt-2"
-                title="CBU pendiente de captura segura"
-                text="El backend aún no permite almacenar CBU. No se envía ni se guarda en el navegador."
+                v-bind="fieldProps('billing.paymentMedium')"
+                @update:model-value="clearFieldError('billing.paymentMedium')"
               />
               <v-row v-if="form.model.value.billing.paymentMethod === 'CARD'" dense class="mt-2">
                 <v-col cols="12" md="4">
@@ -508,6 +586,8 @@ async function onSubmitConfirm(): Promise<void> {
                     v-model="form.model.value.billing.cardBrand"
                     label="Marca de tarjeta"
                     :disabled="!form.editable.value"
+                    v-bind="fieldProps('billing.cardBrand')"
+                    @update:model-value="clearFieldError('billing.cardBrand')"
                   />
                 </v-col>
                 <v-col cols="12" md="4">
@@ -516,6 +596,8 @@ async function onSubmitConfirm(): Promise<void> {
                     label="Últimos 4 dígitos"
                     maxlength="4"
                     :disabled="!form.editable.value"
+                    v-bind="fieldProps('billing.cardLastFour')"
+                    @update:model-value="clearFieldError('billing.cardLastFour')"
                   />
                 </v-col>
                 <v-col cols="6" md="2">
@@ -526,9 +608,11 @@ async function onSubmitConfirm(): Promise<void> {
                     min="1"
                     max="12"
                     :disabled="!form.editable.value"
+                    v-bind="fieldProps('billing.cardExpiryMonth')"
                     @update:model-value="
+                      clearFieldError('billing.cardExpiryMonth');
                       form.model.value!.billing.cardExpiryMonth =
-                        $event === '' ? null : Number($event)
+                        $event === '' ? null : Number($event);
                     "
                   />
                 </v-col>
@@ -538,9 +622,11 @@ async function onSubmitConfirm(): Promise<void> {
                     type="number"
                     label="Año"
                     :disabled="!form.editable.value"
+                    v-bind="fieldProps('billing.cardExpiryYear')"
                     @update:model-value="
+                      clearFieldError('billing.cardExpiryYear');
                       form.model.value!.billing.cardExpiryYear =
-                        $event === '' ? null : Number($event)
+                        $event === '' ? null : Number($event);
                     "
                   />
                 </v-col>
@@ -554,6 +640,8 @@ async function onSubmitConfirm(): Promise<void> {
                   label="CUIT / CUIL del pagador"
                   maxlength="11"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('billing.payerIdentifier')"
+                  @update:model-value="clearFieldError('billing.payerIdentifier')"
                 />
               </v-col>
               <v-col cols="12" md="4">
@@ -562,6 +650,8 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Email del pagador"
                   type="email"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('billing.payerEmail')"
+                  @update:model-value="clearFieldError('billing.payerEmail')"
                 />
               </v-col>
               <v-col cols="12" md="4">
@@ -569,6 +659,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.billing.payerPhone"
                   label="Teléfono del pagador"
                   :disabled="!form.editable.value"
+                  v-bind="fieldProps('billing.payerPhone')"
+                  @update:model-value="clearFieldError('billing.payerPhone')"
                 />
               </v-col>
             </v-row>
@@ -576,9 +668,19 @@ async function onSubmitConfirm(): Promise<void> {
 
           <template v-else-if="section === 'documents'">
             <h2 class="text-h6 mb-2">Documentación respaldatoria</h2>
+            <v-alert
+              v-if="allFieldErrors.documents"
+              type="error"
+              variant="tonal"
+              density="compact"
+              class="mb-4"
+              :text="allFieldErrors.documents"
+            />
             <SaleDocuments
+              :sale-id="saleId"
               :documents="documentsQuery.data.value"
               :loading="documentsQuery.isFetching.value"
+              :editable="form.editable.value"
             />
           </template>
 

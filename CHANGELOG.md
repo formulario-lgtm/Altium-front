@@ -18,6 +18,33 @@ Section headings used in this repository:
 
 ### Nuevo
 
+- **Inicio por rol**: pantallas personalizadas para SELLER / ADMINISTRATIVE / SUPERVISOR / SUPER_ADMIN contra `GET /api/v1/home/seller|administrative|supervisor|admin` (`home.*.read`). KPIs tipados, alertas, colas de atención, gráficos ECharts solo con datos reales, actividad reciente y accesos rápidos. Selector de período (mes actual para vendedor/administrativo; meses anteriores + equipo para supervisor/admin). Query keys por rol + usuario + período; caché limpia en login/logout.
+- Componentes de home reutilizables (`HomeKpiGrid`, `HomeSection`, `HomeAlertList`, `HomeSaleList`, `HomeChartCard`, `HomeQuickActions`, `HomePeriodFilters`) reusando `KpiMetricCard` / `AltiumChart` de supervisión.
+- **Módulo supervisión (frontend)**: dashboard analítico (antes embebido en Inicio; ahora la vista de supervisión en Inicio usa el home de supervisor) con filtros mes/año/equipo, KPIs documentados, gráficos ECharts; listados y detalle de vendedores y administrativos; objetivos mensuales (`supervision.goals.manage`). Contrato OpenAPI sincronizado (`/api/v1/supervision/*`).
+- Dependencia `echarts` para gráficos de supervisión (ADR 0002 enmendado); paleta centralizada en `chart-theme.ts`.
+
+### Ajuste UX/UI
+
+- Inicio: **Accesos rápidos** al lado del saludo (`PageHeader` actions, variante `inline`) en todos los roles.
+- Barra lateral del shell cerrada por defecto (se abre con el menú del header).
+- Cobranza: sin aviso de “CBU pendiente”; campo **CBU/CVU/ALIAS** (dato textual). Detalle/revisión muestran el valor cargado.
+- Documentación de venta: sin repetir el tipo bajo la etiqueta (`DNI frente · Titular` + `DNI frente`). Selector de plan: no muestra `A1 — A1` cuando código y nombre coinciden. Historial: motivo de borrador en español (legacy “Sale draft created” → “Borrador creado”).
+- Números de venta en UI como enteros (`V-000001` → `1`); fechas en toda la app como `dd/mm/aaaa hh:mm`. En grillas de ventas: columna de fecha de creación (sin “última modificación”), orden y filtros por creación.
+- **Inicio**: paneles lado a lado con misma altura de contenedor; en vendedor las alertas son operativas (sin enlace a objetivos ni aviso `NO_GOAL`, que ya está en el KPI de cumplimiento).
+- **Inicio**: se eliminan la tarjeta de identidad (nombre/correo/rol), los accesos destacados a Mis sesiones y Estado del sistema, y el texto genérico sin valor operativo; la identidad queda en el header del shell.
+- Etiqueta de grupo de permisos `home` → **Inicio** en Roles.
+- Más aire vertical entre filas de campos y filtros (`forms.scss`: gutters de `v-row dense` con `!important` porque Vuetify pisa el padding a 4px) para que labels flotantes no queden pegados a la fila de arriba.
+- Labels/placeholders de campos: blanco en oscuro y casi negro en claro; ya no pasan a azul al hacer focus (el anillo/borde sigue marcando el foco).
+- **Validación de venta**: al presentar/guardar, los errores Problem Details (p. ej. CUIL inválido) marcan el campo correspondiente en rojo y muestran el mensaje bajo el input; el resumen superior usa etiquetas legibles (“Titular · CUIL”) en lugar de paths crudos.
+- Contraste de etiquetas/placeholders de formularios en claro y oscuro (`forms.scss` + opacidad medium-emphasis del tema).
+- **Carga global**: `GlobalLoadingOverlay` bloquea la UI con “Cargando…” mientras hay llamadas al backend (middleware del cliente HTTP; excluye el poll de no leídas). Evita pantallas “muertas” y clics repetidos.
+- Etiquetas en español para grupos de permisos `administrative` → **Administrativo** y `notifications` → **Notificaciones** en Roles (ya no se muestran códigos en inglés).
+
+### Nuevo
+
+- **Módulo administrativo (frontend)**: dashboard operativo en Inicio (`administrative.dashboard.read`), Gestión de ventas y revisión por secciones, Seguimientos, observaciones internas / correcciones, notificaciones in-app en el header. Contrato OpenAPI sincronizado (start-review, observations, follow-ups, assignee, notifications, dashboard).
+- **Documentos de venta (Spaces)**: en el alta/edición se pueden subir, descargar y eliminar adjuntos (JPEG/PNG/PDF) contra `POST/GET/DELETE /sales/:id/documents*`; el detalle permite descargar. Contrato OpenAPI sincronizado con el backend.
+- Etiquetas en español para roles, tipos/estados de documento, acciones de auditoría y tipos de entidad (se dejan de mostrar códigos crudos como `SELLER` o `DNI_FRONT` en la UI).
 - **Paso 4 — validación integral ventas**: alineación de permisos UI↔API (`Presentar`/`Exportar` usan `sales.update`/`sales.read`; no existen `sales.submit`/`sales.export`), acción **Devolver** en detalle (`sales.return` + motivo), serialización de autosave para evitar carreras de `version`, smoke live de vendedores (login, IDOR, CSRF, conflicto 409).
 - **Paso 3 — módulo de ventas (frontend)** contra los endpoints reales de Nest: `Mis ventas` (lista paginada + filtros), alta de borrador, formulario por secciones con reglas condicionales (tipo de venta, integrantes, laboral/impositiva, cobranza), autoguardado con `version` / conflicto 409, presentación, detalle de solo lectura y exportación Excel.
 - Navegación por permisos: un SELLER ve **Mis ventas** (más cuenta/tema/logout); no se muestran Usuarios/Equipos/Roles/Auditoría sin permiso. Las rutas siguen protegidas por guards + API.
@@ -52,6 +79,7 @@ Section headings used in this repository:
 
 ### Corrección de errores
 
+- Login: un `GET /auth/me` de boot en vuelo ya no borra la sesión tras un login exitoso (carrera que dejaba la UI en `/login` aunque el POST respondiera 200).
 - Ventas (vendedor): pantalla en blanco al **Ver** y al **Nueva venta** (formulario) por Vuetify fuera de `optimizeDeps` (`VTable`, `VProgressCircular` en el estado de guardado; `VAutocomplete` en equipos). Lista centralizada en `scripts/vuetify-optimize-deps.ts` + gate `pnpm check:vuetify-deps` para que no vuelva a pasar en ninguna ruta lazy.
 - Detalle de venta: historial con `v-list` (sin `VTimeline`).
 - Evitado el reload en blanco al abrir por primera vez pantallas lazy (Auditoría, Usuarios, etc.): Vite precachea los componentes de Vuetify en `optimizeDeps`.

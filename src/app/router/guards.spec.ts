@@ -74,18 +74,54 @@ describe('resolveAuthNavigation', () => {
 
   it('allows sellers on sales routes and blocks admin routes', () => {
     const seller = auth({
-      permissions: ['sales.read', 'sales.create', 'sales.update'],
+      permissions: ['sales.read', 'sales.create', 'sales.update', 'notifications.read'],
     });
     expect(
       resolveAuthNavigation(
-        target('sales', { requiresAuth: true, permissions: ['sales.read'] }),
+        target('sales', { requiresAuth: true, permissions: ['sales.create'] }),
         seller,
       ),
     ).toBe(true);
     expect(
       resolveAuthNavigation(
+        target('admin-sales', { requiresAuth: true, permissions: ['sales.review'] }),
+        seller,
+      ),
+    ).toEqual({ name: 'forbidden' });
+    expect(
+      resolveAuthNavigation(
         target('users', { requiresAuth: true, permissions: ['users.read'] }),
         seller,
+      ),
+    ).toEqual({ name: 'forbidden' });
+  });
+
+  it('allows administrative review routes with sales.review', () => {
+    const administrative = auth({
+      permissions: [
+        'sales.read',
+        'sales.review',
+        'sales.follow_up',
+        'administrative.dashboard.read',
+        'notifications.read',
+      ],
+    });
+    expect(
+      resolveAuthNavigation(
+        target('admin-sales', { requiresAuth: true, permissions: ['sales.review'] }),
+        administrative,
+      ),
+    ).toBe(true);
+    expect(
+      resolveAuthNavigation(
+        target('admin-follow-ups', { requiresAuth: true, permissions: ['sales.follow_up'] }),
+        administrative,
+      ),
+    ).toBe(true);
+    expect(
+      resolveAuthNavigation(
+        target('sales', { requiresAuth: true, permissions: ['sales.create'] }),
+        administrative,
       ),
     ).toEqual({ name: 'forbidden' });
   });

@@ -25,17 +25,18 @@ Full reference: [visual-identity.md](../architecture/visual-identity.md).
 
 ## Patterns
 
-| Pattern         | Implementation                                                            |
-| --------------- | ------------------------------------------------------------------------- |
-| Page chrome     | `PageHeader` + `v-btn color="primary"` for CTA                            |
-| Filters         | `v-row.altium-filters` + outlined fields (global defaults / `forms.scss`) |
-| Forms           | Rely on Vuetify defaults; avoid local `density`/`variant` unless required |
-| Multi-step form | Side nav (`SaleSectionNav`) on desktop; compact select on mobile          |
-| Save feedback   | Inline status (pending / saving / saved / error) — never silent fail      |
-| Data lists      | `v-card` > `v-data-table-server`                                          |
-| Status          | `StatusBadge` (includes sale `DRAFT` / `SUBMITTED` / `RETURNED`)          |
-| Person identity | `UserAvatar` + name/email stack                                           |
-| Shell           | `AppShellLayout` (atmosphere + glass drawer/bar)                          |
+| Pattern         | Implementation                                                                                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page chrome     | `PageHeader` + `v-btn color="primary"` for CTA                                                                                                                      |
+| Filters         | `v-row.altium-filters` + outlined fields (global defaults / `forms.scss`)                                                                                           |
+| Forms           | Rely on Vuetify defaults; avoid local `density`/`variant` unless required. Vertical spacing between field rows is global in `forms.scss` (do not patch per screen). |
+| Multi-step form | Side nav (`SaleSectionNav`) on desktop; compact select on mobile                                                                                                    |
+| Save feedback   | Inline status (pending / saving / saved / error) — never silent fail                                                                                                |
+| Data lists      | `v-card` > `v-data-table-server`                                                                                                                                    |
+| Status          | `StatusBadge` (includes sale `DRAFT` / `SUBMITTED` / `RETURNED`)                                                                                                    |
+| Person identity | `UserAvatar` + name/email stack                                                                                                                                     |
+| Blocking load   | `GlobalLoadingOverlay` while the API client has in-flight tracked calls                                                                                             |
+| Shell           | `AppShellLayout` (atmosphere + glass drawer/bar)                                                                                                                    |
 
 ## Rules
 

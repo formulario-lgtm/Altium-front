@@ -107,4 +107,27 @@ describe('auth store', () => {
     expect(store.status).toBe('unauthenticated');
     expect(store.bootError).toBe('Sin conexión');
   });
+
+  it('keeps a login session when a late boot me() 401 arrives', async () => {
+    let rejectMe!: (error: unknown) => void;
+    fetchMeMock.mockReturnValue(
+      new Promise<AuthSessionResponse>((_, reject) => {
+        rejectMe = reject;
+      }),
+    );
+    const store = useAuthStore();
+    const boot = store.ensureSession();
+
+    store.setSession(sessionResponse());
+    expect(store.status).toBe('authenticated');
+
+    rejectMe(
+      new ApiError({ kind: 'unauthorized', code: 'UNAUTHORIZED', message: 'x', status: 401 }),
+    );
+    await boot;
+
+    expect(store.status).toBe('authenticated');
+    expect(store.user?.email).toBe('ana@altium.example');
+    expect(store.bootError).toBeNull();
+  });
 });

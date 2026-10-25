@@ -6,11 +6,15 @@ function mountForm(props: Record<string, unknown> = {}) {
   return mount(LoginForm, { props, global: { stubs: { RouterLink: RouterLinkStub } } });
 }
 
+async function settle(): Promise<void> {
+  await flushPromises();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  await flushPromises();
+}
+
 async function submit(wrapper: ReturnType<typeof mountForm>): Promise<void> {
   await wrapper.get('button[type="submit"]').trigger('click');
-  await flushPromises();
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  await flushPromises();
+  await settle();
 }
 
 describe('LoginForm', () => {
@@ -25,18 +29,22 @@ describe('LoginForm', () => {
 
   it('rejects an invalid email', async () => {
     const wrapper = mountForm();
-    await wrapper.get('input[type="email"]').setValue('not-an-email');
+    const email = wrapper.get('input[type="email"]');
+    await email.setValue('not-an-email');
+    await email.trigger('blur');
     await wrapper.get('input[type="password"]').setValue('anything');
+    await settle();
     await submit(wrapper);
 
     expect(wrapper.emitted('submit')).toBeUndefined();
-    expect(wrapper.html()).toMatch(/correo válido|válido/i);
+    expect(wrapper.text()).toMatch(/correo válido|válido/i);
   });
 
   it('emits trimmed credentials when valid (no password policy on login)', async () => {
     const wrapper = mountForm();
     await wrapper.get('input[type="email"]').setValue('  ana@altium.example ');
     await wrapper.get('input[type="password"]').setValue('short');
+    await settle();
     await submit(wrapper);
 
     expect(wrapper.emitted('submit')?.[0]).toEqual([

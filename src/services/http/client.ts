@@ -3,6 +3,7 @@ import { apiConfig } from '@/config/api';
 import type { paths } from '@/types/generated/api';
 import { clearCsrfToken, CSRF_HEADER, getCsrfToken, isMutatingMethod } from './csrf';
 import { toApiError, toApiErrorFromResponse } from './errors';
+import { beginGlobalLoading, endGlobalLoading, isSilentLoadingUrl } from './loading';
 import { createTimedFetch } from './timed-fetch';
 
 export const REQUEST_ID_HEADER = 'x-request-id';
@@ -103,6 +104,29 @@ function createSessionMiddleware(): Middleware {
   };
 }
 
+/** Blocks the shell while a tracked API call is in flight (see `loading.ts`). */
+function createLoadingMiddleware(): Middleware {
+  return {
+    async onRequest({ request }) {
+      if (!isSilentLoadingUrl(request.url)) {
+        beginGlobalLoading();
+      }
+      return request;
+    },
+    async onResponse({ request, response }) {
+      if (!isSilentLoadingUrl(request.url)) {
+        endGlobalLoading();
+      }
+      return response;
+    },
+    async onError({ request }) {
+      if (request && !isSilentLoadingUrl(request.url)) {
+        endGlobalLoading();
+      }
+    },
+  };
+}
+
 export function createApiClient(options: CreateApiClientOptions = {}): Client<paths> {
   const baseUrl = options.baseUrl ?? apiConfig.baseURL;
   const timeoutMs = options.timeoutMs ?? apiConfig.timeoutMs;
@@ -118,7 +142,7 @@ export function createApiClient(options: CreateApiClientOptions = {}): Client<pa
     fetch: createTimedFetch(timeoutMs, baseFetch),
   });
 
-  client.use(createTracingMiddleware(), createSessionMiddleware());
+  client.use(createTracingMiddleware(), createSessionMiddleware(), createLoadingMiddleware());
   return client;
 }
 

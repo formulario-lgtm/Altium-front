@@ -4,6 +4,64 @@
  */
 
 export interface paths {
+    "/api/v1/administrative/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List administrative↔seller assignments */
+        get: operations["Administrative_listAssignments"];
+        put?: never;
+        /** Assign a seller to an administrative user */
+        post: operations["Administrative_createAssignment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/administrative/assignments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * End an active administrative↔seller assignment
+         * @description When this is the last active assignment for the administrative user, confirmGlobalScope=true is required.
+         */
+        delete: operations["Administrative_unassignAssignment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/administrative/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Administrative sales dashboard indicators
+         * @description Aggregates are filtered by the caller sales visibility scope.
+         */
+        get: operations["Administrative_getDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/audit-logs": {
         parameters: {
             query?: never;
@@ -255,6 +313,154 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/home/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * System admin home summary
+         * @description Global operational overview for SUPER_ADMIN (no infrastructure metrics).
+         */
+        get: operations["Home_getAdmin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/home/administrative": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Administrative home summary
+         * @description Scoped by administrative seller assignments (or all sales when unassigned).
+         */
+        get: operations["Home_getAdministrative"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/home/seller": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Seller home summary
+         * @description Operational summary for the authenticated seller only.
+         */
+        get: operations["Home_getSeller"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/home/supervisor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Supervisor home summary
+         * @description Composes supervision dashboard KPIs for teams the actor supervises.
+         */
+        get: operations["Home_getSupervisor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List my notifications */
+        get: operations["Notifications_listMine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark one notification as read */
+        patch: operations["Notifications_markRead"];
+        trace?: never;
+    };
+    "/api/v1/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark all my notifications as read */
+        post: operations["Notifications_markAllRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unread notification count */
+        get: operations["Notifications_unreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/permissions": {
         parameters: {
             query?: never;
@@ -354,6 +560,23 @@ export interface paths {
         patch: operations["Sales_updateSale"];
         trace?: never;
     };
+    "/api/v1/sales/{id}/assignee": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set or clear the administrative assignee */
+        patch: operations["Sales_setAssignee"];
+        trace?: never;
+    };
     "/api/v1/sales/{id}/documents": {
         parameters: {
             query?: never;
@@ -363,9 +586,53 @@ export interface paths {
         };
         /**
          * Document metadata and required categories
-         * @description No upload URLs — object storage is not integrated yet.
+         * @description Does not expose storage keys. Binaries are served via the download endpoint.
          */
         get: operations["Sales_getSaleDocuments"];
+        put?: never;
+        /**
+         * Upload a sale document to private Spaces storage
+         * @description Multipart fields: file, documentType (SaleDocumentType), optional saleMemberId. JPEG/PNG/PDF, max size from DO_SPACES_MAX_UPLOAD_BYTES.
+         */
+        post: operations["Sales_uploadSaleDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/documents/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a sale document
+         * @description Allowed only while the sale is editable (DRAFT/RETURNED). Submitted sales retain evidence (409 DOCUMENT_LOCKED).
+         */
+        delete: operations["Sales_deleteSaleDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/documents/{documentId}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a sale document (authenticated stream)
+         * @description Streams the private object through the API. Prefer short-lived signed URLs in a future iteration if needed.
+         */
+        get: operations["Sales_downloadSaleDocument"];
         put?: never;
         post?: never;
         delete?: never;
@@ -391,6 +658,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sales/{id}/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List sale follow-ups */
+        get: operations["Sales_listFollowUps"];
+        put?: never;
+        /** Register a commercial follow-up */
+        post: operations["Sales_createFollowUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sales/{id}/history": {
         parameters: {
             query?: never;
@@ -408,6 +693,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sales/{id}/observations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List sale observations
+         * @description Sellers only receive CORRECTION_REQUEST rows.
+         */
+        get: operations["Sales_listObservations"];
+        put?: never;
+        /** Create an INTERNAL_NOTE observation */
+        post: operations["Sales_createObservation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/observations/{observationId}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Resolve a CORRECTION_REQUEST observation */
+        patch: operations["Sales_resolveObservation"];
+        trace?: never;
+    };
     "/api/v1/sales/{id}/return": {
         parameters: {
             query?: never;
@@ -418,10 +741,30 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Return a submitted sale
-         * @description Requires a reason. Only ADMINISTRATIVE (team scope) and SUPER_ADMIN.
+         * Return a submitted or in-review sale
+         * @description Creates a CORRECTION_REQUEST observation, moves status to RETURNED, audits and notifies the seller.
          */
         post: operations["Sales_returnSale"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/start-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start review of a submitted sale
+         * @description SUBMITTED → IN_REVIEW. Assigns the actor when no assignee is set.
+         */
+        post: operations["Sales_startReview"];
         delete?: never;
         options?: never;
         head?: never;
@@ -439,9 +782,163 @@ export interface paths {
         put?: never;
         /**
          * Submit a sale
-         * @description Runs full validation. CBU capture and document storage limitations apply (see error codes).
+         * @description Runs full validation. CBU capture and required-document rules apply (see error codes).
          */
         post: operations["Sales_submitSale"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supervision/administratives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List administratives in supervised teams with activity KPIs */
+        get: operations["Supervision_listAdministratives"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supervision/administratives/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Administrative detail activity KPIs for a month */
+        get: operations["Supervision_getAdministrative"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supervision/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Supervisor dashboard KPIs for a month */
+        get: operations["Supervision_getDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supervision/goals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List monthly goals in supervision scope */
+        get: operations["Supervision_listGoals"];
+        put?: never;
+        /** Create a monthly goal for a team or user in scope */
+        post: operations["Supervision_createGoal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supervision/goals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a monthly goal target value (closed months require reason) */
+        patch: operations["Supervision_patchGoal"];
+        trace?: never;
+    };
+    "/api/v1/supervision/goals/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Goal change history */
+        get: operations["Supervision_getGoalHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supervision/sellers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List sellers in supervised teams with monthly KPIs */
+        get: operations["Supervision_listSellers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supervision/sellers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Seller detail KPIs for a month */
+        get: operations["Supervision_getSeller"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supervision/sellers/comparison": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare up to 10 sellers in scope for a month */
+        get: operations["Supervision_compareSellers"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -660,6 +1157,107 @@ export interface components {
              */
             userId: string;
         };
+        AdminHomeResponseDto: {
+            alerts: components["schemas"]["HomeAlertDto"][];
+            comparableCompliance: components["schemas"]["HomeComplianceDto"];
+            followUpsOverdue: number;
+            kpis: components["schemas"]["HomeKpiDto"][];
+            monthlyPresented: components["schemas"]["HomeSeriesPointDto"][];
+            period: components["schemas"]["HomePeriodMetaDto"];
+            recentSecurityEvents: components["schemas"]["HomeAuditRefDto"][];
+            /** @description SUBMITTED sales older than STALE_SUBMITTED_DAYS (BA) */
+            staleSubmitted: number;
+            teamPerformance: components["schemas"]["HomeTeamPerformanceDto"][];
+            teamsWithoutGoal: number;
+            usersPendingActivation: number;
+            usersSuspended: number;
+        };
+        AdministrativeAssignmentDto: {
+            administrativeName?: string;
+            /** Format: uuid */
+            administrativeUserId: string;
+            /** Format: date-time */
+            assignedAt: string;
+            /** Format: uuid */
+            assignedBy: string;
+            /** Format: uuid */
+            id: string;
+            sellerName?: string;
+            /** Format: uuid */
+            sellerUserId: string;
+            /** Format: date-time */
+            unassignedAt?: string | null;
+        };
+        AdministrativeAssignmentListResponseDto: {
+            items: components["schemas"]["AdministrativeAssignmentDto"][];
+        };
+        AdministrativeDashboardDto: {
+            /** @description Sales currently IN_REVIEW */
+            inReview: number;
+            /** @description Follow-ups with nextFollowUpAt <= now (due or overdue) */
+            pendingFollowUps: number;
+            /** @description SUBMITTED sales pending review */
+            pendingReview: number;
+            /** @description Recent SUBMITTED/IN_REVIEW sales updated in the last 7 days */
+            recentAttention: number;
+            /** @description RETURNED sales */
+            returned: number;
+        };
+        AdministrativeDetailDto: {
+            activitySeries: {
+                date?: string;
+                returns?: number;
+                reviewsStarted?: number;
+            }[];
+            /** Format: uuid */
+            administrativeUserId: string;
+            avgFirstReviewHours: number | null;
+            currentWorkload: number;
+            firstName: string;
+            followUpsCreated: number;
+            followUpsOverdue: number;
+            followUpsPending: number;
+            lastName: string;
+            month: number;
+            observationsCreated: number;
+            returnsPerformed: number;
+            reviewsStarted: number;
+            year: number;
+        };
+        AdministrativeHomeResponseDto: {
+            /** @description Observations + follow-ups + reviews started by this actor in month */
+            actionsThisMonth: number;
+            activityLast7Days: components["schemas"]["HomeSeriesPointDto"][];
+            alerts: components["schemas"]["HomeAlertDto"][];
+            attentionQueue: components["schemas"]["HomeSaleRefDto"][];
+            kpis: components["schemas"]["HomeKpiDto"][];
+            period: components["schemas"]["HomePeriodMetaDto"];
+            presentedToday: number;
+            reviewsStartedToday: number;
+            upcomingFollowUps: components["schemas"]["HomeFollowUpRefDto"][];
+        };
+        AdministrativeListItemDto: {
+            /** Format: uuid */
+            administrativeUserId: string;
+            /** @description Average hours to first review */
+            avgFirstReviewHours: number | null;
+            /** @description Sales currently assigned to this admin (SUBMITTED/IN_REVIEW) */
+            currentWorkload: number;
+            firstName: string;
+            followUpsOverdue: number;
+            followUpsPending: number;
+            lastName: string;
+            /** @description Returns performed by this admin in the period */
+            returnsPerformed: number;
+            /** @description Reviews started (SUBMITTED→IN_REVIEW) in period by this admin */
+            reviewsStarted: number;
+            /** Format: uuid */
+            teamId: Record<string, never> | null;
+            teamName: Record<string, never> | null;
+        };
+        AdministrativeListResponseDto: {
+            items: components["schemas"]["AdministrativeListItemDto"][];
+        };
         AuditLogDto: {
             /** @example auth.login */
             action: string;
@@ -740,12 +1338,61 @@ export interface components {
              */
             newPassword: string;
         };
+        ComplianceDto: {
+            /** @description null when no goal or target is 0 */
+            compliancePercent: number | null;
+            hasGoal: boolean;
+            /** @description True when a goal exists with target_value = 0 */
+            targetIsZero: boolean;
+            targetValue: number | null;
+        };
+        CreateAdministrativeAssignmentDto: {
+            /** Format: uuid */
+            administrativeUserId: string;
+            /** Format: uuid */
+            sellerUserId: string;
+        };
+        CreateMonthlyGoalDto: {
+            /** @enum {string} */
+            goalType: "SALES_SUBMITTED" | "REVIEWS_STARTED" | "FIRST_REVIEW_HOURS";
+            /** @example 10 */
+            month: number;
+            reason?: string;
+            /** @enum {string} */
+            targetType: "TEAM" | "USER";
+            targetValue: number;
+            /** Format: uuid */
+            teamId?: Record<string, never> | null;
+            /** @enum {string} */
+            unit: "COUNT" | "HOURS" | "PERCENT";
+            /** Format: uuid */
+            userId?: Record<string, never> | null;
+            /** @example 2026 */
+            year: number;
+        };
         CreateSaleDto: {
             /**
              * Format: uuid
              * @description Defaults to active Prevención Salud when omitted
              */
             healthInsurerId?: string;
+        };
+        CreateSaleFollowUpDto: {
+            description: string;
+            /** @enum {string} */
+            followUpType: "CALL" | "EMAIL" | "PORTAL" | "OTHER";
+            /** Format: date-time */
+            nextFollowUpAt?: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+        };
+        CreateSaleObservationDto: {
+            description: string;
+            /**
+             * @description INTERNAL_NOTE only via this endpoint. CORRECTION_REQUEST is created by return.
+             * @enum {string}
+             */
+            type: "INTERNAL_NOTE" | "CORRECTION_REQUEST";
         };
         CreateTeamDto: {
             description?: string;
@@ -777,6 +1424,11 @@ export interface components {
              * @example null
              */
             nextCursor?: string | null;
+        };
+        DailyCountDto: {
+            count: number;
+            /** @example 2026-10-01 */
+            date: string;
         };
         FieldErrorDto: {
             /** @example INVALID_EMAIL */
@@ -815,6 +1467,124 @@ export interface components {
         HealthPlanListResponseDto: {
             items: components["schemas"]["HealthPlanDto"][];
         };
+        HomeAlertDto: {
+            code: string;
+            count?: number | null;
+            description: string;
+            /** Format: uuid */
+            entityId?: string | null;
+            entityType?: string | null;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            /** @enum {string} */
+            severity: "info" | "warning" | "critical";
+            title: string;
+        };
+        HomeAuditRefDto: {
+            action: string;
+            /** Format: uuid */
+            entityId: string | null;
+            entityType: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            outcome: string;
+        };
+        HomeComplianceDto: {
+            compliancePercent: number | null;
+            hasGoal: boolean;
+            targetIsZero: boolean;
+            targetValue: number | null;
+        };
+        HomeFollowUpRefDto: {
+            description: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            nextFollowUpAt: string | null;
+            /** Format: uuid */
+            saleId: string;
+            saleNumber: string;
+        };
+        HomeKpiDto: {
+            /** @enum {string} */
+            availability: "AVAILABLE" | "ZERO" | "NO_DATA" | "NO_GOAL" | "NOT_IMPLEMENTED";
+            /** @example SALES_PRESENTED */
+            code: string;
+            delta?: number | null;
+            label: string;
+            previousValue?: number | null;
+            /** @enum {string} */
+            unit: "COUNT" | "PERCENT" | "HOURS";
+            value: number | null;
+        };
+        HomeNotificationRefDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            entityId?: string | null;
+            entityType?: string | null;
+            /** Format: uuid */
+            id: string;
+            title: string;
+            type: string;
+        };
+        HomePeriodMetaDto: {
+            month: number;
+            /** Format: date-time */
+            periodEndExclusive: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** @example America/Argentina/Buenos_Aires */
+            timeZone: string;
+            year: number;
+        };
+        HomeSaleRefDto: {
+            /** Format: uuid */
+            id: string;
+            saleNumber: string;
+            /** @enum {string} */
+            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        HomeSellerPaceDto: {
+            /** @description True when has usable goal and compliancePercent < expectedPercent */
+            behindPace: boolean;
+            compliance: components["schemas"]["HomeComplianceDto"];
+            /** @description Expected % = dayOfMonth/daysInMonth × 100 (BA) */
+            expectedPercent: number;
+            firstName: string;
+            lastName: string;
+            salesPresented: number;
+            /** Format: uuid */
+            sellerId: string;
+            /** Format: uuid */
+            teamId: string | null;
+        };
+        HomeSeriesPointDto: {
+            count: number;
+            /**
+             * @description Calendar day YYYY-MM-DD (BA) or year-month YYYY-MM
+             * @example 2026-10-01
+             */
+            key: string;
+        };
+        HomeTeamPerformanceDto: {
+            compliance: components["schemas"]["HomeComplianceDto"];
+            salesPresented: number;
+            /** Format: uuid */
+            teamId: string;
+            teamName: string;
+        };
+        HomeTeamSummaryDto: {
+            compliance: components["schemas"]["HomeComplianceDto"];
+            salesPresented: number;
+            /** Format: uuid */
+            teamId: string;
+            teamName: string;
+        };
         LoginDto: {
             /**
              * Format: email
@@ -826,6 +1596,48 @@ export interface components {
         };
         MessageResponseDto: {
             message: string;
+        };
+        MonthlyGoalDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            createdBy: string;
+            /** @enum {string} */
+            goalType: "SALES_SUBMITTED" | "REVIEWS_STARTED" | "FIRST_REVIEW_HOURS";
+            /** Format: uuid */
+            id: string;
+            month: number;
+            /** @enum {string} */
+            targetType: "TEAM" | "USER";
+            targetValue: number;
+            /** Format: uuid */
+            teamId: Record<string, never> | null;
+            /** @enum {string} */
+            unit: "COUNT" | "HOURS" | "PERCENT";
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            updatedBy: Record<string, never> | null;
+            /** Format: uuid */
+            userId: Record<string, never> | null;
+            year: number;
+        };
+        MonthlyGoalHistoryItemDto: {
+            /** Format: date-time */
+            changedAt: string;
+            /** Format: uuid */
+            changedBy: string;
+            /** Format: uuid */
+            id: string;
+            newValue: number;
+            previousValue: number | null;
+            reason: Record<string, never> | null;
+        };
+        MonthlyGoalHistoryResponseDto: {
+            items: components["schemas"]["MonthlyGoalHistoryItemDto"][];
+        };
+        MonthlyGoalListResponseDto: {
+            items: components["schemas"]["MonthlyGoalDto"][];
         };
         OffsetPageInfoDto: {
             /** @example false */
@@ -839,6 +1651,18 @@ export interface components {
              * @example 100
              */
             total: number;
+        };
+        PatchMonthlyGoalDto: {
+            /** @description Required when updating a closed (past) month */
+            reason?: string;
+            targetValue: number;
+        };
+        PatchSaleAssigneeDto: {
+            /**
+             * Format: uuid
+             * @description Administrative user id, or null to clear
+             */
+            administrativeAssigneeId?: string | null;
         };
         PermissionDto: {
             /** @example read */
@@ -887,6 +1711,13 @@ export interface components {
             newPassword: string;
             /** @description One-time token from the reset link */
             token: string;
+        };
+        ReturnRateDto: {
+            /** Format: date-time */
+            asOf: string;
+            presented: number;
+            ratePercent: number | null;
+            returnedAmongPresented: number;
         };
         ReturnSaleDto: {
             reason: string;
@@ -985,10 +1816,11 @@ export interface components {
         SaleDocumentsResponseDto: {
             items: components["schemas"]["SaleDocumentMetaDto"][];
             requiredCategories: components["schemas"]["RequiredDocumentCategoryDto"][];
-            /** @description True until DigitalOcean Spaces (or equivalent) is integrated */
+            /** @description False when DigitalOcean Spaces (StorageModule) is configured; kept for clients that still show pending UX */
             storageIntegrationPending: boolean;
         };
         SaleDto: {
+            administrativeAssignee: components["schemas"]["SaleSellerSummaryDto"] | null;
             billing: components["schemas"]["SaleBillingDto"] | null;
             contact: components["schemas"]["SaleContactDto"] | null;
             /** Format: date-time */
@@ -1002,13 +1834,17 @@ export interface components {
             healthPlan: components["schemas"]["SaleCatalogRefDto"] | null;
             /** Format: uuid */
             id: string;
+            /** Format: date-time */
+            lastReviewedAt: string | null;
             members: components["schemas"]["SaleMemberDto"][];
             observations: string | null;
+            /** Format: date-time */
+            reviewStartedAt: string | null;
             /** @example V-000001 */
             saleNumber: string;
             seller: components["schemas"]["SaleSellerSummaryDto"];
             /** @enum {string} */
-            status: "DRAFT" | "SUBMITTED" | "RETURNED";
+            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
             /** Format: date-time */
             submittedAt: string | null;
             taxInfo: components["schemas"]["SaleTaxInfoDto"] | null;
@@ -1038,7 +1874,33 @@ export interface components {
             employers?: components["schemas"]["SaleEmployerInputDto"][];
             grossSalary?: number | null;
         };
+        SaleFollowUpDto: {
+            /** Format: uuid */
+            administrativeUserId: string;
+            /** Format: date-time */
+            completedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            description: string;
+            /** @enum {string} */
+            followUpType: "CALL" | "EMAIL" | "PORTAL" | "OTHER";
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            nextFollowUpAt?: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+            /** Format: uuid */
+            saleId: string;
+            /** @enum {string} */
+            status: "OPEN" | "DONE";
+        };
+        SaleFollowUpListResponseDto: {
+            items: components["schemas"]["SaleFollowUpDto"][];
+        };
         SaleListItemDto: {
+            /** Format: date-time */
+            createdAt: string;
             /** @enum {string|null} */
             customerType: "DEREGULATED" | "MONOTAX" | "VOLUNTARY" | null;
             healthInsurerName: string;
@@ -1052,7 +1914,7 @@ export interface components {
             saleNumber: string;
             seller: components["schemas"]["SaleSellerSummaryDto"];
             /** @enum {string} */
-            status: "DRAFT" | "SUBMITTED" | "RETURNED";
+            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
             /** Format: date-time */
             submittedAt: string | null;
             /** Format: date-time */
@@ -1110,6 +1972,30 @@ export interface components {
             sex?: "MALE" | "FEMALE" | "OTHER" | null;
             weightKg?: number | null;
         };
+        SaleObservationDto: {
+            /** Format: uuid */
+            authorUserId: string;
+            /** Format: date-time */
+            createdAt: string;
+            description: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            resolvedAt?: string | null;
+            /** Format: uuid */
+            resolvedBy?: string | null;
+            /** Format: uuid */
+            saleId: string;
+            /** @enum {string} */
+            status: "OPEN" | "RESOLVED";
+            /** @enum {string} */
+            type: "INTERNAL_NOTE" | "CORRECTION_REQUEST";
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SaleObservationListResponseDto: {
+            items: components["schemas"]["SaleObservationDto"][];
+        };
         SaleSellerSummaryDto: {
             /** Format: email */
             email: string;
@@ -1123,12 +2009,12 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             /** @enum {string|null} */
-            fromStatus: "DRAFT" | "SUBMITTED" | "RETURNED" | null;
+            fromStatus: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | null;
             /** Format: uuid */
             id: string;
             reason: string | null;
             /** @enum {string} */
-            toStatus: "DRAFT" | "SUBMITTED" | "RETURNED";
+            toStatus: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
         };
         SaleStatusHistoryResponseDto: {
             items: components["schemas"]["SaleStatusHistoryItemDto"][];
@@ -1140,6 +2026,85 @@ export interface components {
         SaleTaxInfoInputDto: {
             currentInsurance?: string | null;
             monotaxCategory?: string | null;
+        };
+        SellerComparisonItemDto: {
+            compliance: components["schemas"]["ComplianceDto"];
+            firstName: string;
+            lastName: string;
+            returnRate: components["schemas"]["ReturnRateDto"];
+            salesPresented: number;
+            /** Format: uuid */
+            sellerId: string;
+        };
+        SellerComparisonResponseDto: {
+            items: components["schemas"]["SellerComparisonItemDto"][];
+            month: number;
+            year: number;
+        };
+        SellerDetailDto: {
+            compliance: components["schemas"]["ComplianceDto"];
+            firstName: string;
+            inReview: number;
+            lastName: string;
+            month: number;
+            pendingReview: number;
+            planDistribution: {
+                count?: number;
+                healthInsurerName?: string;
+                healthPlanName?: string | null;
+            }[];
+            recentSales: {
+                /** Format: date-time */
+                firstSubmittedAt?: string | null;
+                /** Format: uuid */
+                id?: string;
+                saleNumber?: string;
+                status?: string;
+            }[];
+            returnedStock: number;
+            returnRate: components["schemas"]["ReturnRateDto"];
+            salesPresented: number;
+            /** Format: uuid */
+            sellerId: string;
+            seriesPresented: components["schemas"]["DailyCountDto"][];
+            statusDistribution: {
+                count?: number;
+                status?: string;
+            }[];
+            year: number;
+        };
+        SellerHomeResponseDto: {
+            alerts: components["schemas"]["HomeAlertDto"][];
+            compliance: components["schemas"]["HomeComplianceDto"];
+            dailyPresented: components["schemas"]["HomeSeriesPointDto"][];
+            kpis: components["schemas"]["HomeKpiDto"][];
+            notifications: components["schemas"]["HomeNotificationRefDto"][];
+            period: components["schemas"]["HomePeriodMetaDto"];
+            presentedToday: number;
+            recentSales: components["schemas"]["HomeSaleRefDto"][];
+            /** @description max(0, target − presented); null when no usable goal */
+            remainingToGoal: number | null;
+            returnedNeedingCorrection: components["schemas"]["HomeSaleRefDto"][];
+            unreadNotificationCount?: number;
+        };
+        SellerListItemDto: {
+            compliance: components["schemas"]["ComplianceDto"];
+            firstName: string;
+            /** Format: date-time */
+            lastActivityAt: string | null;
+            lastName: string;
+            /** @description Current RETURNED stock for this seller */
+            returnedStock: number;
+            returnRate: components["schemas"]["ReturnRateDto"];
+            salesPresented: number;
+            /** Format: uuid */
+            sellerId: string;
+            /** Format: uuid */
+            teamId: Record<string, never> | null;
+            teamName: Record<string, never> | null;
+        };
+        SellerListResponseDto: {
+            items: components["schemas"]["SellerListItemDto"][];
         };
         SessionDto: {
             /** Format: date-time */
@@ -1160,6 +2125,55 @@ export interface components {
         };
         /** @enum {string} */
         SettableUserStatus: "ACTIVE" | "SUSPENDED" | "DISABLED";
+        SupervisionAlertDto: {
+            /** @enum {string} */
+            code: "OVERDUE_FOLLOW_UPS" | "NO_GOAL" | "HIGH_RETURNED_STOCK" | "ZERO_PRESENTATIONS";
+            message: string;
+            severity: string;
+        };
+        SupervisionDashboardDto: {
+            alerts: components["schemas"]["SupervisionAlertDto"][];
+            compliance: components["schemas"]["ComplianceDto"];
+            followUpsOverdue: number;
+            followUpsPending: number;
+            /** @description Current stock IN_REVIEW */
+            inReview: number;
+            month: number;
+            /** @description Current stock SUBMITTED */
+            pendingReview: number;
+            /** Format: date-time */
+            periodEndExclusive: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** @description Current stock RETURNED */
+            returnedStock: number;
+            returnRate: components["schemas"]["ReturnRateDto"];
+            /** @description Distinct sales with →RETURNED event in the period */
+            returnsInPeriod: number;
+            /** @description First presentations in the period (distinct sales) */
+            salesPresented: number;
+            seriesPresented: components["schemas"]["DailyCountDto"][];
+            seriesReturns: components["schemas"]["DailyCountDto"][];
+            /** Format: uuid */
+            teamId: string | null;
+            /** @description Business timezone used for month boundaries */
+            timeZone: string;
+            year: number;
+        };
+        SupervisorHomeResponseDto: {
+            alerts: components["schemas"]["HomeAlertDto"][];
+            compliance: components["schemas"]["HomeComplianceDto"];
+            dailyPresented: components["schemas"]["HomeSeriesPointDto"][];
+            /** @description Underlying supervision dashboard */
+            dashboard: components["schemas"]["SupervisionDashboardDto"];
+            expectedPercent: number;
+            kpis: components["schemas"]["HomeKpiDto"][];
+            period: components["schemas"]["HomePeriodMetaDto"];
+            sellersBehindPace: components["schemas"]["HomeSellerPaceDto"][];
+            /** Format: uuid */
+            teamId?: string | null;
+            teamSummaries: components["schemas"]["HomeTeamSummaryDto"][];
+        };
         TeamDto: {
             /** @description Members without a leftAt date */
             activeMemberCount: number;
@@ -1209,6 +2223,13 @@ export interface components {
             /** Format: uuid */
             id: string;
             lastName: string;
+        };
+        UnassignAdministrativeAssignmentDto: {
+            /** @description Required when this is the last active seller for the administrative user (grants global scope). */
+            confirmGlobalScope?: boolean;
+        };
+        UnreadCountResponseDto: {
+            count: number;
         };
         UpdateRolePermissionsDto: {
             /**
@@ -1281,6 +2302,27 @@ export interface components {
             items: components["schemas"]["UserDto"][];
             pageInfo: components["schemas"]["OffsetPageInfoDto"];
         };
+        UserNotificationDto: {
+            /** Format: uuid */
+            actorUserId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            entityId?: string | null;
+            entityType: string;
+            /** Format: uuid */
+            id: string;
+            message: string;
+            /** Format: date-time */
+            readAt?: string | null;
+            title: string;
+            /** @enum {string} */
+            type: "SALE_RETURNED" | "SALE_RESUBMITTED" | "SALE_ASSIGNED" | "SALE_CORRECTION_RESOLVED" | "SALE_FOLLOW_UP_DUE" | "GENERIC";
+        };
+        UserNotificationListResponseDto: {
+            items: components["schemas"]["UserNotificationDto"][];
+            pageInfo: components["schemas"]["OffsetPageInfoDto"];
+        };
         UserRoleDto: {
             /** @example SELLER */
             code: string;
@@ -1299,6 +2341,217 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    Administrative_listAssignments: {
+        parameters: {
+            query?: {
+                includeInactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeAssignmentListResponseDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Administrative_createAssignment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateAdministrativeAssignmentDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeAssignmentDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Administrative_unassignAssignment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnassignAdministrativeAssignmentDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeAssignmentDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Administrative_getDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeDashboardDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     Audit_listAuditLogs: {
         parameters: {
             query?: {
@@ -1896,6 +3149,390 @@ export interface operations {
             };
         };
     };
+    Home_getAdmin: {
+        parameters: {
+            query?: {
+                year?: number;
+                month?: number;
+                teamId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHomeResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Home_getAdministrative: {
+        parameters: {
+            query?: {
+                year?: number;
+                month?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeHomeResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Home_getSeller: {
+        parameters: {
+            query?: {
+                year?: number;
+                month?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerHomeResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Home_getSupervisor: {
+        parameters: {
+            query?: {
+                year?: number;
+                month?: number;
+                teamId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisorHomeResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Notifications_listMine: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNotificationListResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Notifications_markRead: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNotificationDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Notifications_markAllRead: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCountResponseDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Notifications_unreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCountResponseDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     Permissions_listPermissions: {
         parameters: {
             query?: never;
@@ -2055,7 +3692,7 @@ export interface operations {
                 healthInsurerId?: string;
                 healthPlanId?: string;
                 customerType?: "DEREGULATED" | "MONOTAX" | "VOLUNTARY";
-                status?: "DRAFT" | "SUBMITTED" | "RETURNED";
+                status?: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
                 createdFrom?: string;
                 createdTo?: string;
                 sortBy?: "updatedAt" | "createdAt" | "saleNumber" | "submittedAt";
@@ -2287,6 +3924,70 @@ export interface operations {
             };
         };
     };
+    Sales_setAssignee: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchSaleAssigneeDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     Sales_getSaleDocuments: {
         parameters: {
             query?: never;
@@ -2344,6 +4045,187 @@ export interface operations {
             };
         };
     };
+    Sales_uploadSaleDocument: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDocumentMetaDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_deleteSaleDocument: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_downloadSaleDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     Sales_exportSaleExcel: {
         parameters: {
             query?: never;
@@ -2355,6 +4237,127 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_listFollowUps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleFollowUpListResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_createFollowUp: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSaleFollowUpDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleFollowUpDto"];
+                };
+            };
             /** @description Validation or request error */
             400: {
                 headers: {
@@ -2450,6 +4453,188 @@ export interface operations {
             };
         };
     };
+    Sales_listObservations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleObservationListResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_createObservation: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSaleObservationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleObservationDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_resolveObservation: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+                observationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleObservationDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     Sales_returnSale: {
         parameters: {
             query?: never;
@@ -2467,6 +4652,75 @@ export interface operations {
                 "application/json": components["schemas"]["ReturnSaleDto"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_startReview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -2583,6 +4837,573 @@ export interface operations {
             };
             /** @description Conflict with current state */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_listAdministratives: {
+        parameters: {
+            query: {
+                year: number;
+                month: number;
+                teamId?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeListResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_getAdministrative: {
+        parameters: {
+            query: {
+                year: number;
+                month: number;
+                teamId?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdministrativeDetailDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_getDashboard: {
+        parameters: {
+            query: {
+                year: number;
+                month: number;
+                teamId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupervisionDashboardDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_listGoals: {
+        parameters: {
+            query?: {
+                year?: number;
+                month?: number;
+                teamId?: string;
+                userId?: string;
+                goalType?: "SALES_SUBMITTED" | "REVIEWS_STARTED" | "FIRST_REVIEW_HOURS";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyGoalListResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_createGoal: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMonthlyGoalDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyGoalDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_patchGoal: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchMonthlyGoalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyGoalDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_getGoalHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonthlyGoalHistoryResponseDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_listSellers: {
+        parameters: {
+            query: {
+                year: number;
+                month: number;
+                teamId?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerListResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_getSeller: {
+        parameters: {
+            query: {
+                year: number;
+                month: number;
+                teamId?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerDetailDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Supervision_compareSellers: {
+        parameters: {
+            query: {
+                year: number;
+                month: number;
+                teamId?: string;
+                /** @description Repeat sellerIds or pass a comma-separated list (max 10) */
+                sellerIds: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SellerComparisonResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

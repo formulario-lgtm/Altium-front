@@ -1,5 +1,7 @@
 import type {
   SaleCustomerType,
+  SaleDocumentStatus,
+  SaleDocumentType,
   SaleMaritalStatus,
   SaleMemberSex,
   SaleMemberType,
@@ -16,8 +18,55 @@ export const CUSTOMER_TYPE_OPTIONS: { title: string; value: SaleCustomerType }[]
 export const SALE_STATUS_OPTIONS: { title: string; value: SaleStatus }[] = [
   { title: 'Borrador', value: 'DRAFT' },
   { title: 'Presentada', value: 'SUBMITTED' },
+  { title: 'En revisión', value: 'IN_REVIEW' },
   { title: 'Devuelta', value: 'RETURNED' },
 ];
+
+/** Statuses shown in the administrative sales queue (excludes drafts). */
+export const ADMIN_SALE_STATUS_OPTIONS: { title: string; value: SaleStatus }[] = [
+  { title: 'Presentada', value: 'SUBMITTED' },
+  { title: 'En revisión', value: 'IN_REVIEW' },
+  { title: 'Devuelta', value: 'RETURNED' },
+];
+
+export const FOLLOW_UP_TYPE_OPTIONS = [
+  { title: 'Llamada', value: 'CALL' as const },
+  { title: 'Correo', value: 'EMAIL' as const },
+  { title: 'Portal', value: 'PORTAL' as const },
+  { title: 'Otro', value: 'OTHER' as const },
+];
+
+export function saleStatusLabel(value: SaleStatus | null | undefined): string {
+  return SALE_STATUS_OPTIONS.find((option) => option.value === value)?.title ?? value ?? '—';
+}
+
+export function followUpTypeLabel(value: string | null | undefined): string {
+  return FOLLOW_UP_TYPE_OPTIONS.find((option) => option.value === value)?.title ?? value ?? '—';
+}
+
+export function observationTypeLabel(value: string | null | undefined): string {
+  if (value === 'INTERNAL_NOTE') return 'Nota interna';
+  if (value === 'CORRECTION_REQUEST') return 'Solicitud de corrección';
+  return value ?? '—';
+}
+
+export function observationStatusLabel(value: string | null | undefined): string {
+  if (value === 'OPEN') return 'Abierta';
+  if (value === 'RESOLVED') return 'Resuelta';
+  return value ?? '—';
+}
+
+export function canStartReview(status: SaleStatus | undefined): boolean {
+  return status === 'SUBMITTED';
+}
+
+export function canReturnForCorrection(status: SaleStatus | undefined): boolean {
+  return status === 'SUBMITTED' || status === 'IN_REVIEW';
+}
+
+export function canRegisterAdminActions(status: SaleStatus | undefined): boolean {
+  return status === 'SUBMITTED' || status === 'IN_REVIEW' || status === 'RETURNED';
+}
 
 export const SEX_OPTIONS: { title: string; value: SaleMemberSex }[] = [
   { title: 'Femenino', value: 'FEMALE' },
@@ -79,6 +128,63 @@ export function memberTypeLabel(value: SaleMemberType): string {
   if (value === 'HOLDER') return 'Titular';
   if (value === 'SPOUSE') return 'Cónyuge';
   return 'Hijo/a';
+}
+
+export const DOCUMENT_TYPE_LABELS: Record<SaleDocumentType, string> = {
+  PAYSLIP: 'Recibo de sueldo',
+  DNI_FRONT: 'DNI frente',
+  DNI_BACK: 'DNI dorso',
+  BIRTH_CERTIFICATE: 'Partida de nacimiento',
+  MONOTAX_FORM: 'Formulario monotributo',
+  PAYMENT_PROOF: 'Comprobante de pago',
+  OTHER: 'Otro',
+};
+
+export const DOCUMENT_STATUS_LABELS: Record<SaleDocumentStatus, string> = {
+  PENDING: 'Pendiente',
+  UPLOADED: 'Subido',
+  FAILED: 'Fallido',
+};
+
+export function documentTypeLabel(value: SaleDocumentType | string): string {
+  return DOCUMENT_TYPE_LABELS[value as SaleDocumentType] ?? value;
+}
+
+export function documentStatusLabel(value: SaleDocumentStatus | string): string {
+  return DOCUMENT_STATUS_LABELS[value as SaleDocumentStatus] ?? value;
+}
+
+/** Plan select label: avoid `A1 — A1` when code and name match. */
+export function healthPlanOptionLabel(plan: { code: string; name: string }): string {
+  const code = plan.code.trim();
+  const name = plan.name.trim();
+  if (!code) return name || '—';
+  if (!name || code.toLowerCase() === name.toLowerCase()) return code || name;
+  return `${code} — ${name}`;
+}
+
+/** System status-history reasons (API may still return legacy English). */
+const SALE_HISTORY_REASON_LABELS: Record<string, string> = {
+  'Sale draft created': 'Borrador creado',
+  'Borrador creado': 'Borrador creado',
+};
+
+export function saleHistoryReasonLabel(reason: string | null | undefined): string | null {
+  if (!reason) return null;
+  const trimmed = reason.trim();
+  if (!trimmed) return null;
+  return SALE_HISTORY_REASON_LABELS[trimmed] ?? trimmed;
+}
+
+/** Accept JPEG / PNG / PDF up to 10 MiB (matches backend default). */
+export const SALE_DOCUMENT_ACCEPT = 'image/jpeg,image/png,application/pdf,.jpg,.jpeg,.png,.pdf';
+export const SALE_DOCUMENT_MAX_BYTES = 10 * 1024 * 1024;
+
+export function formatFileSize(bytes: number | null | undefined): string {
+  if (bytes == null || !Number.isFinite(bytes) || bytes < 0) return '—';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function ageFromBirthDate(birthDate: string | null | undefined): number | null {

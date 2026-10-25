@@ -23,6 +23,11 @@ export const useAuthStore = defineStore('auth', () => {
   /** Set when the boot `me()` failed for a reason other than 401 (e.g. API unreachable). */
   const bootError = ref<string | null>(null);
   const pendingSession = shallowRef<Promise<void> | null>(null);
+  /**
+   * Bumped by `setSession` / `clearSession` so an in-flight boot `me()` cannot overwrite
+   * a login that completed while the probe was still pending (stuck on `/login`).
+   */
+  let sessionEpoch = 0;
 
   const permissionSet = computed(() => new Set(permissions.value));
   const isAuthenticated = computed(() => status.value === 'authenticated');
@@ -33,6 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
   );
 
   function setSession(response: AuthSessionResponse): void {
+    sessionEpoch += 1;
     user.value = response.user;
     permissions.value = [...response.permissions];
     session.value = response.session;
@@ -41,6 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function clearSession(): void {
+    sessionEpoch += 1;
     user.value = null;
     permissions.value = [];
     session.value = null;
@@ -61,18 +68,27 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function loadSession(): Promise<void> {
+    const epoch = sessionEpoch;
     status.value = 'loading';
     bootError.value = null;
     try {
-      setSession(await fetchMe());
+      const me = await fetchMe();
+      // Login (or logout) won the race — discard this probe result.
+      if (epoch !== sessionEpoch) {
+        return;
+      }
+      setSession(me);
     } catch (error) {
+      if (epoch !== sessionEpoch) {
+        return;
+      }
       clearSession();
       if (!isApiError(error) || error.status !== 401) {
         bootError.value = isApiError(error) ? error.message : 'No se pudo verificar la sesión.';
       }
     } finally {
       // Never leave the UI stuck on `loading` if setSession/clearSession was skipped.
-      if (status.value === 'loading') {
+      if (epoch === sessionEpoch && status.value === 'loading') {
         status.value = 'unauthenticated';
       }
     }

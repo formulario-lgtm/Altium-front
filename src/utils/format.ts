@@ -1,13 +1,33 @@
-const dateTimeFormatter = new Intl.DateTimeFormat('es', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
+/** Fixed calendar + clock for all UI timestamps: dd/mm/aaaa hh:mm (local). */
+const dateTimeFormatter = new Intl.DateTimeFormat('es-AR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
 });
 
 /** Locale date-time for ISO strings from the API; `—` for null/invalid values. */
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : dateTimeFormatter.format(date);
+  if (Number.isNaN(date.getTime())) return '—';
+  // Intl es-AR yields "dd/mm/aaaa, hh:mm" — normalize to "dd/mm/aaaa hh:mm".
+  return dateTimeFormatter.format(date).replace(',', '');
+}
+
+/**
+ * Display sale numbers as plain integers (API stores e.g. `V-000001`).
+ * Accepts already-numeric strings and padded values.
+ */
+export function formatSaleNumber(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === '') return '—';
+  const raw = String(value).trim();
+  const digits = raw.match(/(\d+)\s*$/);
+  if (!digits?.[1]) return raw;
+  const n = Number.parseInt(digits[1], 10);
+  return Number.isFinite(n) ? String(n) : raw;
 }
 
 export function fullName(person: { firstName: string; lastName: string }): string {

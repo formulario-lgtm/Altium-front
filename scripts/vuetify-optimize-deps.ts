@@ -10,6 +10,7 @@ export const vuetifyOptimizeDeps = [
   'vuetify/components/VAppBar',
   'vuetify/components/VAutocomplete',
   'vuetify/components/VAvatar',
+  'vuetify/components/VBadge',
   'vuetify/components/VBtn',
   'vuetify/components/VCard',
   'vuetify/components/VCheckbox',
@@ -28,11 +29,13 @@ export const vuetifyOptimizeDeps = [
   'vuetify/components/VProgressCircular',
   'vuetify/components/VProgressLinear',
   'vuetify/components/VSelect',
+  'vuetify/components/VSkeletonLoader',
   'vuetify/components/VSnackbar',
   'vuetify/components/VSwitch',
   'vuetify/components/VTable',
   'vuetify/components/VTextField',
   'vuetify/components/VTextarea',
+  'vuetify/components/VTooltip',
 ] as const;
 
 export type VuetifyOptimizeDep = (typeof vuetifyOptimizeDeps)[number];
@@ -46,6 +49,7 @@ export const TAG_TO_OPTIMIZE_ENTRY: Record<string, string> = {
   'app-bar-title': 'VAppBar',
   autocomplete: 'VAutocomplete',
   avatar: 'VAvatar',
+  badge: 'VBadge',
   btn: 'VBtn',
   card: 'VCard',
   'card-actions': 'VCard',
@@ -75,10 +79,12 @@ export const TAG_TO_OPTIMIZE_ENTRY: Record<string, string> = {
   'progress-linear': 'VProgressLinear',
   row: 'VGrid',
   select: 'VSelect',
+  'skeleton-loader': 'VSkeletonLoader',
   snackbar: 'VSnackbar',
   spacer: 'VGrid',
   switch: 'VSwitch',
   table: 'VTable',
   'text-field': 'VTextField',
   textarea: 'VTextarea',
+  tooltip: 'VTooltip',
 };

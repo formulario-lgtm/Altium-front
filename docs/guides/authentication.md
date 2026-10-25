@@ -39,7 +39,7 @@ Never store passwords, tokens, cookies or session data in `localStorage`/`sessio
 
 `src/app/router/guards.ts`:
 
-1. `beforeEach` awaits `auth.ensureSession()` — one `GET /auth/me` per page load (concurrent calls share the promise). `401` → unauthenticated; network errors set `bootError` (shown on login).
+1. `beforeEach` awaits `auth.ensureSession()` — one `GET /auth/me` per page load (concurrent calls share the promise). `401` → unauthenticated; network errors set `bootError` (shown on login). An in-flight boot `me()` must not clear a session established by a concurrent login (`setSession` bumps an epoch so stale 401s are ignored).
 2. `resolveAuthNavigation(to, auth)` (pure, unit-tested):
    - `meta.public` → allow.
    - `meta.guestOnly` + authenticated → `/` (or change-password).
