@@ -62,12 +62,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function loadSession(): Promise<void> {
     status.value = 'loading';
+    bootError.value = null;
     try {
       setSession(await fetchMe());
     } catch (error) {
       clearSession();
       if (!isApiError(error) || error.status !== 401) {
         bootError.value = isApiError(error) ? error.message : 'No se pudo verificar la sesión.';
+      }
+    } finally {
+      // Never leave the UI stuck on `loading` if setSession/clearSession was skipped.
+      if (status.value === 'loading') {
+        status.value = 'unauthenticated';
       }
     }
   }

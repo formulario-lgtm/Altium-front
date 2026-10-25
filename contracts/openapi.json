@@ -261,6 +261,16 @@
         ],
         "type": "object"
       },
+      "CreateSaleDto": {
+        "properties": {
+          "healthInsurerId": {
+            "description": "Defaults to active Prevención Salud when omitted",
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "CreateTeamDto": {
         "properties": {
           "description": {
@@ -366,6 +376,87 @@
         },
         "required": [
           "email"
+        ],
+        "type": "object"
+      },
+      "HealthInsurerDto": {
+        "properties": {
+          "code": {
+            "example": "PREVENCION_SALUD",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "Prevención Salud",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "HealthInsurerListResponseDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HealthInsurerDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "HealthPlanDto": {
+        "properties": {
+          "code": {
+            "example": "A1",
+            "type": "string"
+          },
+          "displayOrder": {
+            "type": "number"
+          },
+          "healthInsurerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "A1",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "healthInsurerId",
+          "code",
+          "name",
+          "displayOrder"
+        ],
+        "type": "object"
+      },
+      "HealthPlanListResponseDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HealthPlanDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
         ],
         "type": "object"
       },
@@ -521,6 +612,40 @@
         ],
         "type": "object"
       },
+      "RequiredDocumentCategoryDto": {
+        "properties": {
+          "documentType": {
+            "enum": [
+              "PAYSLIP",
+              "DNI_FRONT",
+              "DNI_BACK",
+              "BIRTH_CERTIFICATE",
+              "MONOTAX_FORM",
+              "PAYMENT_PROOF",
+              "OTHER"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "saleMemberId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "satisfied": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "documentType",
+          "label",
+          "saleMemberId",
+          "satisfied"
+        ],
+        "type": "object"
+      },
       "ResetPasswordDto": {
         "properties": {
           "newPassword": {
@@ -536,6 +661,19 @@
         "required": [
           "token",
           "newPassword"
+        ],
+        "type": "object"
+      },
+      "ReturnSaleDto": {
+        "properties": {
+          "reason": {
+            "maxLength": 2000,
+            "minLength": 3,
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
         ],
         "type": "object"
       },
@@ -591,6 +729,922 @@
         "required": [
           "items"
         ],
+        "type": "object"
+      },
+      "SaleBillingDto": {
+        "properties": {
+          "cardBrand": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cardExpiryMonth": {
+            "nullable": true,
+            "type": "number"
+          },
+          "cardExpiryYear": {
+            "nullable": true,
+            "type": "number"
+          },
+          "cardLastFour": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cbuCapturePending": {
+            "description": "True when encrypted CBU storage is not yet available",
+            "type": "boolean"
+          },
+          "holderIsPayer": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "payerEmail": {
+            "nullable": true,
+            "type": "string"
+          },
+          "payerIdentifier": {
+            "nullable": true,
+            "type": "string"
+          },
+          "payerPhone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentMedium": {
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentMethod": {
+            "enum": [
+              "CARD",
+              "CBU"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentProviderReference": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "paymentMethod",
+          "holderIsPayer",
+          "paymentMedium",
+          "payerIdentifier",
+          "payerEmail",
+          "payerPhone",
+          "cardBrand",
+          "cardLastFour",
+          "cardExpiryMonth",
+          "cardExpiryYear",
+          "paymentProviderReference",
+          "cbuCapturePending"
+        ],
+        "type": "object"
+      },
+      "SaleBillingInputDto": {
+        "properties": {
+          "cardBrand": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cardExpiryMonth": {
+            "nullable": true,
+            "type": "number"
+          },
+          "cardExpiryYear": {
+            "nullable": true,
+            "type": "number"
+          },
+          "cardLastFour": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cardNumber": {
+            "description": "Full card number — rejected; do not send",
+            "type": "string"
+          },
+          "cbu": {
+            "description": "Plaintext CBU — rejected; do not send",
+            "type": "string"
+          },
+          "cvv": {
+            "description": "CVV — rejected; do not send",
+            "type": "string"
+          },
+          "holderIsPayer": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "payerEmail": {
+            "nullable": true,
+            "type": "string"
+          },
+          "payerIdentifier": {
+            "nullable": true,
+            "type": "string"
+          },
+          "payerPhone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentMedium": {
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentMethod": {
+            "enum": [
+              "CARD",
+              "CBU"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentProviderReference": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SaleCatalogRefDto": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "SaleContactDto": {
+        "properties": {
+          "address": {
+            "nullable": true,
+            "type": "string"
+          },
+          "areaCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "phone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "postalCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "province": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "areaCode",
+          "phone",
+          "email",
+          "address",
+          "postalCode",
+          "province"
+        ],
+        "type": "object"
+      },
+      "SaleContactInputDto": {
+        "properties": {
+          "address": {
+            "nullable": true,
+            "type": "string"
+          },
+          "areaCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "phone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "postalCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "province": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SaleDocumentMetaDto": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "documentType": {
+            "enum": [
+              "PAYSLIP",
+              "DNI_FRONT",
+              "DNI_BACK",
+              "BIRTH_CERTIFICATE",
+              "MONOTAX_FORM",
+              "PAYMENT_PROOF",
+              "OTHER"
+            ],
+            "type": "string"
+          },
+          "fileSize": {
+            "nullable": true,
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mimeType": {
+            "nullable": true,
+            "type": "string"
+          },
+          "originalFilename": {
+            "nullable": true,
+            "type": "string"
+          },
+          "saleMemberId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "UPLOADED",
+              "FAILED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "documentType",
+          "saleMemberId",
+          "originalFilename",
+          "mimeType",
+          "fileSize",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "SaleDocumentsResponseDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SaleDocumentMetaDto"
+            },
+            "type": "array"
+          },
+          "requiredCategories": {
+            "items": {
+              "$ref": "#/components/schemas/RequiredDocumentCategoryDto"
+            },
+            "type": "array"
+          },
+          "storageIntegrationPending": {
+            "description": "True until DigitalOcean Spaces (or equivalent) is integrated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "items",
+          "requiredCategories",
+          "storageIntegrationPending"
+        ],
+        "type": "object"
+      },
+      "SaleDto": {
+        "properties": {
+          "billing": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleBillingDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "contact": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleContactDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "customerType": {
+            "enum": [
+              "DEREGULATED",
+              "MONOTAX",
+              "VOLUNTARY"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "documentationPending": {
+            "description": "Present on submit response when docs were waived in non-production",
+            "type": "boolean"
+          },
+          "employment": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleEmploymentDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "healthInsurer": {
+            "$ref": "#/components/schemas/SaleCatalogRefDto"
+          },
+          "healthPlan": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleCatalogRefDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/SaleMemberDto"
+            },
+            "type": "array"
+          },
+          "observations": {
+            "nullable": true,
+            "type": "string"
+          },
+          "saleNumber": {
+            "example": "V-000001",
+            "type": "string"
+          },
+          "seller": {
+            "$ref": "#/components/schemas/SaleSellerSummaryDto"
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "SUBMITTED",
+              "RETURNED"
+            ],
+            "type": "string"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "taxInfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleTaxInfoDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "saleNumber",
+          "status",
+          "customerType",
+          "version",
+          "observations",
+          "seller",
+          "healthInsurer",
+          "healthPlan",
+          "members",
+          "contact",
+          "employment",
+          "taxInfo",
+          "billing",
+          "createdAt",
+          "updatedAt",
+          "submittedAt"
+        ],
+        "type": "object"
+      },
+      "SaleEmployerDto": {
+        "properties": {
+          "displayOrder": {
+            "type": "number"
+          },
+          "employerCuit": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "employerCuit",
+          "displayOrder"
+        ],
+        "type": "object"
+      },
+      "SaleEmployerInputDto": {
+        "properties": {
+          "displayOrder": {
+            "type": "number"
+          },
+          "employerCuit": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "employerCuit"
+        ],
+        "type": "object"
+      },
+      "SaleEmploymentDto": {
+        "properties": {
+          "currentInsurance": {
+            "nullable": true,
+            "type": "string"
+          },
+          "employers": {
+            "items": {
+              "$ref": "#/components/schemas/SaleEmployerDto"
+            },
+            "type": "array"
+          },
+          "grossSalary": {
+            "nullable": true,
+            "type": "number"
+          }
+        },
+        "required": [
+          "currentInsurance",
+          "grossSalary",
+          "employers"
+        ],
+        "type": "object"
+      },
+      "SaleEmploymentInputDto": {
+        "properties": {
+          "currentInsurance": {
+            "nullable": true,
+            "type": "string"
+          },
+          "employers": {
+            "items": {
+              "$ref": "#/components/schemas/SaleEmployerInputDto"
+            },
+            "type": "array"
+          },
+          "grossSalary": {
+            "nullable": true,
+            "type": "number"
+          }
+        },
+        "type": "object"
+      },
+      "SaleListItemDto": {
+        "properties": {
+          "customerType": {
+            "enum": [
+              "DEREGULATED",
+              "MONOTAX",
+              "VOLUNTARY"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "healthInsurerName": {
+            "type": "string"
+          },
+          "healthPlanName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holderCuilMasked": {
+            "description": "Masked holder CUIL",
+            "nullable": true,
+            "type": "string"
+          },
+          "holderFirstName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holderLastName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "saleNumber": {
+            "type": "string"
+          },
+          "seller": {
+            "$ref": "#/components/schemas/SaleSellerSummaryDto"
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "SUBMITTED",
+              "RETURNED"
+            ],
+            "type": "string"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "saleNumber",
+          "status",
+          "customerType",
+          "holderCuilMasked",
+          "holderFirstName",
+          "holderLastName",
+          "healthInsurerName",
+          "healthPlanName",
+          "seller",
+          "updatedAt",
+          "submittedAt"
+        ],
+        "type": "object"
+      },
+      "SaleListResponseDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SaleListItemDto"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/OffsetPageInfoDto"
+          }
+        },
+        "required": [
+          "items",
+          "pageInfo"
+        ],
+        "type": "object"
+      },
+      "SaleMemberDto": {
+        "properties": {
+          "age": {
+            "description": "Derived from birthDate; never persisted",
+            "nullable": true,
+            "type": "number"
+          },
+          "birthDate": {
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "cuil": {
+            "nullable": true,
+            "type": "string"
+          },
+          "displayOrder": {
+            "type": "number"
+          },
+          "firstName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "hasPreexistingConditions": {
+            "type": "boolean"
+          },
+          "heightCm": {
+            "nullable": true,
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lastMenstrualPeriod": {
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "lastName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "maritalStatus": {
+            "enum": [
+              "SINGLE",
+              "MARRIED",
+              "DIVORCED",
+              "COHABITING",
+              "WIDOWED",
+              "OTHER"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "memberType": {
+            "enum": [
+              "HOLDER",
+              "SPOUSE",
+              "CHILD"
+            ],
+            "type": "string"
+          },
+          "nationality": {
+            "nullable": true,
+            "type": "string"
+          },
+          "preexistingConditionsDetails": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sex": {
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "weightKg": {
+            "nullable": true,
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "memberType",
+          "cuil",
+          "firstName",
+          "lastName",
+          "sex",
+          "birthDate",
+          "age",
+          "nationality",
+          "maritalStatus",
+          "weightKg",
+          "heightCm",
+          "lastMenstrualPeriod",
+          "hasPreexistingConditions",
+          "preexistingConditionsDetails",
+          "displayOrder"
+        ],
+        "type": "object"
+      },
+      "SaleMemberInputDto": {
+        "properties": {
+          "birthDate": {
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "cuil": {
+            "nullable": true,
+            "type": "string"
+          },
+          "displayOrder": {
+            "type": "number"
+          },
+          "firstName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "hasPreexistingConditions": {
+            "type": "boolean"
+          },
+          "heightCm": {
+            "nullable": true,
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lastMenstrualPeriod": {
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "lastName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "maritalStatus": {
+            "enum": [
+              "SINGLE",
+              "MARRIED",
+              "DIVORCED",
+              "COHABITING",
+              "WIDOWED",
+              "OTHER"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "memberType": {
+            "enum": [
+              "HOLDER",
+              "SPOUSE",
+              "CHILD"
+            ],
+            "type": "string"
+          },
+          "nationality": {
+            "nullable": true,
+            "type": "string"
+          },
+          "preexistingConditionsDetails": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sex": {
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "weightKg": {
+            "nullable": true,
+            "type": "number"
+          }
+        },
+        "required": [
+          "memberType"
+        ],
+        "type": "object"
+      },
+      "SaleSellerSummaryDto": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "firstName",
+          "lastName",
+          "email"
+        ],
+        "type": "object"
+      },
+      "SaleStatusHistoryItemDto": {
+        "properties": {
+          "changedBy": {
+            "$ref": "#/components/schemas/SaleSellerSummaryDto"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fromStatus": {
+            "enum": [
+              "DRAFT",
+              "SUBMITTED",
+              "RETURNED"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "toStatus": {
+            "enum": [
+              "DRAFT",
+              "SUBMITTED",
+              "RETURNED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "fromStatus",
+          "toStatus",
+          "reason",
+          "changedBy",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "SaleStatusHistoryResponseDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SaleStatusHistoryItemDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
+      "SaleTaxInfoDto": {
+        "properties": {
+          "currentInsurance": {
+            "nullable": true,
+            "type": "string"
+          },
+          "monotaxCategory": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "monotaxCategory",
+          "currentInsurance"
+        ],
+        "type": "object"
+      },
+      "SaleTaxInfoInputDto": {
+        "properties": {
+          "currentInsurance": {
+            "nullable": true,
+            "type": "string"
+          },
+          "monotaxCategory": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "SessionDto": {
@@ -826,6 +1880,82 @@
         },
         "required": [
           "permissionCodes"
+        ],
+        "type": "object"
+      },
+      "UpdateSaleDto": {
+        "properties": {
+          "billing": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleBillingInputDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "contact": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleContactInputDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "customerType": {
+            "enum": [
+              "DEREGULATED",
+              "MONOTAX",
+              "VOLUNTARY"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "employment": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleEmploymentInputDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "healthInsurerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "healthPlanId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/SaleMemberInputDto"
+            },
+            "type": "array"
+          },
+          "observations": {
+            "nullable": true,
+            "type": "string"
+          },
+          "taxInfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SaleTaxInfoInputDto"
+              }
+            ],
+            "nullable": true,
+            "type": "object"
+          },
+          "version": {
+            "description": "Optimistic concurrency version from GET",
+            "type": "number"
+          }
+        },
+        "required": [
+          "version"
         ],
         "type": "object"
       },
@@ -1725,6 +2855,131 @@
         ]
       }
     },
+    "/api/v1/health-insurers": {
+      "get": {
+        "description": "Catalog for sale form selectors. Only active insurers are returned.",
+        "operationId": "HealthInsurers_listActive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthInsurerListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List active health insurers",
+        "tags": [
+          "health-insurers"
+        ]
+      }
+    },
+    "/api/v1/health-insurers/{id}/plans": {
+      "get": {
+        "operationId": "HealthInsurers_listActivePlans",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthPlanListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Resource not found"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List active plans for an insurer",
+        "tags": [
+          "health-insurers"
+        ]
+      }
+    },
     "/api/v1/permissions": {
       "get": {
         "operationId": "Permissions_listPermissions",
@@ -1923,6 +3178,878 @@
         "summary": "Replace the permission set of a role",
         "tags": [
           "roles"
+        ]
+      }
+    },
+    "/api/v1/sales": {
+      "get": {
+        "description": "Scoped list with filters. Holder CUIL is masked.",
+        "operationId": "Sales_listSales",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "description": "Sale number contains",
+            "in": "query",
+            "name": "saleNumber",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Holder first or last name contains",
+            "in": "query",
+            "name": "holderName",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "healthInsurerId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "healthPlanId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "customerType",
+            "required": false,
+            "schema": {
+              "enum": [
+                "DEREGULATED",
+                "MONOTAX",
+                "VOLUNTARY"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "enum": [
+                "DRAFT",
+                "SUBMITTED",
+                "RETURNED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "createdFrom",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "createdTo",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "required": false,
+            "schema": {
+              "default": "updatedAt",
+              "enum": [
+                "updatedAt",
+                "createdAt",
+                "saleNumber",
+                "submittedAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOrder",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List sales",
+        "tags": [
+          "sales"
+        ]
+      },
+      "post": {
+        "description": "Seller is taken from the session. Incomplete drafts are allowed.",
+        "operationId": "Sales_createSale",
+        "parameters": [
+          {
+            "description": "CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME.",
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSaleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Create a sale draft",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/sales/{id}": {
+      "get": {
+        "operationId": "Sales_getSale",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Resource not found"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get a sale",
+        "tags": [
+          "sales"
+        ]
+      },
+      "patch": {
+        "description": "Requires matching optimistic `version`. Rejects plaintext card/CBU secrets.",
+        "operationId": "Sales_updateSale",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME.",
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSaleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Conflict with current state"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update a draft or returned sale",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/sales/{id}/documents": {
+      "get": {
+        "description": "No upload URLs — object storage is not integrated yet.",
+        "operationId": "Sales_getSaleDocuments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDocumentsResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Resource not found"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Document metadata and required categories",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/sales/{id}/export": {
+      "get": {
+        "operationId": "Sales_exportSaleExcel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Resource not found"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Export sale as Excel",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/sales/{id}/history": {
+      "get": {
+        "operationId": "Sales_getSaleHistory",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleStatusHistoryResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Resource not found"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Sale status history",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/sales/{id}/return": {
+      "post": {
+        "description": "Requires a reason. Only ADMINISTRATIVE (team scope) and SUPER_ADMIN.",
+        "operationId": "Sales_returnSale",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME.",
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReturnSaleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Conflict with current state"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Return a submitted sale",
+        "tags": [
+          "sales"
+        ]
+      }
+    },
+    "/api/v1/sales/{id}/submit": {
+      "post": {
+        "description": "Runs full validation. CBU capture and document storage limitations apply (see error codes).",
+        "operationId": "Sales_submitSale",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME.",
+            "in": "header",
+            "name": "x-csrf-token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Validation or request error"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Authentication required or session invalid"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Missing permission or invalid CSRF token"
+          },
+          "404": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Resource not found"
+          },
+          "409": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            },
+            "description": "Conflict with current state"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Submit a sale",
+        "tags": [
+          "sales"
         ]
       }
     },

@@ -18,6 +18,11 @@ Section headings used in this repository:
 
 ### Nuevo
 
+- **Paso 4 — validación integral ventas**: alineación de permisos UI↔API (`Presentar`/`Exportar` usan `sales.update`/`sales.read`; no existen `sales.submit`/`sales.export`), acción **Devolver** en detalle (`sales.return` + motivo), serialización de autosave para evitar carreras de `version`, smoke live de vendedores (login, IDOR, CSRF, conflicto 409).
+- **Paso 3 — módulo de ventas (frontend)** contra los endpoints reales de Nest: `Mis ventas` (lista paginada + filtros), alta de borrador, formulario por secciones con reglas condicionales (tipo de venta, integrantes, laboral/impositiva, cobranza), autoguardado con `version` / conflicto 409, presentación, detalle de solo lectura y exportación Excel.
+- Navegación por permisos: un SELLER ve **Mis ventas** (más cuenta/tema/logout); no se muestran Usuarios/Equipos/Roles/Auditoría sin permiso. Las rutas siguen protegidas por guards + API.
+- Catálogo de prepagas/planes vía `health-insurers`; documentación y CBU marcados como pendientes de integración (sin Base64 ni localStorage de PII).
+- Contrato OpenAPI sincronizado desde Altium-back e tipos regenerados para sales.
 - **Etapa 5 — autenticación y administración** contra Altium-back (sesión por cookie HttpOnly + CSRF double submit).
 - Pantallas de acceso: `/login` (recordar correo opcional), `/forgot-password` (mensaje neutro anti-enumeración), `/reset-password?token=`, `/activate?token=`.
 - Shell autenticado con navegación por permisos: inicio (bienvenida, rol y accesos rápidos, sin KPIs), `/account/change-password` (incluye cambio forzado por `mustChangePassword`), `/account/sessions`.
@@ -47,6 +52,8 @@ Section headings used in this repository:
 
 ### Corrección de errores
 
+- Ventas (vendedor): pantalla en blanco al **Ver** y al **Nueva venta** (formulario) por Vuetify fuera de `optimizeDeps` (`VTable`, `VProgressCircular` en el estado de guardado; `VAutocomplete` en equipos). Lista centralizada en `scripts/vuetify-optimize-deps.ts` + gate `pnpm check:vuetify-deps` para que no vuelva a pasar en ninguna ruta lazy.
+- Detalle de venta: historial con `v-list` (sin `VTimeline`).
 - Evitado el reload en blanco al abrir por primera vez pantallas lazy (Auditoría, Usuarios, etc.): Vite precachea los componentes de Vuetify en `optimizeDeps`.
 
 ### Cambios técnicos

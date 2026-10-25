@@ -10,6 +10,9 @@ describe('StatusBadge', () => {
     ['DISABLED', 'Deshabilitado'],
     ['SUCCESS', 'Éxito'],
     ['FAILURE', 'Fallo'],
+    ['DRAFT', 'Borrador'],
+    ['SUBMITTED', 'Presentada'],
+    ['RETURNED', 'Devuelta'],
   ])('renders %s as %s', (status, label) => {
     const wrapper = mount(StatusBadge, { props: { status } });
     expect(wrapper.text()).toContain(label);

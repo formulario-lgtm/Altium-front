@@ -20,7 +20,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
   permissions: 'Permisos',
   auth: 'Sesiones y acceso',
   audit: 'Auditoría',
-  sales: 'Ventas (próximamente)',
+  sales: 'Ventas',
 };
 
 const RESOURCE_ORDER = [

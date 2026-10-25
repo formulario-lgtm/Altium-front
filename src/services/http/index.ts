@@ -27,6 +27,18 @@ export {
   fieldErrorsToMap,
 } from './errors';
 export { fetchHealth } from './health.service';
+export { listHealthInsurers, listHealthPlans } from './health-insurers.service';
+export {
+  listSales,
+  getSale,
+  createSale,
+  updateSale,
+  submitSale,
+  returnSale,
+  getSaleHistory,
+  getSaleDocuments,
+  exportSaleExcel,
+} from './sales.service';
 export { createTimedFetch } from './timed-fetch';
 export { ApiError } from './types';
 export type { ApiErrorKind, FieldViolation, ProblemDetailsPayload } from './types';

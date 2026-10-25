@@ -42,3 +42,27 @@ export type AuditOutcome = Schemas['AuditOutcome'];
 export type AuditLogQuery = NonNullable<operations['Audit_listAuditLogs']['parameters']['query']>;
 
 export type OffsetPageInfo = Schemas['OffsetPageInfoDto'];
+
+export type HealthInsurer = Schemas['HealthInsurerDto'];
+export type HealthInsurerList = Schemas['HealthInsurerListResponseDto'];
+export type HealthPlan = Schemas['HealthPlanDto'];
+export type HealthPlanList = Schemas['HealthPlanListResponseDto'];
+
+export type Sale = Schemas['SaleDto'];
+export type SaleList = Schemas['SaleListResponseDto'];
+export type SaleListItem = Schemas['SaleListItemDto'];
+export type SaleListQuery = NonNullable<operations['Sales_listSales']['parameters']['query']>;
+export type CreateSaleBody = Schemas['CreateSaleDto'];
+export type UpdateSaleBody = Schemas['UpdateSaleDto'];
+export type ReturnSaleBody = Schemas['ReturnSaleDto'];
+export type SaleMember = Schemas['SaleMemberDto'];
+export type SaleMemberInput = Schemas['SaleMemberInputDto'];
+export type SaleDocuments = Schemas['SaleDocumentsResponseDto'];
+export type SaleStatusHistory = Schemas['SaleStatusHistoryResponseDto'];
+/** Inline OpenAPI enums (no standalone schema names in the generated contract). */
+export type SaleStatus = Sale['status'];
+export type SaleCustomerType = NonNullable<Sale['customerType']>;
+export type SalePaymentMethod = NonNullable<NonNullable<Sale['billing']>['paymentMethod']>;
+export type SaleMemberType = SaleMember['memberType'];
+export type SaleMemberSex = NonNullable<SaleMember['sex']>;
+export type SaleMaritalStatus = NonNullable<SaleMember['maritalStatus']>;

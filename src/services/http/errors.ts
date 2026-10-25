@@ -41,6 +41,14 @@ const SAFE_MESSAGE_BY_CODE: Record<string, string> = {
   AUTH_PASSWORD_CHANGE_REQUIRED: 'Debes cambiar tu contraseña antes de continuar.',
   AUTH_TOKEN_INVALID: 'El enlace no es válido o expiró. Solicita uno nuevo.',
   AUTH_RATE_LIMITED: 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.',
+  VERSION_CONFLICT:
+    'Otro cambio actualizó esta venta. Recargá la versión actual antes de seguir editando.',
+  PAYMENT_CBU_CAPTURE_UNAVAILABLE:
+    'El CBU todavía no se puede guardar de forma segura. Usá tarjeta con últimos 4 dígitos o esperá la integración.',
+  DOCUMENT_STORAGE_PENDING:
+    'El almacenamiento de documentos aún no está integrado. No se puede presentar en producción sin adjuntos.',
+  PAYMENT_SENSITIVE_DATA_REJECTED:
+    'No envíes número completo de tarjeta, CVV ni CBU en texto plano.',
 };
 
 /** Safe, user-facing message for any thrown value (prefers known backend codes). */

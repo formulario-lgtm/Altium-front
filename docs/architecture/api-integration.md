@@ -34,3 +34,7 @@ Later we may automate the copy via GitHub Actions artifacts; until then the sync
 | Query keys              | `src/services/http/query-keys.ts`        |
 
 Components must not call `fetch` / `apiClient` directly — go through feature services + Query composables.
+
+## Sales & catalogs
+
+Typed helpers live in `src/services/http/sales.service.ts` and `health-insurers.service.ts`. Query keys under `queryKeys.sales` / `queryKeys.healthInsurers`. Excel export uses `parseAs: 'blob'` — do not reimplement XLSX on the client. Never invent DTO fields (e.g. full card number / CBU) outside the OpenAPI contract.

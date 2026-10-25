@@ -13,6 +13,7 @@
 - Thin views; logic in composables/services.
 - Composition over inheritance.
 - Route-level code splitting with dynamic imports.
+- New Vuetify tags → update `scripts/vuetify-optimize-deps.ts` in the same task (`pnpm check:vuetify-deps`). Blank first-load of lazy routes is a regression, not an acceptable quirk.
 
 ## Size limits
 

@@ -15,8 +15,11 @@ import {
   sameCodes,
 } from '@/features/roles/utils/permissions';
 import { toCreateTeamBody, toUpdateTeamBody } from '@/features/teams/utils/team-payload';
+import { ageFromBirthDate, canEditSaleStatus, showFum } from '@/features/sales/utils/sale-labels';
+import { formModelToUpdateBody, saleToFormModel } from '@/features/sales/utils/sale-form-model';
+import { saleListSearchParams } from '@/features/sales/utils/sale-search';
 import { availableStatusTargets, canSendPasswordLink } from '@/features/users/utils/user-actions';
-import type { Permission, Team } from '@/services/http';
+import type { Permission, Sale, Team } from '@/services/http';
 
 describe('sanitizeAuditPayload', () => {
   it('redacts sensitive keys at any depth', () => {
@@ -89,6 +92,69 @@ describe('user actions', () => {
     expect(canSendPasswordLink({ status: 'PENDING' })).toBe(true);
     expect(canSendPasswordLink({ status: 'ACTIVE' })).toBe(true);
     expect(canSendPasswordLink({ status: 'SUSPENDED' })).toBe(false);
+  });
+});
+
+describe('sales helpers', () => {
+  it('routes list search to saleNumber or holderName', () => {
+    expect(saleListSearchParams('V-00012')).toEqual({ saleNumber: 'V-00012' });
+    expect(saleListSearchParams('12')).toEqual({ saleNumber: '12' });
+    expect(saleListSearchParams('Pérez')).toEqual({ holderName: 'Pérez' });
+    expect(saleListSearchParams('  ')).toEqual({});
+  });
+
+  it('calculates age and FUM visibility without persisting age', () => {
+    expect(ageFromBirthDate('2010-01-01')).toBeGreaterThanOrEqual(15);
+    expect(showFum('FEMALE', '2010-01-01')).toBe(true);
+    expect(showFum('MALE', '2010-01-01')).toBe(false);
+    expect(showFum('FEMALE', '2020-01-01')).toBe(false);
+  });
+
+  it('allows edit only for DRAFT and RETURNED', () => {
+    expect(canEditSaleStatus('DRAFT')).toBe(true);
+    expect(canEditSaleStatus('RETURNED')).toBe(true);
+    expect(canEditSaleStatus('SUBMITTED')).toBe(false);
+  });
+
+  it('clears incompatible employment/tax payloads by customer type', () => {
+    const sale = {
+      id: 's1',
+      saleNumber: 'V-000001',
+      version: 2,
+      status: 'DRAFT',
+      customerType: 'DEREGULATED',
+      observations: null,
+      createdAt: '2026-10-01T00:00:00.000Z',
+      updatedAt: '2026-10-01T00:00:00.000Z',
+      submittedAt: null,
+      healthInsurer: { id: 'ins1', code: 'PREVENCION_SALUD', name: 'Prevención Salud' },
+      healthPlan: null,
+      seller: {
+        id: 'u1',
+        email: 'seller@altium.example',
+        firstName: 'Sol',
+        lastName: 'Ruiz',
+      },
+      members: [],
+      contact: null,
+      employment: {
+        currentInsurance: 'OSDE',
+        grossSalary: 1000,
+        employers: [{ id: 'e1', employerCuit: '30712345678', displayOrder: 0 }],
+      },
+      taxInfo: { monotaxCategory: 'A', currentInsurance: 'OSDE' },
+      billing: null,
+    } satisfies Sale;
+
+    const model = saleToFormModel(sale);
+    model.customerType = 'VOLUNTARY';
+    const body = formModelToUpdateBody(model);
+    expect(body.employment).toBeNull();
+    expect(body.taxInfo).toBeNull();
+    expect(body.version).toBe(2);
+    expect(body.billing).not.toHaveProperty('cbu');
+    expect(body.billing).not.toHaveProperty('cardNumber');
+    expect(body.billing).not.toHaveProperty('cvv');
   });
 });
 

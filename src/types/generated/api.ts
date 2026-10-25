@@ -218,6 +218,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/health-insurers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active health insurers
+         * @description Catalog for sale form selectors. Only active insurers are returned.
+         */
+        get: operations["HealthInsurers_listActive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/health-insurers/{id}/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active plans for an insurer */
+        get: operations["HealthInsurers_listActivePlans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/permissions": {
         parameters: {
             query?: never;
@@ -266,6 +303,145 @@ export interface paths {
          */
         put: operations["Roles_replacePermissions"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List sales
+         * @description Scoped list with filters. Holder CUIL is masked.
+         */
+        get: operations["Sales_listSales"];
+        put?: never;
+        /**
+         * Create a sale draft
+         * @description Seller is taken from the session. Incomplete drafts are allowed.
+         */
+        post: operations["Sales_createSale"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a sale */
+        get: operations["Sales_getSale"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update a draft or returned sale
+         * @description Requires matching optimistic `version`. Rejects plaintext card/CBU secrets.
+         */
+        patch: operations["Sales_updateSale"];
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Document metadata and required categories
+         * @description No upload URLs — object storage is not integrated yet.
+         */
+        get: operations["Sales_getSaleDocuments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export sale as Excel */
+        get: operations["Sales_exportSaleExcel"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sale status history */
+        get: operations["Sales_getSaleHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Return a submitted sale
+         * @description Requires a reason. Only ADMINISTRATIVE (team scope) and SUPER_ADMIN.
+         */
+        post: operations["Sales_returnSale"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit a sale
+         * @description Runs full validation. CBU capture and document storage limitations apply (see error codes).
+         */
+        post: operations["Sales_submitSale"];
         delete?: never;
         options?: never;
         head?: never;
@@ -564,6 +740,13 @@ export interface components {
              */
             newPassword: string;
         };
+        CreateSaleDto: {
+            /**
+             * Format: uuid
+             * @description Defaults to active Prevención Salud when omitted
+             */
+            healthInsurerId?: string;
+        };
         CreateTeamDto: {
             description?: string;
             name: string;
@@ -606,6 +789,31 @@ export interface components {
         ForgotPasswordDto: {
             /** Format: email */
             email: string;
+        };
+        HealthInsurerDto: {
+            /** @example PREVENCION_SALUD */
+            code: string;
+            /** Format: uuid */
+            id: string;
+            /** @example Prevención Salud */
+            name: string;
+        };
+        HealthInsurerListResponseDto: {
+            items: components["schemas"]["HealthInsurerDto"][];
+        };
+        HealthPlanDto: {
+            /** @example A1 */
+            code: string;
+            displayOrder: number;
+            /** Format: uuid */
+            healthInsurerId: string;
+            /** Format: uuid */
+            id: string;
+            /** @example A1 */
+            name: string;
+        };
+        HealthPlanListResponseDto: {
+            items: components["schemas"]["HealthPlanDto"][];
         };
         LoginDto: {
             /**
@@ -663,6 +871,14 @@ export interface components {
             /** @example about:blank */
             type: string;
         };
+        RequiredDocumentCategoryDto: {
+            /** @enum {string} */
+            documentType: "PAYSLIP" | "DNI_FRONT" | "DNI_BACK" | "BIRTH_CERTIFICATE" | "MONOTAX_FORM" | "PAYMENT_PROOF" | "OTHER";
+            label: string;
+            /** Format: uuid */
+            saleMemberId: string | null;
+            satisfied: boolean;
+        };
         ResetPasswordDto: {
             /**
              * Format: password
@@ -671,6 +887,9 @@ export interface components {
             newPassword: string;
             /** @description One-time token from the reset link */
             token: string;
+        };
+        ReturnSaleDto: {
+            reason: string;
         };
         RoleDto: {
             /** @example SUPERVISOR */
@@ -689,6 +908,238 @@ export interface components {
         };
         RoleListResponseDto: {
             items: components["schemas"]["RoleDto"][];
+        };
+        SaleBillingDto: {
+            cardBrand: string | null;
+            cardExpiryMonth: number | null;
+            cardExpiryYear: number | null;
+            cardLastFour: string | null;
+            /** @description True when encrypted CBU storage is not yet available */
+            cbuCapturePending: boolean;
+            holderIsPayer: boolean | null;
+            payerEmail: string | null;
+            payerIdentifier: string | null;
+            payerPhone: string | null;
+            paymentMedium: string | null;
+            /** @enum {string|null} */
+            paymentMethod: "CARD" | "CBU" | null;
+            paymentProviderReference: string | null;
+        };
+        SaleBillingInputDto: {
+            cardBrand?: string | null;
+            cardExpiryMonth?: number | null;
+            cardExpiryYear?: number | null;
+            cardLastFour?: string | null;
+            /** @description Full card number — rejected; do not send */
+            cardNumber?: string;
+            /** @description Plaintext CBU — rejected; do not send */
+            cbu?: string;
+            /** @description CVV — rejected; do not send */
+            cvv?: string;
+            holderIsPayer?: boolean | null;
+            payerEmail?: string | null;
+            payerIdentifier?: string | null;
+            payerPhone?: string | null;
+            paymentMedium?: string | null;
+            /** @enum {string|null} */
+            paymentMethod?: "CARD" | "CBU" | null;
+            paymentProviderReference?: string | null;
+        };
+        SaleCatalogRefDto: {
+            code: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        SaleContactDto: {
+            address: string | null;
+            areaCode: string | null;
+            email: string | null;
+            phone: string | null;
+            postalCode: string | null;
+            province: string | null;
+        };
+        SaleContactInputDto: {
+            address?: string | null;
+            areaCode?: string | null;
+            email?: string | null;
+            phone?: string | null;
+            postalCode?: string | null;
+            province?: string | null;
+        };
+        SaleDocumentMetaDto: {
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            documentType: "PAYSLIP" | "DNI_FRONT" | "DNI_BACK" | "BIRTH_CERTIFICATE" | "MONOTAX_FORM" | "PAYMENT_PROOF" | "OTHER";
+            fileSize: number | null;
+            /** Format: uuid */
+            id: string;
+            mimeType: string | null;
+            originalFilename: string | null;
+            /** Format: uuid */
+            saleMemberId: string | null;
+            /** @enum {string} */
+            status: "PENDING" | "UPLOADED" | "FAILED";
+        };
+        SaleDocumentsResponseDto: {
+            items: components["schemas"]["SaleDocumentMetaDto"][];
+            requiredCategories: components["schemas"]["RequiredDocumentCategoryDto"][];
+            /** @description True until DigitalOcean Spaces (or equivalent) is integrated */
+            storageIntegrationPending: boolean;
+        };
+        SaleDto: {
+            billing: components["schemas"]["SaleBillingDto"] | null;
+            contact: components["schemas"]["SaleContactDto"] | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string|null} */
+            customerType: "DEREGULATED" | "MONOTAX" | "VOLUNTARY" | null;
+            /** @description Present on submit response when docs were waived in non-production */
+            documentationPending?: boolean;
+            employment: components["schemas"]["SaleEmploymentDto"] | null;
+            healthInsurer: components["schemas"]["SaleCatalogRefDto"];
+            healthPlan: components["schemas"]["SaleCatalogRefDto"] | null;
+            /** Format: uuid */
+            id: string;
+            members: components["schemas"]["SaleMemberDto"][];
+            observations: string | null;
+            /** @example V-000001 */
+            saleNumber: string;
+            seller: components["schemas"]["SaleSellerSummaryDto"];
+            /** @enum {string} */
+            status: "DRAFT" | "SUBMITTED" | "RETURNED";
+            /** Format: date-time */
+            submittedAt: string | null;
+            taxInfo: components["schemas"]["SaleTaxInfoDto"] | null;
+            /** Format: date-time */
+            updatedAt: string;
+            version: number;
+        };
+        SaleEmployerDto: {
+            displayOrder: number;
+            employerCuit: string;
+            /** Format: uuid */
+            id: string;
+        };
+        SaleEmployerInputDto: {
+            displayOrder?: number;
+            employerCuit: string;
+            /** Format: uuid */
+            id?: string;
+        };
+        SaleEmploymentDto: {
+            currentInsurance: string | null;
+            employers: components["schemas"]["SaleEmployerDto"][];
+            grossSalary: number | null;
+        };
+        SaleEmploymentInputDto: {
+            currentInsurance?: string | null;
+            employers?: components["schemas"]["SaleEmployerInputDto"][];
+            grossSalary?: number | null;
+        };
+        SaleListItemDto: {
+            /** @enum {string|null} */
+            customerType: "DEREGULATED" | "MONOTAX" | "VOLUNTARY" | null;
+            healthInsurerName: string;
+            healthPlanName: string | null;
+            /** @description Masked holder CUIL */
+            holderCuilMasked: string | null;
+            holderFirstName: string | null;
+            holderLastName: string | null;
+            /** Format: uuid */
+            id: string;
+            saleNumber: string;
+            seller: components["schemas"]["SaleSellerSummaryDto"];
+            /** @enum {string} */
+            status: "DRAFT" | "SUBMITTED" | "RETURNED";
+            /** Format: date-time */
+            submittedAt: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SaleListResponseDto: {
+            items: components["schemas"]["SaleListItemDto"][];
+            pageInfo: components["schemas"]["OffsetPageInfoDto"];
+        };
+        SaleMemberDto: {
+            /** @description Derived from birthDate; never persisted */
+            age: number | null;
+            /** Format: date */
+            birthDate: string | null;
+            cuil: string | null;
+            displayOrder: number;
+            firstName: string | null;
+            hasPreexistingConditions: boolean;
+            heightCm: number | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            lastMenstrualPeriod: string | null;
+            lastName: string | null;
+            /** @enum {string|null} */
+            maritalStatus: "SINGLE" | "MARRIED" | "DIVORCED" | "COHABITING" | "WIDOWED" | "OTHER" | null;
+            /** @enum {string} */
+            memberType: "HOLDER" | "SPOUSE" | "CHILD";
+            nationality: string | null;
+            preexistingConditionsDetails: string | null;
+            /** @enum {string|null} */
+            sex: "MALE" | "FEMALE" | "OTHER" | null;
+            weightKg: number | null;
+        };
+        SaleMemberInputDto: {
+            /** Format: date */
+            birthDate?: string | null;
+            cuil?: string | null;
+            displayOrder?: number;
+            firstName?: string | null;
+            hasPreexistingConditions?: boolean;
+            heightCm?: number | null;
+            /** Format: uuid */
+            id?: string;
+            /** Format: date */
+            lastMenstrualPeriod?: string | null;
+            lastName?: string | null;
+            /** @enum {string|null} */
+            maritalStatus?: "SINGLE" | "MARRIED" | "DIVORCED" | "COHABITING" | "WIDOWED" | "OTHER" | null;
+            /** @enum {string} */
+            memberType: "HOLDER" | "SPOUSE" | "CHILD";
+            nationality?: string | null;
+            preexistingConditionsDetails?: string | null;
+            /** @enum {string|null} */
+            sex?: "MALE" | "FEMALE" | "OTHER" | null;
+            weightKg?: number | null;
+        };
+        SaleSellerSummaryDto: {
+            /** Format: email */
+            email: string;
+            firstName: string;
+            /** Format: uuid */
+            id: string;
+            lastName: string;
+        };
+        SaleStatusHistoryItemDto: {
+            changedBy: components["schemas"]["SaleSellerSummaryDto"];
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string|null} */
+            fromStatus: "DRAFT" | "SUBMITTED" | "RETURNED" | null;
+            /** Format: uuid */
+            id: string;
+            reason: string | null;
+            /** @enum {string} */
+            toStatus: "DRAFT" | "SUBMITTED" | "RETURNED";
+        };
+        SaleStatusHistoryResponseDto: {
+            items: components["schemas"]["SaleStatusHistoryItemDto"][];
+        };
+        SaleTaxInfoDto: {
+            currentInsurance: string | null;
+            monotaxCategory: string | null;
+        };
+        SaleTaxInfoInputDto: {
+            currentInsurance?: string | null;
+            monotaxCategory?: string | null;
         };
         SessionDto: {
             /** Format: date-time */
@@ -768,6 +1219,22 @@ export interface components {
              *     ]
              */
             permissionCodes: string[];
+        };
+        UpdateSaleDto: {
+            billing?: components["schemas"]["SaleBillingInputDto"] | null;
+            contact?: components["schemas"]["SaleContactInputDto"] | null;
+            /** @enum {string|null} */
+            customerType?: "DEREGULATED" | "MONOTAX" | "VOLUNTARY" | null;
+            employment?: components["schemas"]["SaleEmploymentInputDto"] | null;
+            /** Format: uuid */
+            healthInsurerId?: string;
+            /** Format: uuid */
+            healthPlanId?: string | null;
+            members?: components["schemas"]["SaleMemberInputDto"][];
+            observations?: string | null;
+            taxInfo?: components["schemas"]["SaleTaxInfoInputDto"] | null;
+            /** @description Optimistic concurrency version from GET */
+            version: number;
         };
         UpdateTeamDto: {
             /** @description Send null to clear the description */
@@ -1335,6 +1802,100 @@ export interface operations {
             };
         };
     };
+    HealthInsurers_listActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthInsurerListResponseDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    HealthInsurers_listActivePlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthPlanListResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     Permissions_listPermissions: {
         parameters: {
             query?: never;
@@ -1433,6 +1994,555 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoleDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_listSales: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                /** @description Sale number contains */
+                saleNumber?: string;
+                /** @description Holder first or last name contains */
+                holderName?: string;
+                healthInsurerId?: string;
+                healthPlanId?: string;
+                customerType?: "DEREGULATED" | "MONOTAX" | "VOLUNTARY";
+                status?: "DRAFT" | "SUBMITTED" | "RETURNED";
+                createdFrom?: string;
+                createdTo?: string;
+                sortBy?: "updatedAt" | "createdAt" | "saleNumber" | "submittedAt";
+                sortOrder?: "asc" | "desc";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleListResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_createSale: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSaleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_getSale: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_updateSale: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSaleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_getSaleDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDocumentsResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_exportSaleExcel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_getSaleHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleStatusHistoryResponseDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_returnSale: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnSaleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_submitSale: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDto"];
                 };
             };
             /** @description Validation or request error */

@@ -1,4 +1,4 @@
-import type { AuditLogQuery, TeamListQuery, UserListQuery } from './api-types';
+import type { AuditLogQuery, SaleListQuery, TeamListQuery, UserListQuery } from './api-types';
 
 /**
  * Hierarchical query keys.
@@ -34,5 +34,17 @@ export const queryKeys = {
   audit: {
     all: ['audit'] as const,
     list: (query: AuditLogQuery) => [...queryKeys.audit.all, 'list', query] as const,
+  },
+  healthInsurers: {
+    all: ['health-insurers'] as const,
+    list: () => [...queryKeys.healthInsurers.all, 'list'] as const,
+    plans: (insurerId: string) => [...queryKeys.healthInsurers.all, 'plans', insurerId] as const,
+  },
+  sales: {
+    all: ['sales'] as const,
+    list: (query: SaleListQuery) => [...queryKeys.sales.all, 'list', query] as const,
+    detail: (id: string) => [...queryKeys.sales.all, 'detail', id] as const,
+    documents: (id: string) => [...queryKeys.sales.all, 'documents', id] as const,
+    history: (id: string) => [...queryKeys.sales.all, 'history', id] as const,
   },
 } as const;

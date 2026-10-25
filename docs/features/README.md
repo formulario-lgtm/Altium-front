@@ -9,8 +9,9 @@
 | Teams               | `/teams`, `/teams/:id`                                       | [teams/overview.md](teams/overview.md)                 | Implemented |
 | Roles & permissions | `/roles`                                                     | [roles/overview.md](roles/overview.md)                 | Implemented |
 | Audit               | `/audit`                                                     | [audit/overview.md](audit/overview.md)                 | Implemented |
+| Sales               | `/sales`, `/sales/new`, `/sales/:id`, `/sales/:id/edit`      | [sales/overview.md](sales/overview.md)                 | Implemented |
 | System status       | `/system`, `/forbidden`, not-found                           | [system-status/overview.md](system-status/overview.md) | Implemented |
 
 Session handling, CSRF and guards: [guides/authentication.md](../guides/authentication.md).
 
-Commercial CRM modules (customers, opportunities, sales, dashboards) are **not** implemented. Do not document them as shipped before implementation.
+Other commercial CRM modules (customers, opportunities, dashboards/KPIs) are **not** implemented yet.

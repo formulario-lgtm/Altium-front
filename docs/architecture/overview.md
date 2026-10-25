@@ -28,8 +28,16 @@ Altium CRM frontend is a **feature-oriented SPA**: Vue 3 + Vite, Vuetify for UI,
 - Admin modules: users, teams, roles/permissions, audit, own account (see `docs/features/`).
 - Forms: VeeValidate + Zod (ADR 0002 amendment). Visual tokens: [visual-identity.md](visual-identity.md).
 
+## Sales (Paso 3 UI)
+
+- Feature module `src/features/sales` against Nest sales + health-insurer endpoints.
+- Seller nav: **Mis ventas** via `sales.read`; admin modules remain permission-gated.
+- Drafts: autosave + `version` concurrency; documents/CBU capture pending backend storage/tokenization.
+- Docs: [features/sales/overview.md](../features/sales/overview.md).
+
 ## Extension points
 
-- Commercial CRM modules (customers, opportunities, sales, dashboard).
+- Other commercial CRM modules (customers, opportunities, dashboard/KPIs).
+- Document object storage upload UI once Spaces is configured; payment tokenization / CBU capture.
 - Charts (ECharts) and advanced grids (AG Grid) when first needed.
 - Netlify deploy using `netlify.toml`.

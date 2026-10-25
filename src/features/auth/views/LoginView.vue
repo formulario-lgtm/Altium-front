@@ -15,6 +15,7 @@ const auth = useAuthStore();
 const loginMutation = useLoginMutation();
 
 const initialEmail = readRememberedEmail();
+const isSubmitting = computed(() => loginMutation.isPending.value);
 
 const notice = computed(() => {
   if (route.query.reason === 'expired') return 'Tu sesión terminó. Iniciá sesión nuevamente.';
@@ -55,7 +56,7 @@ async function onSubmit(values: LoginValues): Promise<void> {
     </v-alert>
 
     <LoginForm
-      :loading="loginMutation.isPending.value"
+      :loading="isSubmitting"
       :error-message="errorMessage"
       :initial-email="initialEmail"
       @submit="onSubmit"

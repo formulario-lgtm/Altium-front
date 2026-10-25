@@ -47,6 +47,22 @@ test.describe('authentication', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
+  test('expired session landing stays usable after /me 401', async ({ page }) => {
+    await mockApi(page);
+    await page.goto('/login?redirect=/users&reason=expired');
+
+    await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible();
+    await expect(page.getByText('Tu sesión terminó')).toBeVisible();
+
+    const email = page.getByLabel('Correo electrónico');
+    await expect(email).toBeEnabled();
+    await email.fill('ana.perez@altium.example');
+    await page.getByLabel('Contraseña', { exact: true }).fill(VALID_PASSWORD);
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+
+    await expect(page).toHaveURL(/\/users$/);
+  });
+
   test('home shows quick links filtered by permissions', async ({ page }) => {
     await mockApi(page, { authenticated: true, permissions: ['teams.read'] });
     await page.goto('/');

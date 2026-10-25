@@ -84,6 +84,23 @@ describe('session middleware', () => {
 
     expect(handler).not.toHaveBeenCalled();
   });
+
+  it('does not notify 401 handlers for session probe /auth/me', async () => {
+    setCsrfToken('csrf-memory');
+    const handler = vi.fn();
+    const unregister = onUnauthorized(handler);
+    const client = createApiClient({
+      baseUrl: 'http://api.test',
+      fetch: vi.fn(async () => problem(401, 'UNAUTHORIZED')) as unknown as typeof fetch,
+    });
+
+    const result = await client.GET('/api/v1/auth/me');
+    unregister();
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(getCsrfToken()).toBe('csrf-memory');
+    expect(() => parseApiResult(result)).toThrow();
+  });
 });
 
 describe('createApiClient', () => {

@@ -6,7 +6,7 @@ Entry point for Codex and Cursor. Keep this file short; follow linked docs for d
 
 Single-tenant enterprise CRM UI for Altium (~20 users initially). Talks to a NestJS + Fastify REST API. Hosting target: Netlify (not connected yet).
 
-This repository contains the technical foundations plus **Stage 5: authentication (cookie session + CSRF), own account, users, teams, roles/permissions and audit**. No commercial CRM screens (customers, sales, dashboards) yet.
+This repository contains the technical foundations plus **Stage 5: authentication (cookie session + CSRF), own account, users, teams, roles/permissions and audit**, and **Paso 3: sales UI (Mis ventas / nueva venta / detalle)** against the Nest sales API. Other commercial CRM screens (customers, opportunities, dashboards/KPIs) are not in scope yet.
 
 ## Stack
 
@@ -68,6 +68,7 @@ docs/components/  # global component Markdown
 - Prefer Vuetify primitives + design-system defaults over custom widgets.
 - Reuse `PageHeader`, `StatusBadge`, `UserAvatar`, `ConfirmDialog`, `EmptyState`, `ErrorState`, `altium-filters`, and shell layout patterns on every new screen.
 - Lazy-load route components. Keep views thin; move logic to composables/services.
+- **No blank first-load on lazy routes:** every new `<v-*>` must be mapped and listed in `scripts/vuetify-optimize-deps.ts` (Vite `optimizeDeps`). Missing entries cause a white screen / full reload on first navigation (list, detalle, nueva venta, admin, …). Enforced by `pnpm check:vuetify-deps`. Prefer components already in that list; never introduce `VTimeline` / heavy one-offs without updating the list.
 
 Full standards: [docs/standards/coding-standards.md](docs/standards/coding-standards.md), [docs/standards/components.md](docs/standards/components.md), [docs/standards/ui-ux.md](docs/standards/ui-ux.md).
 
@@ -134,9 +135,10 @@ pnpm test:coverage
 pnpm test:e2e          # requires: pnpm exec playwright install
 pnpm docs:check
 pnpm check:lines
+pnpm check:vuetify-deps
 pnpm api:generate
 pnpm api:check
-pnpm check             # includes api:check
+pnpm check             # includes api:check + check:vuetify-deps
 ```
 
 ## Agent workflow
@@ -153,6 +155,6 @@ pnpm check             # includes api:check
 
 ## Scope boundaries
 
-**In scope now:** Vite/Vue/Vuetify bootstrap, themes, OpenAPI-typed HTTP client, optional health probe, tooling, docs, CI, **Stage 5**: login/forgot/reset/activate, guards + RBAC navigation, own account (password, sessions), users, teams, roles/permissions, audit.
+**In scope now:** Vite/Vue/Vuetify bootstrap, themes, OpenAPI-typed HTTP client, optional health probe, tooling, docs, CI, **Stage 5**: login/forgot/reset/activate, guards + RBAC navigation, own account (password, sessions), users, teams, roles/permissions, audit, **sales (Mis ventas)**: list/filters, draft form with conditional sections, autosave + version conflict, submit (`sales.update`), return (`sales.return`), Excel export (`sales.read`), document/CBU pending states.
 
-**Out of scope now:** Commercial CRM modules (customers, sales, dashboards/KPIs), Netlify connection, AG Grid, charts, MFA.
+**Out of scope now:** Other commercial CRM modules (customers, opportunities, dashboards/KPIs), Netlify connection, AG Grid, charts, MFA, real document uploads (Spaces), payment tokenization / CBU capture.

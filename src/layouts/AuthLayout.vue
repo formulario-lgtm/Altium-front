@@ -370,6 +370,16 @@ const highlights = [
   color: var(--auth-field-border);
 }
 
+/* Keep empty fields readable on glass (avoid “ghosted” unused controls). */
+.auth-stage__panel :deep(.v-field) {
+  background: color-mix(in srgb, var(--auth-text) 4%, transparent) !important;
+}
+
+.auth-stage__panel :deep(.v-label.v-field-label) {
+  opacity: 1;
+  color: var(--auth-muted);
+}
+
 .auth-stage__panel :deep(.v-field--focused .v-field__outline) {
   color: var(--auth-accent);
 }

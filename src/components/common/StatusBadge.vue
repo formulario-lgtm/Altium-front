@@ -12,6 +12,9 @@ const DEFINITIONS: Record<string, BadgeDefinition> = {
   INACTIVE: { label: 'Inactivo', color: 'secondary' },
   SUCCESS: { label: 'Éxito', color: 'success' },
   FAILURE: { label: 'Fallo', color: 'error' },
+  DRAFT: { label: 'Borrador', color: 'secondary' },
+  SUBMITTED: { label: 'Presentada', color: 'success' },
+  RETURNED: { label: 'Devuelta', color: 'warning' },
 };
 
 const props = withDefaults(defineProps<{ status: string; label?: string }>(), {

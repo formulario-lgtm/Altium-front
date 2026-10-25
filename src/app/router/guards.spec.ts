@@ -72,6 +72,24 @@ describe('resolveAuthNavigation', () => {
     expect(resolveAuthNavigation(route, auth({ permissions: ['audit.read'] }))).toBe(true);
   });
 
+  it('allows sellers on sales routes and blocks admin routes', () => {
+    const seller = auth({
+      permissions: ['sales.read', 'sales.create', 'sales.update'],
+    });
+    expect(
+      resolveAuthNavigation(
+        target('sales', { requiresAuth: true, permissions: ['sales.read'] }),
+        seller,
+      ),
+    ).toBe(true);
+    expect(
+      resolveAuthNavigation(
+        target('users', { requiresAuth: true, permissions: ['users.read'] }),
+        seller,
+      ),
+    ).toEqual({ name: 'forbidden' });
+  });
+
   it('always allows public routes', () => {
     expect(
       resolveAuthNavigation(

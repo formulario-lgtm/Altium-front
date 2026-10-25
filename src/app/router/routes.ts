@@ -11,7 +11,7 @@ function guestRoute(
     path,
     component: () => import('@/layouts/AuthLayout.vue'),
     meta: { guestOnly: true },
-    children: [{ path: '', name, component, meta: { title } }],
+    children: [{ path: '', name, component, meta: { title, guestOnly: true } }],
   };
 }
 
@@ -62,6 +62,30 @@ export const routes: RouteRecordRaw[] = [
         name: 'account-sessions',
         component: () => import('@/features/account/views/SessionsView.vue'),
         meta: { title: 'Sesiones activas' },
+      },
+      {
+        path: 'sales',
+        name: 'sales',
+        component: () => import('@/features/sales/views/SalesListView.vue'),
+        meta: { title: 'Mis ventas', permissions: ['sales.read'] },
+      },
+      {
+        path: 'sales/new',
+        name: 'sale-new',
+        component: () => import('@/features/sales/views/SaleCreateView.vue'),
+        meta: { title: 'Nueva venta', permissions: ['sales.create'] },
+      },
+      {
+        path: 'sales/:id',
+        name: 'sale-detail',
+        component: () => import('@/features/sales/views/SaleDetailView.vue'),
+        meta: { title: 'Detalle de venta', permissions: ['sales.read'] },
+      },
+      {
+        path: 'sales/:id/edit',
+        name: 'sale-edit',
+        component: () => import('@/features/sales/views/SaleFormView.vue'),
+        meta: { title: 'Editar venta', permissions: ['sales.update'] },
       },
       {
         path: 'users',

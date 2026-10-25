@@ -5,12 +5,13 @@ test('theme toggle switches between light and dark on the login screen', async (
   await mockApi(page);
   await page.goto('/login');
 
-  await expect(page.getByRole('button', { name: /Cambiar a tema oscuro/i })).toBeVisible();
-  await page.getByRole('button', { name: /Cambiar a tema oscuro/i }).click();
+  // Dark is the default on first visit when no preference is stored.
   await expect(page.getByRole('button', { name: /Cambiar a tema claro/i })).toBeVisible();
+  await page.getByRole('button', { name: /Cambiar a tema claro/i }).click();
+  await expect(page.getByRole('button', { name: /Cambiar a tema oscuro/i })).toBeVisible();
 
   const stored = await page.evaluate(() => window.localStorage.getItem('altium.ui.theme'));
-  expect(stored).toBe('dark');
+  expect(stored).toBe('light');
 });
 
 test('system status page loads inside the authenticated shell', async ({ page }) => {

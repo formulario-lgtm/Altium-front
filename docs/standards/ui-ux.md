@@ -30,8 +30,10 @@ Full reference: [visual-identity.md](../architecture/visual-identity.md).
 | Page chrome     | `PageHeader` + `v-btn color="primary"` for CTA                            |
 | Filters         | `v-row.altium-filters` + outlined fields (global defaults / `forms.scss`) |
 | Forms           | Rely on Vuetify defaults; avoid local `density`/`variant` unless required |
+| Multi-step form | Side nav (`SaleSectionNav`) on desktop; compact select on mobile          |
+| Save feedback   | Inline status (pending / saving / saved / error) — never silent fail      |
 | Data lists      | `v-card` > `v-data-table-server`                                          |
-| Status          | `StatusBadge`                                                             |
+| Status          | `StatusBadge` (includes sale `DRAFT` / `SUBMITTED` / `RETURNED`)          |
 | Person identity | `UserAvatar` + name/email stack                                           |
 | Shell           | `AppShellLayout` (atmosphere + glass drawer/bar)                          |
 
@@ -40,3 +42,14 @@ Full reference: [visual-identity.md](../architecture/visual-identity.md).
 - Prefer Vuetify components before custom ones.
 - No unnecessary feature-scoped global styles.
 - Keep business screens uncluttered; one primary action per view when possible.
+
+## Lazy routes: no blank first load (mandatory)
+
+Route views are code-split. With `vite-plugin-vuetify` auto-import, the **first** navigation that pulls in a Vuetify component not yet in Vite `optimizeDeps` triggers dependency re-optimization and a **full page reload** (blank white screen, often bouncing to `/`). This must **never** ship for any screen (Mis ventas, nueva venta, detalle, edición, admin, auth).
+
+1. Source of truth: [`scripts/vuetify-optimize-deps.ts`](../../scripts/vuetify-optimize-deps.ts) (imported by `vite.config.ts`).
+2. When adding a new `<v-*>` in any SFC under `src/`:
+   - Prefer a component already listed there.
+   - If new: add `vuetify/components/V…` to `vuetifyOptimizeDeps` **and** map the kebab tag in `TAG_TO_OPTIMIZE_ENTRY`.
+3. Gate: `pnpm check:vuetify-deps` (part of `pnpm check`) fails if a tag is used without an entry.
+4. After changing the list, restart `pnpm dev` so Vite re-prebundles.

@@ -7,12 +7,18 @@ import { createTimedFetch } from './timed-fetch';
 
 export const REQUEST_ID_HEADER = 'x-request-id';
 
-/** Public auth routes answer 401 for bad credentials; they must not end the session. */
+/**
+ * 401s that must not run the global session-expiry handler:
+ * - Public auth credential failures (login, etc.)
+ * - Session probe (`/me`) — owned by `auth.ensureSession()` / `loadSession()` so a cold
+ *   visit to `/login` does not clear Query + re-enter navigation mid-boot.
+ */
 const UNAUTHORIZED_EXEMPT_PATHS = [
   '/api/v1/auth/login',
   '/api/v1/auth/forgot-password',
   '/api/v1/auth/reset-password',
   '/api/v1/auth/activate',
+  '/api/v1/auth/me',
 ];
 
 export type UnauthorizedHandler = (context: { url: string }) => void;

@@ -44,6 +44,7 @@ const requiredFeatures = [
   'teams',
   'roles',
   'audit',
+  'sales',
 ];
 
 const requiredCursorRules = ['.cursor/rules/project.mdc'];

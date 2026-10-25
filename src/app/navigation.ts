@@ -9,6 +9,12 @@ export type NavItem = {
 export const NAV_ITEMS: readonly NavItem[] = [
   { title: 'Inicio', icon: 'mdi-home-outline', routeName: 'home' },
   {
+    title: 'Mis ventas',
+    icon: 'mdi-file-document-outline',
+    routeName: 'sales',
+    description: 'Borradores y ventas presentadas.',
+  },
+  {
     title: 'Usuarios',
     icon: 'mdi-account-multiple-outline',
     routeName: 'users',

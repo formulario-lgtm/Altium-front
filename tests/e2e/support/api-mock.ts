@@ -6,6 +6,11 @@ type Schemas = components['schemas'];
 export const VALID_PASSWORD = 'Altium2026Secure';
 export const CSRF_TOKEN = 'csrf-e2e-token';
 
+/** Mirrors backend ROLE_PERMISSION_MATRIX for SELLER (submit/export use update/read). */
+export const SELLER_PERMISSIONS = ['sales.read', 'sales.create', 'sales.update'];
+
+export const ADMINISTRATIVE_PERMISSIONS = ['teams.read', 'sales.read', 'sales.return'];
+
 export const SUPER_ADMIN_PERMISSIONS = [
   'users.read',
   'users.create',
@@ -22,7 +27,91 @@ export const SUPER_ADMIN_PERMISSIONS = [
   'audit.read',
   'auth.sessions_read',
   'auth.sessions_revoke',
+  ...SELLER_PERMISSIONS,
 ];
+
+const INSURER_ID = 'a1b2c3d4-1111-4000-8000-000000000001';
+const PLAN_ID = 'a1b2c3d4-2222-4000-8000-000000000002';
+const SALE_ID = 'a1b2c3d4-3333-4000-8000-000000000003';
+
+const SELLER: Schemas['SaleSellerSummaryDto'] = {
+  id: '6f9619ff-8b86-4d01-b42d-00c04fc964ff',
+  email: 'ana.perez@altium.example',
+  firstName: 'Ana',
+  lastName: 'Pérez',
+};
+
+function buildSale(overrides: Partial<Schemas['SaleDto']> = {}): Schemas['SaleDto'] {
+  return {
+    id: SALE_ID,
+    saleNumber: 'V-000001',
+    version: 1,
+    status: 'DRAFT',
+    customerType: 'DEREGULATED',
+    observations: null,
+    createdAt: '2026-10-20T10:00:00.000Z',
+    updatedAt: '2026-10-24T12:00:00.000Z',
+    submittedAt: null,
+    healthInsurer: { id: INSURER_ID, code: 'PREVENCION_SALUD', name: 'Prevención Salud' },
+    healthPlan: { id: PLAN_ID, code: 'A1', name: 'Plan A1' },
+    seller: SELLER,
+    members: [
+      {
+        id: 'a1b2c3d4-4444-4000-8000-000000000004',
+        memberType: 'HOLDER',
+        cuil: '27301234567',
+        firstName: 'Ana',
+        lastName: 'Pérez',
+        sex: 'FEMALE',
+        birthDate: '1990-05-10',
+        age: 36,
+        nationality: 'Argentino',
+        maritalStatus: 'SINGLE',
+        weightKg: 60,
+        heightCm: 165,
+        lastMenstrualPeriod: null,
+        hasPreexistingConditions: false,
+        preexistingConditionsDetails: null,
+        displayOrder: 0,
+      },
+    ],
+    contact: {
+      areaCode: '11',
+      phone: '55554444',
+      email: 'ana.perez@altium.example',
+      address: 'Calle Falsa 123',
+      postalCode: '1000',
+      province: 'CABA',
+    },
+    employment: {
+      currentInsurance: 'OSDE',
+      grossSalary: 500000,
+      employers: [
+        {
+          id: 'a1b2c3d4-5555-4000-8000-000000000005',
+          employerCuit: '30712345678',
+          displayOrder: 0,
+        },
+      ],
+    },
+    taxInfo: null,
+    billing: {
+      paymentMethod: 'CARD',
+      holderIsPayer: true,
+      paymentMedium: 'Visa',
+      payerIdentifier: null,
+      payerEmail: null,
+      payerPhone: null,
+      cardBrand: 'Visa',
+      cardLastFour: '4242',
+      cardExpiryMonth: 12,
+      cardExpiryYear: 2030,
+      paymentProviderReference: null,
+      cbuCapturePending: false,
+    },
+    ...overrides,
+  };
+}
 
 export function sessionResponse(permissions: string[]): Schemas['AuthSessionResponseDto'] {
   return {
@@ -195,6 +284,163 @@ export async function mockApi(page: Page, options: MockApiOptions = {}): Promise
       const body: Schemas['RoleListResponseDto'] = { items: ROLES };
       await json(route, 200, body);
       return;
+    }
+
+    if (pathname === '/api/v1/health-insurers' && method === 'GET') {
+      const body: Schemas['HealthInsurerListResponseDto'] = {
+        items: [{ id: INSURER_ID, code: 'PREVENCION_SALUD', name: 'Prevención Salud' }],
+      };
+      await json(route, 200, body);
+      return;
+    }
+
+    if (pathname === `/api/v1/health-insurers/${INSURER_ID}/plans` && method === 'GET') {
+      const body: Schemas['HealthPlanListResponseDto'] = {
+        items: [
+          {
+            id: PLAN_ID,
+            healthInsurerId: INSURER_ID,
+            code: 'A1',
+            name: 'Plan A1',
+            displayOrder: 1,
+          },
+        ],
+      };
+      await json(route, 200, body);
+      return;
+    }
+
+    if (pathname === '/api/v1/sales' && method === 'GET') {
+      const sale = buildSale();
+      const body: Schemas['SaleListResponseDto'] = {
+        items: [
+          {
+            id: sale.id,
+            saleNumber: sale.saleNumber,
+            status: sale.status,
+            customerType: sale.customerType,
+            healthInsurerName: sale.healthInsurer.name,
+            healthPlanName: sale.healthPlan?.name ?? null,
+            holderFirstName: sale.members[0]?.firstName ?? null,
+            holderLastName: sale.members[0]?.lastName ?? null,
+            holderCuilMasked: '27*******67',
+            seller: sale.seller,
+            submittedAt: sale.submittedAt,
+            updatedAt: sale.updatedAt,
+          },
+        ],
+        pageInfo: { limit: 25, offset: 0, total: 1, hasNextPage: false },
+      };
+      await json(route, 200, body);
+      return;
+    }
+
+    if (pathname === '/api/v1/sales' && method === 'POST') {
+      await json(route, 201, buildSale({ version: 1, status: 'DRAFT' }));
+      return;
+    }
+
+    const saleMatch = /^\/api\/v1\/sales\/([^/]+)(.*)$/.exec(pathname);
+    if (saleMatch) {
+      const saleId = saleMatch[1]!;
+      const rest = saleMatch[2] ?? '';
+
+      if (rest === '' && method === 'GET') {
+        await json(route, 200, buildSale({ id: saleId }));
+        return;
+      }
+
+      if (rest === '' && method === 'PATCH') {
+        const body = request.postDataJSON() as Schemas['UpdateSaleDto'];
+        if (body.version !== 1 && body.version !== undefined) {
+          await json(route, 409, problem(409, 'VERSION_CONFLICT', 'Version conflict'));
+          return;
+        }
+        await json(
+          route,
+          200,
+          buildSale({
+            id: saleId,
+            version: (body.version ?? 1) + 1,
+            customerType: body.customerType ?? 'DEREGULATED',
+            observations: body.observations ?? null,
+          }),
+        );
+        return;
+      }
+
+      if (rest === '/submit' && method === 'POST') {
+        await json(
+          route,
+          200,
+          buildSale({
+            id: saleId,
+            status: 'SUBMITTED',
+            submittedAt: '2026-10-24T18:00:00.000Z',
+            documentationPending: true,
+          }),
+        );
+        return;
+      }
+
+      if (rest === '/return' && method === 'POST') {
+        const body = request.postDataJSON() as Schemas['ReturnSaleDto'];
+        await json(
+          route,
+          200,
+          buildSale({
+            id: saleId,
+            status: 'RETURNED',
+            submittedAt: '2026-10-24T18:00:00.000Z',
+            observations: body.reason,
+          }),
+        );
+        return;
+      }
+
+      if (rest === '/documents' && method === 'GET') {
+        const body: Schemas['SaleDocumentsResponseDto'] = {
+          items: [],
+          storageIntegrationPending: true,
+          requiredCategories: [
+            {
+              documentType: 'PAYSLIP',
+              label: 'Recibo de sueldo',
+              saleMemberId: null,
+              satisfied: false,
+            },
+            {
+              documentType: 'DNI_FRONT',
+              label: 'DNI frente',
+              saleMemberId: null,
+              satisfied: false,
+            },
+          ],
+        };
+        await json(route, 200, body);
+        return;
+      }
+
+      if (rest === '/history' && method === 'GET') {
+        const body: Schemas['SaleStatusHistoryResponseDto'] = { items: [] };
+        await json(route, 200, body);
+        return;
+      }
+
+      if (rest === '/export' && method === 'GET') {
+        const origin = request.headers()['origin'] ?? '*';
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          headers: {
+            'access-control-allow-origin': origin,
+            'access-control-allow-credentials': 'true',
+            'content-disposition': 'attachment; filename="V-000001.xlsx"',
+          },
+          body: 'PK mock-xlsx',
+        });
+        return;
+      }
     }
 
     await json(route, 404, problem(404, 'NOT_FOUND', 'Not Found'));
