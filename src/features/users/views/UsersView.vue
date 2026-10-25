@@ -5,6 +5,7 @@ import EmptyState from '@/components/common/EmptyState.vue';
 import ErrorState from '@/components/common/ErrorState.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
+import UserAvatar from '@/components/common/UserAvatar.vue';
 import { useDebouncedRef } from '@/composables/useDebouncedRef';
 import { useRolesQuery } from '@/features/roles/composables/useRoles';
 import {
@@ -17,7 +18,7 @@ import {
   type UserStatus,
 } from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
-import { formatDateTime, fullName } from '@/utils/format';
+import { formatDateTime, fullName, initialsFromPerson } from '@/utils/format';
 import UserFormDialog from '../components/UserFormDialog.vue';
 import {
   useCreateUserMutation,
@@ -218,35 +219,22 @@ function hasRowActions(user: User): boolean {
       </template>
     </PageHeader>
 
-    <v-row dense class="mb-2">
+    <v-row dense class="altium-filters mb-4">
       <v-col cols="12" md="5">
         <v-text-field
           v-model="search"
           label="Buscar por nombre o correo"
           prepend-inner-icon="mdi-magnify"
           clearable
-          density="compact"
           maxlength="100"
           @click:clear="search = ''"
         />
       </v-col>
       <v-col cols="6" md="3">
-        <v-select
-          v-model="statusFilter"
-          :items="statusOptions"
-          label="Estado"
-          clearable
-          density="compact"
-        />
+        <v-select v-model="statusFilter" :items="statusOptions" label="Estado" clearable />
       </v-col>
       <v-col v-if="roleOptions.length > 0" cols="6" md="4">
-        <v-select
-          v-model="roleFilter"
-          :items="roleOptions"
-          label="Rol"
-          clearable
-          density="compact"
-        />
+        <v-select v-model="roleFilter" :items="roleOptions" label="Rol" clearable />
       </v-col>
     </v-row>
 
@@ -272,9 +260,12 @@ function hasRowActions(user: User): boolean {
         data-testid="users-table"
       >
         <template #[`item.name`]="{ item }">
-          <div class="py-2">
-            <div class="font-weight-medium">{{ fullName(item) }}</div>
-            <div class="text-caption text-medium-emphasis">{{ item.email }}</div>
+          <div class="d-flex align-center ga-3 py-2">
+            <UserAvatar :initials="initialsFromPerson(item)" :size="40" />
+            <div style="min-width: 0">
+              <div class="font-weight-medium text-truncate">{{ fullName(item) }}</div>
+              <div class="text-caption text-medium-emphasis text-truncate">{{ item.email }}</div>
+            </div>
           </div>
         </template>
         <template #[`item.role`]="{ item }">{{ item.role.name }}</template>

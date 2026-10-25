@@ -31,12 +31,15 @@ export const lightTheme = {
     'border-color': light.border,
     'border-opacity': 1,
     'high-emphasis-opacity': 0.92,
-    'medium-emphasis-opacity': 0.72,
+    'medium-emphasis-opacity': 0.7,
     'disabled-opacity': 0.42,
     'hover-opacity': 0.04,
     'focus-opacity': 0.08,
-    'selected-opacity': 0.08,
-    'activated-opacity': 0.1,
+    'selected-opacity': 0.1,
+    'activated-opacity': 0.12,
+    'shadow-key-umbra-opacity': 0.06,
+    'shadow-key-penumbra-opacity': 0.04,
+    'shadow-key-ambient-opacity': 0.03,
   },
 };
 
@@ -61,17 +64,25 @@ export const darkTheme = {
   },
   variables: {
     'border-color': dark.border,
-    'border-opacity': 1,
+    'border-opacity': 0.9,
     'high-emphasis-opacity': 0.95,
     'medium-emphasis-opacity': 0.72,
     'disabled-opacity': 0.4,
-    'hover-opacity': 0.06,
-    'focus-opacity': 0.1,
-    'selected-opacity': 0.12,
-    'activated-opacity': 0.12,
+    'hover-opacity': 0.08,
+    'focus-opacity': 0.12,
+    'selected-opacity': 0.16,
+    'activated-opacity': 0.18,
+    'shadow-key-umbra-opacity': 0.35,
+    'shadow-key-penumbra-opacity': 0.22,
+    'shadow-key-ambient-opacity': 0.18,
   },
 };
 
+/**
+ * Vuetify defaults = Altium design-system variants.
+ * Feature screens should rely on these (color="primary", outlined fields, bordered cards)
+ * instead of local one-off styling.
+ */
 export function createVuetifyPlugin() {
   return createVuetify({
     locale: {
@@ -93,45 +104,125 @@ export function createVuetifyPlugin() {
     },
     defaults: {
       VBtn: {
-        rounded: 'md',
-        elevation: 0,
-      },
-      VCard: {
         rounded: 'lg',
         elevation: 0,
+        class: 'text-none',
+      },
+      VCard: {
+        rounded: 'xl',
+        elevation: 0,
         border: true,
+        class: 'altium-surface-card',
       },
       VTextField: {
         variant: 'outlined',
         density: 'comfortable',
         color: 'primary',
         hideDetails: 'auto',
+        rounded: 'lg',
+        persistentPlaceholder: false,
       },
       VSelect: {
         variant: 'outlined',
         density: 'comfortable',
         color: 'primary',
         hideDetails: 'auto',
+        rounded: 'lg',
+        menuIcon: 'mdi-chevron-down',
+      },
+      VAutocomplete: {
+        variant: 'outlined',
+        density: 'comfortable',
+        color: 'primary',
+        hideDetails: 'auto',
+        rounded: 'lg',
+        menuIcon: 'mdi-chevron-down',
+      },
+      VCombobox: {
+        variant: 'outlined',
+        density: 'comfortable',
+        color: 'primary',
+        hideDetails: 'auto',
+        rounded: 'lg',
       },
       VTextarea: {
         variant: 'outlined',
         density: 'comfortable',
         color: 'primary',
         hideDetails: 'auto',
+        rounded: 'lg',
+        autoGrow: false,
+        rows: 3,
+      },
+      VFileInput: {
+        variant: 'outlined',
+        density: 'comfortable',
+        color: 'primary',
+        hideDetails: 'auto',
+        rounded: 'lg',
+      },
+      VCheckbox: {
+        color: 'primary',
+        density: 'comfortable',
+        hideDetails: 'auto',
+      },
+      VRadioGroup: {
+        color: 'primary',
+        density: 'comfortable',
+        hideDetails: 'auto',
+      },
+      VRadio: {
+        color: 'primary',
+        density: 'comfortable',
+        hideDetails: 'auto',
+      },
+      VSwitch: {
+        color: 'primary',
+        density: 'comfortable',
+        hideDetails: 'auto',
+        inset: true,
       },
       VChip: {
-        rounded: 'md',
+        rounded: 'pill',
         size: 'small',
       },
       VDialog: {
         scrim: true,
+        retainFocus: true,
+      },
+      VNavigationDrawer: {
+        elevation: 0,
+        border: true,
+        color: 'surface',
+      },
+      VAppBar: {
+        elevation: 0,
+        border: true,
+        color: 'surface',
+        flat: true,
       },
       VDataTable: {
+        hover: true,
+      },
+      VDataTableServer: {
         hover: true,
       },
       VAlert: {
         rounded: 'lg',
         variant: 'tonal',
+      },
+      VList: {
+        rounded: 'lg',
+        color: 'primary',
+      },
+      VListItem: {
+        rounded: 'lg',
+      },
+      VMenu: {
+        offset: 8,
+      },
+      VSnackbar: {
+        rounded: 'lg',
       },
     },
   });

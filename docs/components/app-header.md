@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Top app bar of the authenticated shell: navigation toggle, “Altium” brand, theme toggle and user menu (change password, sessions, logout).
+Top bar of the authenticated shell: nav toggle, `AltiumMark`, theme toggle, and user menu (pill activator with avatar + name + Spanish role, account links, logout).
 
 ## Code location
 
@@ -21,6 +21,8 @@ Top app bar of the authenticated shell: navigation toggle, “Altium” brand, t
 | `roleCode`      | `string \| null` | `null`  |
 | `showNavToggle` | `boolean`        | `true`  |
 | `loggingOut`    | `boolean`        | `false` |
+
+`roleCode` is mapped to Spanish via `roleLabel()` (`src/utils/role-labels.ts`). Technical codes are not shown in the menu.
 
 ## Events
 
@@ -44,16 +46,16 @@ None.
 
 ## Responsive
 
-User name hidden below `sm` (icon only).
+On narrow viewports the activator keeps avatar + chevron; name/role text hide below `sm`.
 
 ## Accessibility
 
-Menu button `aria-label="Menú de usuario"`; nav icon `aria-label`.
+Menu `aria-label="Menú de usuario"`; nav icon `aria-label`. Avatar in the panel receives `label` when present.
 
 ## Dependencies
 
-`ThemeToggleButton`, Vuetify `v-app-bar`, `v-menu`, `v-list`, Vue Router links.
+`AltiumMark`, `ThemeToggleButton`, `UserAvatar`, `roleLabel`, Vuetify app bar / menu / card.
 
 ## Restrictions
 
-No HTTP or store access — data via props, actions via events.
+No HTTP or store access — data via props, actions via events. Visual tokens from the shell (`--altium-glass*`, card shadow).

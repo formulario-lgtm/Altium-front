@@ -26,14 +26,16 @@ This repository contains the technical foundations plus **Stage 5: authenticatio
 
 **Deferred (documented, not installed):** Apache ECharts, AG Grid. See ADR `0002` (amended: VeeValidate + Zod installed in Stage 5).
 
-Auth/session: [docs/guides/authentication.md](docs/guides/authentication.md). Visual tokens: [docs/architecture/visual-identity.md](docs/architecture/visual-identity.md).
+Auth/session: [docs/guides/authentication.md](docs/guides/authentication.md).
+
+**Design system (mandatory):** [docs/architecture/visual-identity.md](docs/architecture/visual-identity.md), [docs/standards/ui-ux.md](docs/standards/ui-ux.md). Tokens `src/styles/tokens.ts` → Vuetify themes/defaults `src/app/plugins/vuetify.ts` → shell `src/styles/main.scss` + forms `src/styles/forms.scss`. Shared UI in `src/components/common` + `src/components/layout` (see `docs/components/`). **Never** hardcode palette hex, duplicate button/badge/table/input skins, or invent a second look per feature — extend the system so light and dark stay consistent.
 
 Contract sync: [docs/architecture/api-integration.md](docs/architecture/api-integration.md), [docs/guides/openapi-types.md](docs/guides/openapi-types.md).
 
 ## Architecture
 
 - Feature-based modules under `src/features/`.
-- Shared UI in `src/components/` (`base` / `common` / `layout`) — create folders when needed.
+- Shared UI in `src/components/` (`common` / `layout`) — document globals in `docs/components/`.
 - HTTP only via `src/services/http/` (`openapi-fetch`) — never call `fetch`/`apiClient` from presentational components.
 - Pinia = shared app/UI state. TanStack Query = remote data. Do not duplicate the same data in both.
 - Layouts in `src/layouts/`. App wiring in `src/app/`.
@@ -63,7 +65,8 @@ docs/components/  # global component Markdown
 - English for code, files, routes, technical docs. Business copy may be Spanish.
 - No source file > **1000** lines; prefer **300–500**.
 - No `any` / `@ts-ignore` without a one-line justification.
-- Prefer Vuetify primitives over custom widgets when adequate.
+- Prefer Vuetify primitives + design-system defaults over custom widgets.
+- Reuse `PageHeader`, `StatusBadge`, `UserAvatar`, `ConfirmDialog`, `EmptyState`, `ErrorState`, `altium-filters`, and shell layout patterns on every new screen.
 - Lazy-load route components. Keep views thin; move logic to composables/services.
 
 Full standards: [docs/standards/coding-standards.md](docs/standards/coding-standards.md), [docs/standards/components.md](docs/standards/components.md), [docs/standards/ui-ux.md](docs/standards/ui-ux.md).

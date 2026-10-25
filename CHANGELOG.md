@@ -33,7 +33,13 @@ Section headings used in this repository:
 
 ### Ajuste UX/UI
 
-- Tokens de marca Altium (`src/styles/tokens.ts`) aplicados a los temas claro/oscuro de Vuetify; estética sobria sin sombras ni gradientes.
+- Pantalla **Roles y permisos** alineada al design system: rail de roles, permisos en tarjetas por área (Usuarios, Equipos, …) con explicación en español y código técnico secundario.
+- Menú de usuario del header: activador tipo píldora, panel glass con avatar/rol en español, acciones y cierre de sesión al estilo del design system.
+- Controles de formulario globales (inputs, selects, autocomplete, textarea, date, switches, menús y footer de tablas) unificados en `forms.scss` + defaults de Vuetify.
+- **Sistema de diseño global Altium** (claro/oscuro): paleta eléctrica/azul alineada al mock, superficies glass, atmósfera del shell, glow en botones primarios, nav activa, filtros y tipografía de página centralizados en tokens + defaults de Vuetify + `main.scss`.
+- Shell autenticado: header con `AltiumMark` + avatar de iniciales (`UserAvatar`), drawer glass, badges de estado en pill con punto.
+- Tablas administrativas (usuarios/equipos/auditoría) reutilizan `altium-surface-card` y `altium-filters` sin estilos por pantalla.
+- Documentación de identidad visual, `docs/standards/ui-ux.md` y `AGENTS.md` obligan a reutilizar el sistema en features futuras.
 - Login con layout split (marca + tarjeta glass), atmósfera adaptada a claro/oscuro y marca tipográfica provisional (`AltiumMark`).
 - Tema **oscuro por defecto** en la primera visita (si no hay preferencia guardada).
 - Locale de Vuetify en español (paginación y textos internos de tablas).

@@ -137,13 +137,7 @@ async function confirmRemove(): Promise<void> {
 
       <div class="d-flex flex-wrap align-center ga-4 mb-3">
         <h2 class="text-subtitle-1 font-weight-bold flex-grow-1 mb-0">Miembros</h2>
-        <v-switch
-          v-model="includeFormer"
-          label="Incluir históricos"
-          color="primary"
-          density="compact"
-          hide-details
-        />
+        <v-switch v-model="includeFormer" label="Incluir históricos" hide-details />
       </div>
 
       <v-card v-if="canManageMembers && team.isActive" class="mb-4">
@@ -153,7 +147,6 @@ async function confirmRemove(): Promise<void> {
             :items="candidateItems"
             :loading="candidatePicker.query.isFetching.value"
             label="Agregar miembro (vendedor o administrativo activo)"
-            density="compact"
             class="flex-grow-1"
             style="min-width: 260px"
             no-data-text="No hay usuarios disponibles"

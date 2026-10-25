@@ -74,25 +74,18 @@ function openTeam(_event: unknown, row: { item: Team }): void {
       </template>
     </PageHeader>
 
-    <v-row dense class="mb-2">
+    <v-row dense class="altium-filters mb-4">
       <v-col cols="12" md="6">
         <v-text-field
           v-model="search"
           label="Buscar por nombre"
           prepend-inner-icon="mdi-magnify"
           clearable
-          density="compact"
           @click:clear="search = ''"
         />
       </v-col>
       <v-col cols="12" md="3">
-        <v-select
-          v-model="activeFilter"
-          :items="activeOptions"
-          label="Estado"
-          clearable
-          density="compact"
-        />
+        <v-select v-model="activeFilter" :items="activeOptions" label="Estado" clearable />
       </v-col>
     </v-row>
 

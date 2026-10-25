@@ -26,7 +26,13 @@ function logout(): void {
 </script>
 
 <template>
-  <v-app>
+  <v-app class="altium-shell">
+    <div class="altium-shell__atmosphere" aria-hidden="true">
+      <span class="altium-shell__glow altium-shell__glow--tl" />
+      <span class="altium-shell__glow altium-shell__glow--br" />
+      <span class="altium-shell__dots" />
+    </div>
+
     <AppHeader
       :user-name="auth.displayName"
       :role-code="auth.roleCode"
@@ -42,8 +48,6 @@ function logout(): void {
       :permanent="mdAndUp"
       :temporary="!mdAndUp"
       width="248"
-      border
-      elevation="0"
     >
       <AppNavigation :items="items" />
     </v-navigation-drawer>

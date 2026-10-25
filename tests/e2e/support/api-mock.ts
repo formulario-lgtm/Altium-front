@@ -62,7 +62,7 @@ export const USERS: Schemas['UserDto'][] = [
     email: 'bruno.gomez@altium.example',
     status: 'PENDING',
     mustChangePassword: false,
-    role: { id: '1c8d2e2f-6b54-4e4f-ae4f-2e7b5a3a9c22', code: 'SELLER', name: 'Seller' },
+    role: { id: '1c8d2e2f-6b54-4e4f-ae4f-2e7b5a3a9c22', code: 'SELLER', name: 'Vendedor' },
     lastLoginAt: null,
     passwordChangedAt: null,
     createdAt: '2026-10-02T10:00:00.000Z',
@@ -74,7 +74,7 @@ const ROLES: Schemas['RoleDto'][] = [
   {
     id: '0b7c1d1e-5a43-4d3e-9d3e-1d6a4f2f8b11',
     code: 'SUPER_ADMIN',
-    name: 'Super admin',
+    name: 'Super administrador',
     description: null,
     isSystem: true,
     permissionCodes: SUPER_ADMIN_PERMISSIONS,
@@ -82,7 +82,7 @@ const ROLES: Schemas['RoleDto'][] = [
   {
     id: '1c8d2e2f-6b54-4e4f-ae4f-2e7b5a3a9c22',
     code: 'SELLER',
-    name: 'Seller',
+    name: 'Vendedor',
     description: null,
     isSystem: true,
     permissionCodes: [],

@@ -90,8 +90,6 @@ const onSubmit = handleSubmit((values) => emit('submit', values));
             v-if="isEdit"
             v-model="isActive"
             label="Equipo activo"
-            color="primary"
-            density="compact"
             hide-details
             class="mt-2"
           />

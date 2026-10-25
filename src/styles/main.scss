@@ -1,4 +1,5 @@
 @use './settings.scss';
+@use './forms.scss';
 
 :root {
   color-scheme: light dark;
@@ -6,6 +7,37 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --altium-radius-sm: 0.5rem;
+  --altium-radius-md: 0.75rem;
+  --altium-radius-lg: 1rem;
+  --altium-radius-xl: 1.25rem;
+  --altium-radius-pill: 999px;
+}
+
+/* Design-system surfaces / glows (theme-aware). Prefer these over hardcoded hex in views. */
+.v-theme--dark {
+  --altium-glass: rgba(14, 27, 53, 0.72);
+  --altium-glass-border: rgba(110, 168, 255, 0.22);
+  --altium-glow-primary: 0 10px 28px rgba(59, 130, 246, 0.38);
+  --altium-card-shadow: 0 0 0 1px rgba(110, 168, 255, 0.14), 0 18px 48px rgba(0, 0, 0, 0.4);
+  --altium-nav-active-bg: rgba(59, 130, 246, 0.22);
+  --altium-nav-active-glow: 0 0 24px rgba(59, 130, 246, 0.28);
+  --altium-field-bg: rgba(8, 16, 33, 0.45);
+  --altium-avatar-bg: rgba(59, 130, 246, 0.22);
+  --altium-avatar-fg: #93c5fd;
+}
+
+.v-theme--light {
+  --altium-glass: rgba(255, 255, 255, 0.92);
+  --altium-glass-border: rgba(37, 99, 235, 0.12);
+  --altium-glow-primary: 0 10px 24px rgba(37, 99, 235, 0.28);
+  --altium-card-shadow: 0 10px 32px rgba(25, 43, 69, 0.08);
+  --altium-nav-active-bg: rgba(37, 99, 235, 0.12);
+  --altium-nav-active-glow: none;
+  --altium-field-bg: rgba(255, 255, 255, 0.95);
+  --altium-avatar-bg: rgba(37, 99, 235, 0.12);
+  --altium-avatar-fg: #1d4ed8;
 }
 
 html,
@@ -24,14 +56,167 @@ a {
   color: rgb(var(--v-theme-primary));
 }
 
+/* ——— Page shell ——— */
+
 .altium-page {
-  max-width: 1200px;
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
   margin-inline: auto;
+}
+
+.altium-shell {
+  position: relative;
+  min-height: 100%;
+}
+
+.altium-shell__atmosphere {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.altium-shell__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+.altium-shell__glow--tl {
+  width: min(55vw, 560px);
+  height: min(55vw, 560px);
+  top: -18%;
+  left: -8%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.28) 0%, transparent 68%);
+  opacity: 0.85;
+}
+
+.altium-shell__glow--br {
+  width: min(60vw, 640px);
+  height: min(60vw, 640px);
+  bottom: -22%;
+  right: -10%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, transparent 70%);
+}
+
+.v-theme--light .altium-shell__glow--tl {
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.22) 0%, transparent 68%);
+}
+
+.v-theme--light .altium-shell__glow--br {
+  background: radial-gradient(circle, rgba(147, 197, 253, 0.28) 0%, transparent 70%);
+}
+
+.altium-shell__dots {
+  position: absolute;
+  left: 4%;
+  bottom: 6%;
+  width: min(38vw, 420px);
+  height: 36%;
+  opacity: 0.35;
+  background-image: radial-gradient(rgba(190, 215, 255, 0.55) 1px, transparent 1px);
+  background-size: 14px 14px;
+  mask-image: radial-gradient(ellipse at 40% 60%, black 8%, transparent 72%);
+}
+
+.v-theme--light .altium-shell__dots {
+  opacity: 0.22;
+  background-image: radial-gradient(rgba(60, 100, 160, 0.28) 1px, transparent 1px);
+}
+
+/* ——— Brand ——— */
+
+.altium-brand {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ——— Buttons (global variants via Vuetify color + theme) ——— */
+
+.v-btn.bg-primary,
+.v-btn--variant-flat.v-btn--color-primary {
+  box-shadow: var(--altium-glow-primary) !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.v-btn--variant-outlined {
+  border-color: rgba(var(--v-border-color), 0.85) !important;
+}
+
+.v-btn--variant-text.v-btn--icon {
+  color: rgb(var(--v-theme-on-surface-variant));
+}
+
+/* ——— Surface cards / tables ——— */
+
+.altium-surface-card {
+  background: var(--altium-glass) !important;
+  border-color: var(--altium-glass-border) !important;
+  box-shadow: var(--altium-card-shadow);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+}
+
+.altium-surface-card .v-table {
+  background: transparent;
+}
+
+.altium-surface-card .v-data-table-header__content {
+  color: rgb(var(--v-theme-on-surface-variant));
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.altium-surface-card .v-data-table__td,
+.altium-surface-card .v-data-table__th {
+  border-bottom-color: rgba(var(--v-border-color), 0.55) !important;
 }
 
 .altium-clickable-rows tbody tr {
   cursor: pointer;
 }
+
+/* ——— Navigation drawer / list active ——— */
+
+.altium-nav .v-list-item--active {
+  background: var(--altium-nav-active-bg) !important;
+  box-shadow: var(--altium-nav-active-glow);
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+.altium-nav .v-list-item--active .v-icon,
+.altium-nav .v-list-item--active .v-list-item-title {
+  color: rgb(var(--v-theme-primary)) !important;
+  font-weight: 600;
+}
+
+.v-theme--dark .altium-nav .v-list-item--active {
+  color: #fff !important;
+}
+
+.v-theme--dark .altium-nav .v-list-item--active .v-icon,
+.v-theme--dark .altium-nav .v-list-item--active .v-list-item-title {
+  color: #fff !important;
+}
+
+.altium-shell .v-navigation-drawer,
+.altium-shell .v-app-bar {
+  background: var(--altium-glass) !important;
+  border-color: var(--altium-glass-border) !important;
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+}
+
+.altium-shell .v-main {
+  position: relative;
+  z-index: 1;
+}
+
+/* ——— Misc helpers ——— */
 
 .altium-json {
   margin: 0;
@@ -43,12 +228,28 @@ a {
   white-space: pre-wrap;
   word-break: break-word;
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  border-radius: 8px;
+  border-radius: var(--altium-radius-md);
   background: rgb(var(--v-theme-background));
 }
 
 .altium-subtle-border {
   border-color: rgba(var(--v-border-color), var(--v-border-opacity)) !important;
+}
+
+.altium-page-title {
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: rgb(var(--v-theme-on-background));
+}
+
+.altium-page-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgb(var(--v-theme-on-surface-variant));
 }
 
 :focus-visible {

@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Tonal chip that renders a status code with a Spanish label, color and icon.
+Pill tonal chip for API status codes: colored soft background, solid dot, Spanish label. Part of the Altium design system — reuse everywhere instead of ad-hoc chips.
 
 ## Code location
 
@@ -39,12 +39,12 @@ Inline chip.
 
 ## Accessibility
 
-Text label always present (color is not the only signal). `data-status` attribute for tests.
+Text label always present (color is not the only signal). `data-status` for tests.
 
 ## Dependencies
 
-Vuetify `v-chip`.
+Vuetify `v-chip` (tonal + pill via design-system defaults).
 
 ## Restrictions
 
-Add new codes here only when they exist in the OpenAPI contract.
+Add new codes only when they exist in the OpenAPI contract.

@@ -19,6 +19,7 @@ Canonical instructions live in [AGENTS.md](../../AGENTS.md). Do not invent paral
 - Stage 5 (auth, account, users, teams, roles, audit) is in scope. No commercial CRM screens (customers, sales, dashboards) or Netlify connection unless requested.
 - Auth: session cookie is HttpOnly; CSRF token in memory only (`src/services/http/csrf.ts`); never persist tokens/passwords. See `docs/guides/authentication.md`.
 - Forms use VeeValidate + Zod (installed). ECharts / AG Grid remain deferred.
+- Design system mandatory: `tokens.ts` → Vuetify themes/defaults → `main.scss`; reuse `docs/components/*` patterns. No one-off hex/skins per feature. See `docs/architecture/visual-identity.md`.
 - No HTTP calls from presentational components — use `src/services/http/` (`openapi-fetch`).
 - Do not use Axios; typed HTTP goes through generated OpenAPI paths.
 - Pinia for app/UI state; TanStack Query for remote data — no duplication.

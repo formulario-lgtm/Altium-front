@@ -8,7 +8,7 @@
 
 ## Goal
 
-Show each role's permission set grouped by resource and let authorized admins replace it.
+Show each role's permission set grouped by resource and let authorized admins replace it. Copy and grouping follow the Altium design system (Spanish explanations; technical codes secondary).
 
 ## Route
 
@@ -16,10 +16,10 @@ Show each role's permission set grouped by resource and let authorized admins re
 
 ## Expected behavior
 
-- Left: role list (name, code, permission count). Right: permissions of the selected role.
-- With `permissions.read`: full catalog grouped by `resource` with checkboxes (description as hint). Without it: the role's codes as read-only chips.
-- With `roles.update_permissions`: “Guardar cambios” enabled when the draft differs; `ConfirmDialog` (warning) explains that the whole set is replaced and applies immediately to live sessions.
-- **SUPER_ADMIN protection:** `users.create`, `users.update_status`, `roles.update_permissions`, `roles.read`, `permissions.read`, `audit.read` are locked (checkbox disabled + lock icon) and an info alert is shown. The backend still rejects violations with `409`.
+- Left rail: role list (Spanish name, permission count, technical code). Right: selected role detail.
+- With `permissions.read`: catalog grouped by resource (Spanish group labels) with checkboxes. Each item shows a Spanish description as the primary label and the `code` as a caption.
+- With `roles.update_permissions`: “Guardar cambios” in the page header when the draft differs; `ConfirmDialog` explains that the whole set is replaced and applies on the next request of live sessions.
+- **SUPER_ADMIN protection:** critical permissions stay locked (checkbox disabled + lock icon) with an info alert. The backend still rejects violations with `409`.
 
 ## Components
 
@@ -29,7 +29,7 @@ Show each role's permission set grouped by resource and let authorized admins re
 ## Composables / utils
 
 - `useRolesQuery`, `usePermissionsQuery`, `useReplaceRolePermissionsMutation`
-- `utils/permissions.ts`: `groupPermissionsByResource`, `isProtectedPermission`, `sameCodes`, `PROTECTED_SUPER_ADMIN_PERMISSIONS`
+- `utils/permissions.ts`: `groupPermissionsByResource`, `resourceLabel`, `RESOURCE_LABELS`, `isProtectedPermission`, `sameCodes`, `PROTECTED_SUPER_ADMIN_PERMISSIONS`
 
 ## Services / endpoints
 
@@ -38,6 +38,8 @@ Show each role's permission set grouped by resource and let authorized admins re
 | `listRoles`              | `GET /api/v1/roles`                  |
 | `listPermissions`        | `GET /api/v1/permissions`            |
 | `replaceRolePermissions` | `PUT /api/v1/roles/{id}/permissions` |
+
+Permission descriptions are seeded from `permission.codes.ts` (Spanish) and refreshed by `pnpm db:seed`.
 
 ## Permissions
 

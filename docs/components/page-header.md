@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Consistent page title + subtitle + primary actions for authenticated views.
+Standard page title block: design-system title/subtitle typography plus optional primary actions (e.g. “Nuevo usuario”).
 
 ## Code location
 
@@ -15,36 +15,38 @@ Consistent page title + subtitle + primary actions for authenticated views.
 
 ## Props
 
-| Prop       | Type     | Notes    |
-| ---------- | -------- | -------- |
-| `title`    | `string` | `<h1>`   |
-| `subtitle` | `string` | Optional |
+| Prop       | Type                |
+| ---------- | ------------------- |
+| `title`    | `string`            |
+| `subtitle` | `string` (optional) |
 
 ## Slots
 
-- `actions` — buttons aligned to the right (wraps below on small screens).
-- `prepend` — content above the title (e.g. breadcrumbs).
+| Slot      | Use                          |
+| --------- | ---------------------------- |
+| `prepend` | Optional content above title |
+| `actions` | Primary/secondary buttons    |
 
 ## Usage
 
 ```vue
 <PageHeader title="Usuarios" subtitle="Cuentas con acceso a Altium CRM.">
-  <template #actions><v-btn color="primary">Nuevo usuario</v-btn></template>
+  <template #actions>
+    <v-btn color="primary" prepend-icon="mdi-account-plus-outline">Nuevo usuario</v-btn>
+  </template>
 </PageHeader>
 ```
 
+Primary actions: `color="primary"` (glow comes from global SCSS). Do not invent local page-title CSS.
+
 ## Responsive
 
-Flex-wrap: actions drop under the title on narrow screens.
+Actions wrap under the title on narrow viewports.
 
 ## Accessibility
 
-One `<h1>` per view.
+Single `h1` per page via this component.
 
 ## Dependencies
 
-None beyond Vuetify utility classes.
-
-## Restrictions
-
-Presentational only.
+Global classes `.altium-page-title` / `.altium-page-subtitle`.

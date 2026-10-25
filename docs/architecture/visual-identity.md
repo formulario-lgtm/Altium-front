@@ -1,43 +1,78 @@
-# Visual identity
+# Visual identity — Altium design system
 
-Provisional Altium look: sober, flat, high legibility. Swap values without touching components.
+Canonical look for the authenticated CRM shell and shared UI. Auth marketing (`AuthLayout`) may use local CSS variables for atmosphere, but **shared chrome must use these tokens**.
 
 ## Sources of truth
 
-| File                         | Role                                                                                                                 |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `src/styles/tokens.ts`       | Brand palette per theme (`altiumTokens.light` / `.dark`)                                                             |
-| `src/app/plugins/vuetify.ts` | Maps tokens to Vuetify theme colors/variables + component defaults                                                   |
-| `src/styles/main.scss`       | Few global helpers (`.altium-brand`, `.altium-auth-shell`, `.altium-page`, `.altium-json`, `.altium-clickable-rows`) |
+| File                         | Role                                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| `src/styles/tokens.ts`       | Brand palette (`altiumTokens.light` / `.dark`) + radii                                         |
+| `src/app/plugins/vuetify.ts` | Maps tokens → Vuetify theme colors/variables + **component defaults** (design-system variants) |
+| `src/styles/main.scss`       | Theme CSS vars (`--altium-*`), shell atmosphere, cards, nav active, primary glow               |
+| `src/styles/forms.scss`      | Global fields, selects, date inputs, menus, switches, table footer / dialog form chrome        |
+
+**Rule for agents:** never invent one-off hex colors, card styles, or button variants in feature views. Change the system (tokens → Vuetify → global SCSS) so every screen stays consistent.
 
 ## Palette
 
-| Token             | Light     | Dark      | Vuetify color                     |
+| Token             | Light     | Dark      | Vuetify                           |
 | ----------------- | --------- | --------- | --------------------------------- |
-| `background`      | `#F5F6F8` | `#101D32` | `background`                      |
-| `surface`         | `#FFFFFF` | `#192B45` | `surface`                         |
-| `surfaceElevated` | `#FFFFFF` | `#243B5A` | `surface-bright`                  |
-| `primary`         | `#243B5A` | `#4777AC` | `primary`                         |
-| `textPrimary`     | `#192B45` | `#F2F6FC` | `on-background`, `on-surface`     |
-| `textSecondary`   | `#657182` | `#AABCD1` | `secondary`, `on-surface-variant` |
-| `border`          | `#E5EAF0` | `#2A3F5C` | `border-color`, `surface-variant` |
-| `success`         | `#2F7D57` | `#3D9A6A` | `success`                         |
-| `warning`         | `#A67C00` | `#C9A227` | `warning`                         |
-| `error`           | `#B54040` | `#D46565` | `error`                           |
-| `info`            | `#3A6EA5` | `#5B8FC7` | `info`                            |
+| `background`      | `#EEF3F9` | `#07101F` | `background`                      |
+| `surface`         | `#FFFFFF` | `#0E1B35` | `surface`                         |
+| `surfaceElevated` | `#FFFFFF` | `#152748` | `surface-bright`                  |
+| `primary`         | `#2563EB` | `#3B82F6` | `primary`                         |
+| `textPrimary`     | `#15233A` | `#F4F7FC` | `on-background`, `on-surface`     |
+| `textSecondary`   | `#5F7088` | `#9EB0C9` | `secondary`, `on-surface-variant` |
+| `border`          | `#D8E2EF` | `#243B5A` | `border-color`, `surface-variant` |
+| `success`         | `#059669` | `#34D399` | `success`                         |
+| `warning`         | `#D97706` | `#FBBF24` | `warning`                         |
+| `error`           | `#DC2626` | `#F87171` | `error`                           |
+| `info`            | `#2563EB` | `#60A5FA` | `info`                            |
+
+CSS extras (not Vuetify colors): `--altium-glass`, `--altium-glass-border`, `--altium-glow-primary`, `--altium-card-shadow`, `--altium-nav-active-bg`, `--altium-avatar-bg/fg`, `--altium-radius-*`.
 
 ## Locale
 
-Vuetify runs with the Spanish locale (`es`, fallback `en`) so built-in strings (table footer, pagination, "no data") match the Spanish UI copy.
+Vuetify Spanish locale (`es`, fallback `en`) for table footer / pagination / empty copy.
 
-## Component defaults
+## Component defaults (variants)
 
-Flat buttons (`elevation: 0`), bordered cards without shadow (`rounded: lg`), outlined comfortable inputs, tonal alerts, small rounded chips, hover rows in tables.
+Configured once in `createVuetifyPlugin()`:
+
+| Component                                                                                 | Default                                                                               |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `VBtn`                                                                                    | `rounded="lg"`, flat, `text-none`; primary gets soft glow via SCSS                    |
+| `VCard`                                                                                   | `rounded="xl"`, border, class `altium-surface-card` (glass)                           |
+| Fields (`VTextField`, `VSelect`, `VAutocomplete`, `VCombobox`, `VTextarea`, `VFileInput`) | `outlined`, `comfortable`, `rounded="lg"`, `color="primary"` — chrome in `forms.scss` |
+| Selection (`VCheckbox`, `VRadio`, `VSwitch`)                                              | `color="primary"`, `comfortable`; switches `inset`                                    |
+| `VChip`                                                                                   | `rounded="pill"`, `size="small"`                                                      |
+| Tables                                                                                    | `hover`; wrap in `v-card` for surface treatment                                       |
+| `VAlert`                                                                                  | `tonal`, `rounded="lg"`                                                               |
+
+### Shared wrappers (prefer these)
+
+| Need                | Use                                                                    |
+| ------------------- | ---------------------------------------------------------------------- |
+| Page title/actions  | `PageHeader`                                                           |
+| Status pills        | `StatusBadge`                                                          |
+| User initials       | `UserAvatar` + `initialsFromPerson` / `initialsFromLabel`              |
+| Confirm destructive | `ConfirmDialog`                                                        |
+| Empty / error       | `EmptyState` / `ErrorState`                                            |
+| Filter row          | `v-row.altium-filters` + default fields                                |
+| Shell chrome        | `AppShellLayout` + `AppHeader` + `AppNavigation` + `ThemeToggleButton` |
+
+Do **not** create parallel buttons, badges, or table skins per feature.
+
+## Shell
+
+- Atmosphere (glows + dots) behind the authenticated app (`altium-shell`).
+- Glass drawer and app bar; active nav item uses `--altium-nav-active-*`.
+- Light and dark share the same structure; only tokens/atmosphere intensity change.
 
 ## Guidelines
 
-- No gradients, heavy shadows or decorative cards. Use borders and spacing.
-- Brand text “Altium” (`.altium-brand`) in the header and auth screens.
-- Status color is never the only signal (`StatusBadge` always shows text).
-- Light/dark via `ThemeToggleButton` (persisted preference `altium.ui.theme`).
-- Change colors only in `tokens.ts`; keep contrast AA for text on `surface`/`background`.
+- Prefer borders + glass + soft primary glow over heavy elevation stacks.
+- Status color is never the only signal (`StatusBadge` always shows text + dot).
+- Theme via `ThemeToggleButton` (persisted `altium.ui.theme`; default dark).
+- Keep contrast AA for text on `surface` / `background`.
+- New screens: reuse defaults first; extend tokens/defaults before adding local CSS.

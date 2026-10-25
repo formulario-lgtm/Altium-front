@@ -5,8 +5,8 @@ defineProps<{ items: readonly NavItem[] }>();
 </script>
 
 <template>
-  <nav aria-label="Navegación principal">
-    <v-list density="comfortable" nav color="primary" class="pa-2">
+  <nav aria-label="Navegación principal" class="altium-nav">
+    <v-list density="comfortable" nav class="pa-3">
       <v-list-item
         v-for="item in items"
         :key="item.routeName"
@@ -14,7 +14,8 @@ defineProps<{ items: readonly NavItem[] }>();
         :prepend-icon="item.icon"
         :title="item.title"
         :exact="item.routeName === 'home'"
-        rounded="md"
+        rounded="lg"
+        class="mb-1"
       />
     </v-list>
   </nav>

@@ -12,7 +12,36 @@ export const PROTECTED_SUPER_ADMIN_PERMISSIONS: readonly string[] = [
 
 export const SUPER_ADMIN_ROLE_CODE = 'SUPER_ADMIN';
 
-export type PermissionGroup = { resource: string; items: Permission[] };
+/** Spanish labels for permission `resource` groups (codes stay English). */
+export const RESOURCE_LABELS: Record<string, string> = {
+  users: 'Usuarios',
+  teams: 'Equipos',
+  roles: 'Roles',
+  permissions: 'Permisos',
+  auth: 'Sesiones y acceso',
+  audit: 'Auditoría',
+  sales: 'Ventas (próximamente)',
+};
+
+const RESOURCE_ORDER = [
+  'users',
+  'teams',
+  'roles',
+  'permissions',
+  'auth',
+  'audit',
+  'sales',
+] as const;
+
+export type PermissionGroup = {
+  resource: string;
+  label: string;
+  items: Permission[];
+};
+
+export function resourceLabel(resource: string): string {
+  return RESOURCE_LABELS[resource] ?? resource;
+}
 
 export function groupPermissionsByResource(permissions: readonly Permission[]): PermissionGroup[] {
   const groups = new Map<string, Permission[]>();
@@ -21,12 +50,19 @@ export function groupPermissionsByResource(permissions: readonly Permission[]): 
     list.push(permission);
     groups.set(permission.resource, list);
   }
-  return [...groups.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([resource, items]) => ({
-      resource,
-      items: [...items].sort((a, b) => a.code.localeCompare(b.code)),
-    }));
+
+  const orderedKeys = [
+    ...RESOURCE_ORDER.filter((key) => groups.has(key)),
+    ...[...groups.keys()]
+      .filter((key) => !(RESOURCE_ORDER as readonly string[]).includes(key))
+      .sort(),
+  ];
+
+  return orderedKeys.map((resource) => ({
+    resource,
+    label: resourceLabel(resource),
+    items: [...(groups.get(resource) ?? [])].sort((a, b) => a.code.localeCompare(b.code)),
+  }));
 }
 
 export function isProtectedPermission(roleCode: string, permissionCode: string): boolean {

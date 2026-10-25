@@ -1,0 +1,175 @@
+/* Global form controls — Altium design system.
+   Keep styles light: do NOT override Vuetify outline notch pieces
+   (that creates the “box inside box” / vertical seams). */
+
+.v-theme--dark {
+  --altium-field-border: rgba(160, 190, 230, 0.32);
+  --altium-field-border-hover: rgba(160, 190, 230, 0.5);
+  --altium-field-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  --altium-menu-bg: rgba(14, 27, 53, 0.96);
+}
+
+.v-theme--light {
+  --altium-field-border: rgba(36, 59, 90, 0.18);
+  --altium-field-border-hover: rgba(36, 59, 90, 0.3);
+  --altium-field-focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  --altium-menu-bg: rgba(255, 255, 255, 0.98);
+}
+
+/* ——— Fields (outlined) ——— */
+
+.v-field--variant-outlined {
+  --v-field-border-opacity: 1;
+  border-radius: var(--altium-radius-lg) !important;
+  background: var(--altium-field-bg);
+}
+
+.v-field--variant-outlined .v-field__outline {
+  color: var(--altium-field-border);
+}
+
+.v-field--variant-outlined:hover .v-field__outline {
+  color: var(--altium-field-border-hover);
+}
+
+.v-field--variant-outlined.v-field--focused {
+  box-shadow: var(--altium-field-focus-ring);
+}
+
+.v-field--variant-outlined.v-field--focused .v-field__outline {
+  color: rgb(var(--v-theme-primary));
+}
+
+.v-field--variant-outlined.v-field--error .v-field__outline {
+  color: rgb(var(--v-theme-error));
+}
+
+.v-field--variant-outlined.v-field--error.v-field--focused {
+  box-shadow: 0 0 0 3px rgba(var(--v-theme-error), 0.16);
+}
+
+.v-field__input {
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.v-label.v-field-label {
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+}
+
+.v-field .v-icon {
+  opacity: 0.9;
+  color: rgb(var(--v-theme-on-surface-variant));
+}
+
+.v-field--focused .v-icon {
+  color: rgb(var(--v-theme-primary));
+  opacity: 1;
+}
+
+.v-messages {
+  font-size: 0.78rem;
+  opacity: 0.95;
+}
+
+/* ——— Native date / time inside fields ——— */
+
+.v-field input[type='date'],
+.v-field input[type='time'],
+.v-field input[type='datetime-local'],
+.v-field input[type='month'],
+.v-field input[type='week'] {
+  color-scheme: inherit;
+  font: inherit;
+}
+
+.v-field input[type='date']::-webkit-calendar-picker-indicator,
+.v-field input[type='time']::-webkit-calendar-picker-indicator,
+.v-field input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.v-field input[type='month']::-webkit-calendar-picker-indicator,
+.v-field input[type='week']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.v-theme--dark .v-field input[type='date']::-webkit-calendar-picker-indicator,
+.v-theme--dark .v-field input[type='time']::-webkit-calendar-picker-indicator,
+.v-theme--dark .v-field input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.v-theme--dark .v-field input[type='month']::-webkit-calendar-picker-indicator,
+.v-theme--dark .v-field input[type='week']::-webkit-calendar-picker-indicator {
+  filter: invert(0.85) sepia(0.35) saturate(3.5) hue-rotate(185deg);
+}
+
+/* ——— Select / autocomplete menus ——— */
+
+.v-overlay-container .v-select__content,
+.v-overlay-container .v-autocomplete__content {
+  border-radius: var(--altium-radius-lg) !important;
+  border: 1px solid var(--altium-glass-border);
+  background: var(--altium-menu-bg) !important;
+  box-shadow: var(--altium-card-shadow);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  padding: 0.35rem !important;
+}
+
+.v-overlay-container .v-select__content .v-list-item,
+.v-overlay-container .v-autocomplete__content .v-list-item {
+  border-radius: var(--altium-radius-md) !important;
+}
+
+.v-overlay-container .v-select__content .v-list-item--active,
+.v-overlay-container .v-autocomplete__content .v-list-item--active {
+  background: var(--altium-nav-active-bg) !important;
+}
+
+/* ——— Selection controls ——— */
+
+.v-selection-control .v-label {
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+}
+
+.v-checkbox .v-selection-control__input > .v-icon,
+.v-radio .v-selection-control__input > .v-icon {
+  opacity: 1;
+}
+
+.v-switch .v-switch__track {
+  opacity: 0.55;
+}
+
+/* ——— Filters / table footer / dialogs ——— */
+
+.altium-filters .v-input {
+  margin-bottom: 0;
+}
+
+.v-data-table-footer {
+  padding-block: 0.65rem 0.35rem !important;
+  border-top: 1px solid rgba(var(--v-border-color), 0.45);
+}
+
+.v-pagination .v-btn {
+  border-radius: var(--altium-radius-md) !important;
+}
+
+.v-pagination .v-btn--active {
+  background: rgba(var(--v-theme-primary), 0.16) !important;
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+.v-dialog > .v-overlay__content > .v-card {
+  border-radius: var(--altium-radius-xl) !important;
+  background: var(--altium-glass) !important;
+  border: 1px solid var(--altium-glass-border);
+  box-shadow: var(--altium-card-shadow);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+}
+
+.v-dialog .v-card-title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}

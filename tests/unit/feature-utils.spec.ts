@@ -55,14 +55,15 @@ describe('role permissions helpers', () => {
     return { id: code, code, resource, action, description: null };
   };
 
-  it('groups by resource sorted alphabetically', () => {
+  it('groups by resource in product order with Spanish labels', () => {
     const groups = groupPermissionsByResource([
       permission('users.update'),
       permission('audit.read'),
       permission('users.read'),
     ]);
-    expect(groups.map((g) => g.resource)).toEqual(['audit', 'users']);
-    expect(groups[1]?.items.map((p) => p.code)).toEqual(['users.read', 'users.update']);
+    expect(groups.map((g) => g.resource)).toEqual(['users', 'audit']);
+    expect(groups.map((g) => g.label)).toEqual(['Usuarios', 'Auditoría']);
+    expect(groups[0]?.items.map((p) => p.code)).toEqual(['users.read', 'users.update']);
   });
 
   it('protects SUPER_ADMIN permissions only', () => {

@@ -1,37 +1,47 @@
 /**
- * Altium design tokens — provisional brand palette (Stage 5).
- * Swap values here (and in Vuetify themes) without hunting through components.
+ * Altium design tokens — single source of truth for light/dark CRM chrome.
+ * Map into Vuetify themes in `src/app/plugins/vuetify.ts` and CSS vars in `main.scss`.
+ * Do not hardcode these hex values in feature views.
  */
 
 export const altiumTokens = {
   dark: {
-    background: '#101D32',
-    surface: '#192B45',
-    surfaceElevated: '#243B5A',
-    primary: '#4777AC',
-    onPrimary: '#F2F6FC',
-    textPrimary: '#F2F6FC',
-    textSecondary: '#AABCD1',
-    border: '#2A3F5C',
-    success: '#3D9A6A',
-    warning: '#C9A227',
-    error: '#D46565',
-    info: '#5B8FC7',
+    background: '#07101F',
+    surface: '#0E1B35',
+    surfaceElevated: '#152748',
+    primary: '#3B82F6',
+    onPrimary: '#FFFFFF',
+    textPrimary: '#F4F7FC',
+    textSecondary: '#9EB0C9',
+    border: '#243B5A',
+    success: '#34D399',
+    warning: '#FBBF24',
+    error: '#F87171',
+    info: '#60A5FA',
   },
   light: {
-    background: '#F5F6F8',
+    background: '#EEF3F9',
     surface: '#FFFFFF',
     surfaceElevated: '#FFFFFF',
-    primary: '#243B5A',
-    onPrimary: '#F2F6FC',
-    textPrimary: '#192B45',
-    textSecondary: '#657182',
-    border: '#E5EAF0',
-    success: '#2F7D57',
-    warning: '#A67C00',
-    error: '#B54040',
-    info: '#3A6EA5',
+    primary: '#2563EB',
+    onPrimary: '#FFFFFF',
+    textPrimary: '#15233A',
+    textSecondary: '#5F7088',
+    border: '#D8E2EF',
+    success: '#059669',
+    warning: '#D97706',
+    error: '#DC2626',
+    info: '#2563EB',
   },
+} as const;
+
+/** Shared radii (rem) — mirrored as `--altium-radius-*` in `main.scss`. */
+export const altiumRadii = {
+  sm: '0.5rem',
+  md: '0.75rem',
+  lg: '1rem',
+  xl: '1.25rem',
+  pill: '999px',
 } as const;
 
 export type AltiumThemeTokens = (typeof altiumTokens)['light'];

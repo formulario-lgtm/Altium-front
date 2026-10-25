@@ -75,12 +75,11 @@ const headers = [
       subtitle="Registro de solo lectura de acciones relevantes, del más reciente al más antiguo."
     />
 
-    <v-row dense class="mb-2">
+    <v-row dense class="altium-filters mb-4">
       <v-col cols="12" sm="6" md="3">
         <v-text-field
           v-model="action"
           label="Acción exacta (p. ej. auth.login)"
-          density="compact"
           clearable
           maxlength="100"
           @click:clear="action = ''"
@@ -90,17 +89,16 @@ const headers = [
         <v-text-field
           v-model="entityType"
           label="Entidad (p. ej. user)"
-          density="compact"
           clearable
           maxlength="100"
           @click:clear="entityType = ''"
         />
       </v-col>
       <v-col cols="6" md="3">
-        <v-text-field v-model="fromDate" label="Desde" type="date" density="compact" />
+        <v-text-field v-model="fromDate" label="Desde" type="date" />
       </v-col>
       <v-col cols="6" md="3">
-        <v-text-field v-model="toDate" label="Hasta" type="date" density="compact" />
+        <v-text-field v-model="toDate" label="Hasta" type="date" />
       </v-col>
     </v-row>
 

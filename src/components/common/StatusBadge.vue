@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-type BadgeDefinition = { label: string; color: string; icon: string };
+type BadgeDefinition = { label: string; color: string };
 
 /** Known status codes from the API contract (UserStatus, AuditOutcome) plus team activity. */
 const DEFINITIONS: Record<string, BadgeDefinition> = {
-  PENDING: { label: 'Pendiente', color: 'info', icon: 'mdi-clock-outline' },
-  ACTIVE: { label: 'Activo', color: 'success', icon: 'mdi-check-circle-outline' },
-  SUSPENDED: { label: 'Suspendido', color: 'warning', icon: 'mdi-pause-circle-outline' },
-  DISABLED: { label: 'Deshabilitado', color: 'error', icon: 'mdi-cancel' },
-  INACTIVE: { label: 'Inactivo', color: 'secondary', icon: 'mdi-minus-circle-outline' },
-  SUCCESS: { label: 'Éxito', color: 'success', icon: 'mdi-check' },
-  FAILURE: { label: 'Fallo', color: 'error', icon: 'mdi-alert-circle-outline' },
+  PENDING: { label: 'Pendiente', color: 'info' },
+  ACTIVE: { label: 'Activo', color: 'success' },
+  SUSPENDED: { label: 'Suspendido', color: 'warning' },
+  DISABLED: { label: 'Deshabilitado', color: 'error' },
+  INACTIVE: { label: 'Inactivo', color: 'secondary' },
+  SUCCESS: { label: 'Éxito', color: 'success' },
+  FAILURE: { label: 'Fallo', color: 'error' },
 };
 
 const props = withDefaults(defineProps<{ status: string; label?: string }>(), {
@@ -23,19 +23,37 @@ const definition = computed<BadgeDefinition>(
     DEFINITIONS[props.status] ?? {
       label: props.status,
       color: 'secondary',
-      icon: 'mdi-circle-small',
     },
 );
 </script>
 
 <template>
   <v-chip
+    class="altium-status-badge"
     :color="definition.color"
-    :prepend-icon="definition.icon"
     :data-status="status"
     variant="tonal"
-    label
+    size="small"
+    rounded="pill"
   >
+    <span class="altium-status-badge__dot" aria-hidden="true" />
     {{ label ?? definition.label }}
   </v-chip>
 </template>
+
+<style scoped lang="scss">
+.altium-status-badge {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.altium-status-badge__dot {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+</style>

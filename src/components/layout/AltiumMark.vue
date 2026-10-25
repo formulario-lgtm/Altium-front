@@ -35,12 +35,15 @@ withDefaults(
   display: inline-flex;
   align-items: center;
   gap: 0.85rem;
+  line-height: 1;
   user-select: none;
 }
 
 .altium-mark__glyph {
   display: block;
   flex-shrink: 0;
+  /* Triangle mass sits low in the viewBox — nudge up to optically match the wordmark. */
+  transform: translateY(-0.08em);
 }
 
 .altium-mark--sm .altium-mark__glyph {
@@ -73,6 +76,9 @@ withDefaults(
 }
 
 .altium-mark__word {
+  display: block;
+  margin: 0;
+  padding: 0;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--auth-text, rgb(var(--v-theme-on-background)));
@@ -80,7 +86,7 @@ withDefaults(
 }
 
 .altium-mark--sm .altium-mark__word {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
 }
 .altium-mark--md .altium-mark__word {
   font-size: 1.35rem;

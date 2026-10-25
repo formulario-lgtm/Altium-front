@@ -12,7 +12,10 @@
 | EmptyState        | `src/components/common/EmptyState.vue`        | [empty-state.md](empty-state.md)                 |
 | ErrorState        | `src/components/common/ErrorState.vue`        | [error-state.md](error-state.md)                 |
 | PasswordField     | `src/components/common/PasswordField.vue`     | [password-field.md](password-field.md)           |
+| UserAvatar        | `src/components/common/UserAvatar.vue`        | [user-avatar.md](user-avatar.md)                 |
 
-Tables use Vuetify `v-data-table-server` directly (no wrapper yet — add `AppDataTable` only when a second pattern needs it).
+Tables use Vuetify `v-data-table-server` inside a default `v-card` (`altium-surface-card`). Filter rows use `v-row.altium-filters`. Do not add a table wrapper until a second divergent pattern appears.
 
 Feature-local components are documented under `docs/features/`, not here.
+
+Design tokens and mandatory reuse rules: [visual-identity.md](../architecture/visual-identity.md).

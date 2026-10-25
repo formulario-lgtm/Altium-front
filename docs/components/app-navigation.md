@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Main navigation list rendered inside the shell drawer.
+Primary sidebar list. Active item uses design-system styles (`.altium-nav` + `--altium-nav-active-*`) so light and dark stay consistent.
 
 ## Code location
 
@@ -15,27 +15,15 @@ Main navigation list rendered inside the shell drawer.
 
 ## Props
 
-| Prop    | Type                 | Notes                                    |
-| ------- | -------------------- | ---------------------------------------- |
-| `items` | `readonly NavItem[]` | Already filtered by `useNavigationItems` |
+| Prop    | Type                 |
+| ------- | -------------------- |
+| `items` | `readonly NavItem[]` |
 
-`NavItem` lives in `src/app/navigation.ts` (`title`, `icon`, `routeName`, `description?`).
+Items come from `useNavigationItems()` (permission-filtered).
 
 ## Events / slots
 
 None.
-
-## Visibility by permission
-
-`useNavigationItems()` keeps an item when the user holds every code in the target route's `meta.permissions` (single source of truth with the router guard):
-
-| Item             | Route   | Required permission |
-| ---------------- | ------- | ------------------- |
-| Inicio           | `home`  | —                   |
-| Usuarios         | `users` | `users.read`        |
-| Equipos          | `teams` | `teams.read`        |
-| Roles y permisos | `roles` | `roles.read`        |
-| Auditoría        | `audit` | `audit.read`        |
 
 ## Usage
 
@@ -45,16 +33,16 @@ None.
 
 ## Responsive
 
-Permanent drawer on `md+`, temporary (overlay) drawer on smaller screens (handled by `AppShellLayout`).
+Drawer permanence is owned by `AppShellLayout`.
 
 ## Accessibility
 
-Wrapped in `<nav aria-label="Navegación principal">`; active route highlighted by Vuetify.
+`nav` with `aria-label="Navegación principal"`; router links expose titles.
 
 ## Dependencies
 
-Vuetify `v-list`, Vue Router.
+Vuetify `v-list` / `v-list-item`.
 
 ## Restrictions
 
-Hidden nav is a UX aid only; the backend enforces permissions.
+Do not restyle active state per feature — change `.altium-nav` in `main.scss` / tokens.

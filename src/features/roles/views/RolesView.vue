@@ -55,6 +55,7 @@ const dirty = computed(() =>
 );
 const isSuperAdmin = computed(() => selectedRole.value?.code === SUPER_ADMIN_ROLE_CODE);
 const loadError = computed(() => rolesQuery.error.value ?? permissionsQuery.error.value);
+const selectedCount = computed(() => draft.value.length);
 
 function openConfirm(): void {
   saveMutation.reset();
@@ -80,8 +81,19 @@ async function save(): Promise<void> {
   <div>
     <PageHeader
       title="Roles y permisos"
-      subtitle="Los cambios aplican a las sesiones activas en su próxima solicitud."
-    />
+      subtitle="Definí qué puede hacer cada rol. Los cambios aplican en la próxima solicitud de las sesiones activas."
+    >
+      <template v-if="canEdit && canReadCatalog && selectedRole" #actions>
+        <v-btn
+          color="primary"
+          :disabled="!dirty"
+          prepend-icon="mdi-content-save-outline"
+          @click="openConfirm"
+        >
+          Guardar cambios
+        </v-btn>
+      </template>
+    </PageHeader>
 
     <ErrorState
       v-if="loadError"
@@ -94,46 +106,72 @@ async function save(): Promise<void> {
     />
 
     <v-row v-else>
-      <v-col cols="12" md="4">
-        <v-card>
+      <v-col cols="12" md="4" lg="3">
+        <v-card class="altium-roles-rail">
+          <v-card-title class="text-subtitle-1 font-weight-bold pb-1">Roles</v-card-title>
+          <v-card-subtitle class="pb-3">
+            Elegí un rol para ver o editar sus permisos.
+          </v-card-subtitle>
           <v-progress-linear v-if="rolesQuery.isPending.value" indeterminate color="primary" />
-          <v-list color="primary" nav class="pa-2" aria-label="Roles">
+          <v-list class="altium-nav pa-2 pt-0" nav aria-label="Roles">
             <v-list-item
               v-for="role in roles"
               :key="role.id"
               :value="role.id"
               :active="role.id === selectedRoleId"
               :title="role.name"
-              :subtitle="`${role.code} · ${role.permissionCodes.length} permisos`"
-              rounded="md"
+              :subtitle="`${role.permissionCodes.length} permiso${role.permissionCodes.length === 1 ? '' : 's'}`"
+              rounded="lg"
+              class="mb-1"
               @click="selectedRoleId = role.id"
-            />
+            >
+              <template #append>
+                <span class="text-caption text-medium-emphasis font-weight-medium">{{
+                  role.code
+                }}</span>
+              </template>
+            </v-list-item>
           </v-list>
         </v-card>
       </v-col>
 
-      <v-col cols="12" md="8">
+      <v-col cols="12" md="8" lg="9">
         <v-card v-if="selectedRole">
-          <v-card-item :title="selectedRole.name" :subtitle="selectedRole.description ?? undefined">
-            <template v-if="canEdit && canReadCatalog" #append>
-              <v-btn color="primary" :disabled="!dirty" @click="openConfirm">Guardar cambios</v-btn>
-            </template>
+          <v-card-item class="pb-2">
+            <v-card-title class="text-h6 font-weight-bold">{{ selectedRole.name }}</v-card-title>
+            <v-card-subtitle class="text-wrap">
+              {{ selectedRole.description ?? 'Sin descripción.' }}
+              ·
+              {{ selectedCount }} permiso{{ selectedCount === 1 ? '' : 's' }} seleccionados
+            </v-card-subtitle>
           </v-card-item>
+
           <v-card-text>
-            <v-alert v-if="saved" type="success" density="compact" class="mb-4">
-              Permisos actualizados.
+            <v-alert v-if="saved" type="success" density="comfortable" class="mb-4" variant="tonal">
+              Permisos actualizados. Las sesiones activas los aplican en su próxima solicitud.
             </v-alert>
-            <v-alert v-if="isSuperAdmin" type="info" density="compact" class="mb-4">
-              SUPER_ADMIN conserva siempre sus permisos protegidos (marcados con candado).
+            <v-alert
+              v-if="isSuperAdmin"
+              type="info"
+              density="comfortable"
+              class="mb-4"
+              variant="tonal"
+            >
+              Super administrador conserva permisos críticos (candado). No se pueden quitar desde
+              esta pantalla.
             </v-alert>
-            <v-alert v-if="!canEdit" type="info" density="compact" class="mb-4">
-              Vista de solo lectura: tu rol no puede modificar permisos.
+            <v-alert v-if="!canEdit" type="info" density="comfortable" class="mb-4" variant="tonal">
+              Solo lectura: tu usuario no puede modificar permisos de roles.
+            </v-alert>
+            <v-alert v-if="dirty" type="warning" density="comfortable" class="mb-4" variant="tonal">
+              Hay cambios sin guardar. Usá “Guardar cambios” para aplicarlos.
             </v-alert>
 
             <v-progress-linear
               v-if="canReadCatalog && permissionsQuery.isPending.value"
               indeterminate
               color="primary"
+              class="mb-4"
             />
             <RolePermissionsEditor
               v-else-if="canReadCatalog"
@@ -149,15 +187,20 @@ async function save(): Promise<void> {
             </div>
           </v-card-text>
         </v-card>
-        <EmptyState v-else-if="!rolesQuery.isPending.value" title="No hay roles" />
+        <EmptyState
+          v-else-if="!rolesQuery.isPending.value"
+          title="No hay roles"
+          text="Los roles de sistema se cargan con las semillas de la base de datos."
+          icon="mdi-shield-account-outline"
+        />
       </v-col>
     </v-row>
 
     <ConfirmDialog
       v-model="confirmOpen"
-      title="Reemplazar permisos del rol"
+      title="Guardar permisos del rol"
       confirm-text="Guardar"
-      color="warning"
+      color="primary"
       :loading="saveMutation.isPending.value"
       :error-message="saveMutation.error.value ? apiErrorMessage(saveMutation.error.value) : null"
       @confirm="save"
@@ -165,11 +208,11 @@ async function save(): Promise<void> {
       <p class="text-body-2 mb-2">
         Se reemplazará el conjunto completo de permisos de
         <strong>{{ selectedRole?.name }}</strong
-        >. Los usuarios con este rol verán el cambio de inmediato.
+        >. Quienes tengan este rol verán el cambio en su próxima solicitud al sistema.
       </p>
       <p v-if="isSuperAdmin" class="text-body-2 mb-0">
-        Los permisos protegidos de SUPER_ADMIN no pueden quitarse; el servidor rechazará el cambio
-        si faltan.
+        Los permisos protegidos de Super administrador no pueden quitarse; si faltan, el servidor
+        rechazará el cambio.
       </p>
     </ConfirmDialog>
   </div>
