@@ -84,7 +84,7 @@ const SELLER: Schemas['SaleSellerSummaryDto'] = {
   lastName: 'Pérez',
 };
 
-function buildSale(overrides: Partial<Schemas['SaleDto']> = {}): Schemas['SaleDto'] {
+export function buildSale(overrides: Partial<Schemas['SaleDto']> = {}): Schemas['SaleDto'] {
   return {
     id: SALE_ID,
     saleNumber: 'V-000001',

@@ -16,3 +16,5 @@ Global header menu (`src/components/layout/NotificationsMenu.vue`) for in-app no
 - “Marcar todas” → `POST /notifications/read-all`.
 
 No email or push in this stage. Uses design-system surfaces (no one-off palette).
+
+Sale notifications keep the event title and timestamp, and show the API-provided `number - holder full name` message (for example, 5 - Pedro Pereira). The event title uses bold text. Number/holder and timestamp share a single metadata row, with the timestamp aligned right. The menu expands up to 520px on desktop and fits the mobile viewport; long names use ellipsis with their full text available in the title attribute. Technical entity IDs remain available only for detail navigation. Coverage: `tests/e2e/notifications.spec.ts`.

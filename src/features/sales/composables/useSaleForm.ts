@@ -16,14 +16,6 @@ import { useSaleQuery, useUpdateSaleMutation } from './useSales';
 
 export type SaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
 
-function createDebounced(fn: () => void, ms: number): () => void {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  return () => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(fn, ms);
-  };
-}
-
 export function useSaleForm(saleId: Ref<string>) {
   const saleQuery = useSaleQuery(saleId);
   const updateMutation = useUpdateSaleMutation();
@@ -38,6 +30,13 @@ export function useSaleForm(saleId: Ref<string>) {
   /** Serialize PATCH calls so concurrent autosaves cannot race on the same version. */
   let saveChain: Promise<Sale | null> = Promise.resolve(null);
   let dirtyAfterSave = false;
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  function scheduleSave(): void {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      void persist();
+    }, 800);
+  }
 
   const sale = computed(() => saleQuery.data.value);
   const editable = computed(() => canEditSaleStatus(sale.value?.status));
@@ -45,7 +44,11 @@ export function useSaleForm(saleId: Ref<string>) {
   watch(
     () => saleQuery.data.value,
     (next) => {
-      if (!next) return;
+      if (
+        !next ||
+        (hydrated.value && (saveStatus.value === 'saving' || saveStatus.value === 'dirty'))
+      )
+        return;
       suppressAutosave.value = true;
       model.value = saleToFormModel(next);
       hydrated.value = true;
@@ -70,7 +73,8 @@ export function useSaleForm(saleId: Ref<string>) {
     try {
       const updated = await updateMutation.mutateAsync({ id: saleId.value, body });
       suppressAutosave.value = true;
-      model.value = saleToFormModel(updated);
+      if (dirtyAfterSave && model.value) model.value.version = updated.version;
+      else model.value = saleToFormModel(updated);
       saveStatus.value = dirtyAfterSave ? 'dirty' : 'saved';
       queueMicrotask(() => {
         suppressAutosave.value = false;
@@ -97,6 +101,7 @@ export function useSaleForm(saleId: Ref<string>) {
   }
 
   function persist(): Promise<Sale | null> {
+    if (saveTimer) clearTimeout(saveTimer);
     const next = saveChain.then(runPersist, runPersist);
     saveChain = next.then(
       () => null,
@@ -104,10 +109,6 @@ export function useSaleForm(saleId: Ref<string>) {
     );
     return next;
   }
-
-  const scheduleSave = createDebounced(() => {
-    void persist();
-  }, 800);
 
   watch(
     model,
@@ -125,7 +126,9 @@ export function useSaleForm(saleId: Ref<string>) {
   );
 
   async function reloadFromServer(): Promise<void> {
+    if (saveTimer) clearTimeout(saveTimer);
     versionConflict.value = false;
+    saveStatus.value = 'idle';
     await saleQuery.refetch();
     saveStatus.value = 'saved';
     saveError.value = null;

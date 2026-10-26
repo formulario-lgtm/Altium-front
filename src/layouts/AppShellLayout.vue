@@ -39,12 +39,7 @@ function logout(): void {
       @logout="logout"
     />
 
-    <v-navigation-drawer
-      v-if="!auth.mustChangePassword"
-      v-model="drawer"
-      temporary
-      width="248"
-    >
+    <v-navigation-drawer v-if="!auth.mustChangePassword" v-model="drawer" temporary width="248">
       <AppNavigation :items="items" />
     </v-navigation-drawer>
 

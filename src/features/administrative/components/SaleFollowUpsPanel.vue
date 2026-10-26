@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DateField from '@/components/common/DateField.vue';
 import { computed, ref } from 'vue';
 import { apiErrorMessage, type SaleFollowUpType } from '@/services/http';
 import { formatDateTime } from '@/utils/format';
@@ -112,13 +113,13 @@ async function createFollowUp(): Promise<void> {
           <v-select v-model="followUpType" :items="FOLLOW_UP_TYPE_OPTIONS" label="Tipo" />
         </v-col>
         <v-col cols="12" sm="6">
-          <v-text-field v-model="occurredAt" type="datetime-local" label="Fecha de la gestión" />
+          <DateField v-model="occurredAt" type="datetime-local" label="Fecha de la gestión" />
         </v-col>
         <v-col cols="12">
           <v-textarea v-model="description" label="Descripción" rows="3" maxlength="2000" counter />
         </v-col>
         <v-col cols="12" sm="6">
-          <v-text-field
+          <DateField
             v-model="nextFollowUpAt"
             type="datetime-local"
             label="Próximo seguimiento (opcional)"

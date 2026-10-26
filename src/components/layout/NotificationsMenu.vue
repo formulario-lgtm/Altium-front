@@ -76,7 +76,7 @@ async function markAll(): Promise<void> {
       </v-btn>
     </template>
 
-    <v-card class="notifications-menu" width="360" max-height="480" border>
+    <v-card class="notifications-menu" max-height="480" border>
       <div class="d-flex align-center justify-space-between px-4 pt-3 pb-2">
         <p class="text-subtitle-2 font-weight-bold mb-0">Notificaciones</p>
         <v-btn
@@ -95,14 +95,19 @@ async function markAll(): Promise<void> {
           v-for="row in items"
           :key="row.id"
           :class="{ 'notifications-menu__unread': !row.readAt }"
+          class="py-3"
           rounded="lg"
           @click="openNotification(row)"
         >
-          <v-list-item-title class="text-wrap">{{ row.title }}</v-list-item-title>
-          <v-list-item-subtitle class="text-wrap">
-            {{ row.message }}
-            <span class="d-block mt-1">{{ formatDateTime(row.createdAt) }}</span>
-          </v-list-item-subtitle>
+          <v-list-item-title class="text-subtitle-1 font-weight-bold text-wrap mb-1">{{
+            row.title
+          }}</v-list-item-title>
+          <div class="notifications-menu__details text-medium-emphasis">
+            <p class="text-body-2 text-truncate mb-0" :title="row.message">{{ row.message }}</p>
+            <time class="text-caption" :datetime="row.createdAt">{{
+              formatDateTime(row.createdAt)
+            }}</time>
+          </div>
         </v-list-item>
       </v-list>
       <p v-else-if="listNotificationsQuery.isLoading.value" class="text-body-2 pa-4 mb-0">
@@ -118,8 +123,20 @@ async function markAll(): Promise<void> {
 
 <style scoped lang="scss">
 .notifications-menu {
+  width: min(520px, calc(100vw - 24px));
   overflow: auto;
   border-radius: var(--altium-radius-xl, 1.25rem) !important;
+}
+
+.notifications-menu__details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+
+  time {
+    white-space: nowrap;
+  }
 }
 
 .notifications-menu__unread {

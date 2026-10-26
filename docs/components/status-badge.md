@@ -2,7 +2,7 @@
 
 | Field        | Value      |
 | ------------ | ---------- |
-| Last updated | 2026-10-24 |
+| Last updated | 2026-10-26 |
 | Version      | 0.1.0      |
 
 ## Purpose
@@ -19,6 +19,8 @@ Pill tonal chip for API status codes: colored soft background, solid dot, Spanis
 | -------- | -------- | ------------------------------------------- |
 | `status` | `string` | Code from the API (or `INACTIVE` for teams) |
 | `label`  | `string` | Optional override                           |
+
+Sale codes: `DRAFT`, `SUBMITTED`, `IN_REVIEW`, `RETURNED`, `APPROVED` (Aprobada, success), `REJECTED` (Rechazada, error).
 
 Known codes: `PENDING`, `ACTIVE`, `SUSPENDED`, `DISABLED` (`UserStatus`), `SUCCESS`, `FAILURE` (`AuditOutcome`), `INACTIVE` (team `isActive=false`). Unknown codes render the raw code in a neutral color.
 

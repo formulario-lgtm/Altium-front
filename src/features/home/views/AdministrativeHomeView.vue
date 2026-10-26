@@ -115,7 +115,7 @@ const operationalAlerts = computed(() => {
               ></template
             >
             <HomeSaleList
-              :sales="homeQuery.data.value.attentionQueue"
+              :sales="homeQuery.data.value.attentionQueue.slice(0, 5)"
               review-mode
               show-action
               empty-title="Tu cola está al día"

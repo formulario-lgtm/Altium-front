@@ -28,13 +28,13 @@ test.describe('sales module', () => {
 
     const table = page.getByTestId('sales-table');
     await expect(page.getByRole('heading', { name: 'Mis ventas' })).toBeVisible();
-    await expect(table.getByText('V-000001')).toBeVisible();
+    await expect(table.getByRole('cell', { name: '1', exact: true })).toBeVisible();
     await expect(table.getByText('Pérez, Ana')).toBeVisible();
     await expect(table.getByText('Borrador')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Nueva venta' })).toBeVisible();
 
     await page.getByRole('textbox', { name: 'Buscar número o titular' }).fill('Pérez');
-    await expect(table.getByText('V-000001')).toBeVisible();
+    await expect(table.getByRole('cell', { name: '1', exact: true })).toBeVisible();
   });
 
   test('creates a draft and opens the editable form', async ({ page }) => {

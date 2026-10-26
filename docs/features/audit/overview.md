@@ -42,3 +42,7 @@ Unit: `tests/unit/feature-utils.spec.ts` (redaction).
 
 - `actorUserId` is shown as an id (no user lookup) and cannot be filtered from the UI yet.
 - No export.
+
+## Shared date controls
+
+Date filters and form dates use [DateField](../../components/date-field.md): themed calendar, full-control activation, right-aligned icon and Spanish date display. Date-only models remain YYYY-MM-DD. Follow-up date/time models remain local YYYY-MM-DDTHH:mm until the existing HTTP conversion.

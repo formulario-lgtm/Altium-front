@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { AdminHome } from '@/services/http';
 import EmptyState from '@/components/common/EmptyState.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
@@ -6,8 +7,10 @@ import { useAuthStore } from '@/stores/auth.store';
 import { auditActionLabel } from '@/utils/audit-labels';
 import { entityTypeLabel } from '@/utils/entity-labels';
 import { formatDateTime } from '@/utils/format';
+import { recentHomeActivity } from '../utils/recent-activity';
 
-defineProps<{ events: AdminHome['recentSecurityEvents'] }>();
+const props = defineProps<{ events: AdminHome['recentSecurityEvents'] }>();
+const recentEvents = computed(() => recentHomeActivity(props.events, (event) => event.occurredAt));
 const auth = useAuthStore();
 </script>
 
@@ -21,7 +24,7 @@ const auth = useAuthStore();
   />
   <v-list v-else class="bg-transparent pa-0" lines="two" data-testid="home-security-events">
     <v-list-item
-      v-for="event in events"
+      v-for="event in recentEvents"
       :key="event.id"
       :value="event.id"
       :to="auth.hasPermission('audit.read') ? { name: 'audit' } : undefined"

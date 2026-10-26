@@ -731,6 +731,26 @@ export interface paths {
         patch: operations["Sales_resolveObservation"];
         trace?: never;
     };
+    "/api/v1/sales/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record final insurer approval or rejection
+         * @description SUBMITTED/IN_REVIEW → APPROVED/REJECTED. Rejection requires a reason. Terminal, version-checked, scoped to administrative users. Records history, closes open follow-ups and notifies the seller.
+         */
+        post: operations["Sales_resolveSale"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sales/{id}/return": {
         parameters: {
             query?: never;
@@ -1225,7 +1245,7 @@ export interface components {
             year: number;
         };
         AdministrativeHomeResponseDto: {
-            /** @description Observations + follow-ups + reviews started by this actor in month */
+            /** @description Observations + follow-ups + reviews started + final insurer decisions by this actor in month */
             actionsThisMonth: number;
             activityLast7Days: components["schemas"]["HomeSeriesPointDto"][];
             alerts: components["schemas"]["HomeAlertDto"][];
@@ -1545,7 +1565,7 @@ export interface components {
             id: string;
             saleNumber: string;
             /** @enum {string} */
-            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
+            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | "APPROVED" | "REJECTED";
             /** Format: date-time */
             updatedAt: string;
         };
@@ -1712,6 +1732,17 @@ export interface components {
             /** @description One-time token from the reset link */
             token: string;
         };
+        ResolveSaleDto: {
+            /** @description Required for REJECTED; optional approval note */
+            reason?: string;
+            /**
+             * @description Final insurer decision
+             * @enum {string}
+             */
+            status: "APPROVED" | "REJECTED";
+            /** @description Current sale version */
+            version: number;
+        };
         ReturnRateDto: {
             /** Format: date-time */
             asOf: string;
@@ -1844,7 +1875,7 @@ export interface components {
             saleNumber: string;
             seller: components["schemas"]["SaleSellerSummaryDto"];
             /** @enum {string} */
-            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
+            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | "APPROVED" | "REJECTED";
             /** Format: date-time */
             submittedAt: string | null;
             taxInfo: components["schemas"]["SaleTaxInfoDto"] | null;
@@ -1914,7 +1945,7 @@ export interface components {
             saleNumber: string;
             seller: components["schemas"]["SaleSellerSummaryDto"];
             /** @enum {string} */
-            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
+            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | "APPROVED" | "REJECTED";
             /** Format: date-time */
             submittedAt: string | null;
             /** Format: date-time */
@@ -2009,12 +2040,12 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             /** @enum {string|null} */
-            fromStatus: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | null;
+            fromStatus: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | "APPROVED" | "REJECTED" | null;
             /** Format: uuid */
             id: string;
             reason: string | null;
             /** @enum {string} */
-            toStatus: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
+            toStatus: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | "APPROVED" | "REJECTED";
         };
         SaleStatusHistoryResponseDto: {
             items: components["schemas"]["SaleStatusHistoryItemDto"][];
@@ -2113,7 +2144,7 @@ export interface components {
             id: string;
             saleNumber: string;
             /** @enum {string} */
-            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
+            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | "APPROVED" | "REJECTED";
             /** Format: date-time */
             updatedAt: string;
         };
@@ -2328,7 +2359,7 @@ export interface components {
             readAt?: string | null;
             title: string;
             /** @enum {string} */
-            type: "SALE_RETURNED" | "SALE_RESUBMITTED" | "SALE_ASSIGNED" | "SALE_CORRECTION_RESOLVED" | "SALE_FOLLOW_UP_DUE" | "GENERIC";
+            type: "SALE_APPROVED" | "SALE_REJECTED" | "SALE_RETURNED" | "SALE_RESUBMITTED" | "SALE_ASSIGNED" | "SALE_CORRECTION_RESOLVED" | "SALE_FOLLOW_UP_DUE" | "GENERIC";
         };
         UserNotificationListResponseDto: {
             items: components["schemas"]["UserNotificationDto"][];
@@ -3703,7 +3734,7 @@ export interface operations {
                 healthInsurerId?: string;
                 healthPlanId?: string;
                 customerType?: "DEREGULATED" | "MONOTAX" | "VOLUNTARY";
-                status?: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
+                status?: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED" | "APPROVED" | "REJECTED";
                 createdFrom?: string;
                 createdTo?: string;
                 sortBy?: "updatedAt" | "createdAt" | "saleNumber" | "submittedAt";
@@ -4637,6 +4668,79 @@ export interface operations {
             };
             /** @description Resource not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_resolveSale: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveSaleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaleDto"];
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

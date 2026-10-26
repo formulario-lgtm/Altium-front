@@ -42,6 +42,7 @@ export {
   updateSale,
   submitSale,
   returnSale,
+  resolveSale,
   startSaleReview,
   setSaleAssignee,
   listSaleObservations,

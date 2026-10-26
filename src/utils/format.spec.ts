@@ -19,9 +19,7 @@ describe('format helpers', () => {
   it('formats date-times as dd/mm/aaaa hh:mm or em dash', () => {
     expect(formatDateTime(null)).toBe('—');
     expect(formatDateTime('not-a-date')).toBe('—');
-    expect(formatDateTime('2026-10-24T21:23:00.000Z')).toMatch(
-      /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/,
-    );
+    expect(formatDateTime('2026-10-24T21:23:00.000Z')).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
   });
 
   it('formats sale numbers as plain integers', () => {

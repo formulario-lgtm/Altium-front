@@ -50,7 +50,7 @@ function formatActivity(value: string | null): string {
   <div data-testid="supervision-sellers">
     <PageHeader
       title="Vendedores"
-      subtitle="Comparativa de presentaciones, objetivos y devoluciones del período."
+      subtitle="Comparativa de presentaciones, objetivos y devoluciones del perÃ­odo."
     />
 
     <SupervisionPeriodFilters v-model:year="year" v-model:month="month" v-model:team-id="teamId" />
@@ -92,8 +92,8 @@ function formatActivity(value: string | null): string {
           { title: 'Objetivo', key: 'target' },
           { title: 'Cumplimiento', key: 'compliance' },
           { title: 'Devueltas', key: 'returnedStock' },
-          { title: 'Tasa devolución', key: 'returnRate' },
-          { title: 'Última actividad', key: 'lastActivityAt' },
+          { title: 'Tasa devoluciÃ³n', key: 'returnRate' },
+          { title: 'Ãšltima actividad', key: 'lastActivityAt' },
           { title: '', key: 'actions', sortable: false, align: 'end' },
         ]"
         item-value="sellerId"
@@ -103,14 +103,14 @@ function formatActivity(value: string | null): string {
           {{ personName(item.firstName, item.lastName) }}
         </template>
         <template #[`item.teamName`]="{ item }">
-          {{ item.teamName ?? '—' }}
+          {{ item.teamName ?? 'â€”' }}
         </template>
         <template #[`item.target`]="{ item }">
           {{
             item.compliance.hasGoal
               ? item.compliance.targetIsZero
                 ? '0'
-                : (item.compliance.targetValue ?? '—')
+                : (item.compliance.targetValue ?? 'â€”')
               : 'Sin objetivo'
           }}
         </template>

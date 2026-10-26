@@ -5,6 +5,7 @@ import type {
   CreateSaleObservationBody,
   PatchSaleAssigneeBody,
   ReturnSaleBody,
+  ResolveSaleBody,
   Sale,
   SaleDocumentMeta,
   SaleDocuments,
@@ -90,6 +91,14 @@ export async function submitSale(id: string): Promise<Sale> {
 
 export async function returnSale(id: string, body: ReturnSaleBody): Promise<Sale> {
   const result = await apiClient.POST('/api/v1/sales/{id}/return', {
+    params: { path: { id }, header: csrfHeaders() },
+    body,
+  });
+  return parseApiResult(result);
+}
+
+export async function resolveSale(id: string, body: ResolveSaleBody): Promise<Sale> {
+  const result = await apiClient.POST('/api/v1/sales/{id}/resolve', {
     params: { path: { id }, header: csrfHeaders() },
     body,
   });

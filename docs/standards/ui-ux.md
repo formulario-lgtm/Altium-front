@@ -54,3 +54,7 @@ Route views are code-split. With `vite-plugin-vuetify` auto-import, the **first*
    - If new: add `vuetify/components/V…` to `vuetifyOptimizeDeps` **and** map the kebab tag in `TAG_TO_OPTIMIZE_ENTRY`.
 3. Gate: `pnpm check:vuetify-deps` (part of `pnpm check`) fails if a tag is used without an entry.
 4. After changing the list, restart `pnpm dev` so Vite re-prebundles.
+
+## Calendar fields
+
+Use `DateField` from `src/components/common` for dates and local date/time fields. Keep ISO calendar values in state and let the component format the display. Avoid browser-native date inputs: their popup cannot consistently follow Altium themes. See [DateField](../components/date-field.md).

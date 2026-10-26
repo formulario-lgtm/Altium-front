@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DateField from '@/components/common/DateField.vue';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import EmptyState from '@/components/common/EmptyState.vue';
@@ -186,10 +187,10 @@ function openReview(id: string): void {
         />
       </v-col>
       <v-col cols="12" sm="6" md="2">
-        <v-text-field v-model="createdFrom" type="date" label="Creada desde" clearable />
+        <DateField v-model="createdFrom" type="date" label="Creada desde" clearable />
       </v-col>
       <v-col cols="12" sm="6" md="2">
-        <v-text-field v-model="createdTo" type="date" label="Creada hasta" clearable />
+        <DateField v-model="createdTo" type="date" label="Creada hasta" clearable />
       </v-col>
     </v-row>
 

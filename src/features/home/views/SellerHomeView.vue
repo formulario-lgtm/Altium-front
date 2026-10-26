@@ -12,15 +12,19 @@ import { useSellerHomeQuery } from '../composables/useHome';
 import { useHomePeriod } from '../composables/useHomePeriod';
 import { periodLabel } from '../utils/home-labels';
 import { sellerKpiRoute } from '../utils/home-navigation';
+import { recentHomeActivity } from '../utils/recent-activity';
 
 const auth = useAuthStore();
 const { year, month, periodQuery } = useHomePeriod({ allowPastMonths: false, syncRoute: false });
 const homeQuery = useSellerHomeQuery(periodQuery);
 const greeting = computed(() => `Hola, ${auth.user?.firstName ?? ''}`.trim());
 const periodText = computed(() => periodLabel(year.value, month.value));
+const recentSales = computed(() =>
+  recentHomeActivity(homeQuery.data.value?.recentSales ?? [], (sale) => sale.updatedAt),
+);
 const holderNames = computed(() =>
   Object.fromEntries(
-    (homeQuery.data.value?.recentSales ?? []).map((sale) => [
+    recentSales.value.map((sale) => [
       sale.id,
       [sale.holderFirstName?.trim(), sale.holderLastName?.trim()].filter(Boolean).join(' '),
     ]),
@@ -91,7 +95,7 @@ const holderNames = computed(() =>
             </div>
             <v-card-text class="pt-2">
               <HomeSaleList
-                :sales="homeQuery.data.value.recentSales"
+                :sales="recentSales"
                 :holder-names="holderNames"
                 show-action
                 empty-title="Tu primera venta empieza acá"

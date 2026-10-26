@@ -123,12 +123,16 @@ test.describe('Operational role homes', () => {
       action: 'auth.login',
       entityType: 'session',
       entityId: null,
-      occurredAt: '2026-10-25T12:00:00.000Z',
+      occurredAt: `2026-10-${String(index + 1).padStart(2, '0')}T12:00:00.000Z`,
       outcome: 'SUCCESS',
     }));
     await page.route('**/api/v1/home/admin?*', (route) => route.fulfill({ json: home }));
     await page.goto('/');
-    await expect(page.getByTestId('home-security-events').getByRole('link')).toHaveCount(10);
+    const events = page.getByTestId('home-security-events');
+    await expect(events.getByRole('link')).toHaveCount(5);
+    await expect(events.locator('.v-list-item-subtitle').first()).toContainText('10/10/2026');
+    await expect(events.locator('.v-list-item-subtitle').last()).toContainText('06/10/2026');
+    await expect(page.getByRole('link', { name: 'Ver auditoría', exact: true })).toBeVisible();
     await expect(
       page.getByTestId('admin-operations').getByRole('link', { name: /activación|suspendidas/ }),
     ).toHaveCount(2);
@@ -232,10 +236,24 @@ test.describe('Operational role homes', () => {
 
   test('administrative work links open the review and follow-up section', async ({ page }) => {
     await mockApi(page, { authenticated: true, permissions: ADMINISTRATIVE_PERMISSIONS });
-    await page.route('**/api/v1/home/administrative?*', (route) =>
-      route.fulfill({ json: fixture('administrative') }),
-    );
+    const home = fixture('administrative') as ReturnType<typeof administrativeHomeFixture>;
+    home.attentionQueue = Array.from({ length: 8 }, (_, index) => ({
+      ...home.attentionQueue[0]!,
+      id: `priority-${index}`,
+      saleNumber: `V-00000${index + 1}`,
+    }));
+    await page.route('**/api/v1/home/administrative?*', (route) => route.fulfill({ json: home }));
     await page.goto('/');
+    const priorities = page.getByTestId('administrative-priorities');
+    await expect(priorities.getByTestId('home-sale-list').getByRole('link')).toHaveCount(5);
+    await expect(priorities.locator('.v-list-item-title')).toHaveText([
+      'Venta 1',
+      'Venta 2',
+      'Venta 3',
+      'Venta 4',
+      'Venta 5',
+    ]);
+    await expect(priorities.getByRole('link', { name: 'Ver cola', exact: true })).toBeVisible();
     await expect(
       page.getByTestId('administrative-priorities').getByRole('link', { name: /Venta 1.*Revisar/ }),
     ).toHaveAttribute('href', /\/administrative\/sales\/.+$/);

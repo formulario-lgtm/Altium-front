@@ -74,3 +74,7 @@ List for period/team with actual vs target for `SALES_SUBMITTED` when seller dat
 ## Out of scope
 
 Sale status transitions from this module, assignment-admin UI, email/push, inventing KPIs absent from OpenAPI.
+
+## Text encoding
+
+Administrative, seller and goal views use UTF-8 for accented labels and punctuation. `check:encoding` prevents invalid source bytes/replacement characters, and the supervision E2E suite asserts accented subtitles and table headings.

@@ -18,10 +18,7 @@ import {
   canReturnForCorrection,
   canStartReview,
   customerTypeLabel,
-  documentTypeLabel,
-  memberTypeLabel,
   saleHistoryReasonLabel,
-  PAYMENT_METHOD_OPTIONS,
 } from '@/features/sales/utils/sale-labels';
 import { apiErrorMessage, isApiError } from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
@@ -31,6 +28,12 @@ import AdminReviewSectionNav, {
 } from '../components/AdminReviewSectionNav.vue';
 import SaleFollowUpsPanel from '../components/SaleFollowUpsPanel.vue';
 import SaleObservationsPanel from '../components/SaleObservationsPanel.vue';
+import SaleResolutionActions from '../components/SaleResolutionActions.vue';
+import SaleResolutionNotice from '@/features/sales/components/SaleResolutionNotice.vue';
+import SaleDetailFields from '@/features/sales/components/SaleDetailFields.vue';
+import SaleAssigneeNotice from '@/features/sales/components/SaleAssigneeNotice.vue';
+import AdminSaleData from '../components/AdminSaleData.vue';
+import SaleDetailDocuments from '@/features/sales/components/SaleDetailDocuments.vue';
 import {
   useSetSaleAssigneeMutation,
   useStartSaleReviewMutation,
@@ -82,6 +85,17 @@ const returnDialog = ref(false);
 const returnReason = ref('');
 const actionError = ref<string | null>(null);
 
+const employmentLabel = computed(() => {
+  const employment = !!sale.value?.employment || sale.value?.customerType === 'DEREGULATED';
+  const tax = !!sale.value?.taxInfo || sale.value?.customerType === 'MONOTAX';
+  return employment && tax
+    ? 'Laboral / impositivo'
+    : employment
+      ? 'Laboral'
+      : tax
+        ? 'Impositivo'
+        : null;
+});
 const sections = computed(() => {
   const base: { id: AdminReviewSectionId; label: string }[] = [
     { id: 'summary', label: 'Resumen' },
@@ -89,17 +103,7 @@ const sections = computed(() => {
     { id: 'members', label: 'Integrantes' },
     { id: 'contact', label: 'Contacto' },
   ];
-  if (sale.value?.employment || sale.value?.taxInfo) {
-    base.push({
-      id: 'employment',
-      label:
-        sale.value?.employment && sale.value?.taxInfo
-          ? 'Laboral / impositivo'
-          : sale.value?.employment
-            ? 'Laboral'
-            : 'Impositivo',
-    });
-  }
+  if (employmentLabel.value) base.push({ id: 'employment', label: employmentLabel.value });
   base.push(
     { id: 'billing', label: 'Cobranza' },
     { id: 'documents', label: 'Documentación' },
@@ -110,18 +114,8 @@ const sections = computed(() => {
   return base;
 });
 
-watch(
-  () => sale.value?.customerType,
-  () => {
-    if (section.value === 'employment' && !sale.value?.employment && !sale.value?.taxInfo) {
-      section.value = 'summary';
-    }
-  },
-);
-
-const paymentMethodLabel = computed(() => {
-  const method = sale.value?.billing?.paymentMethod;
-  return PAYMENT_METHOD_OPTIONS.find((option) => option.value === method)?.title ?? '—';
+watch([employmentLabel, () => sale.value?.id], ([label, id]) => {
+  if (id && !label && section.value === 'employment') section.value = 'summary';
 });
 
 const assigneeLabel = computed(() => {
@@ -157,7 +151,7 @@ async function onReturn(): Promise<void> {
 }
 
 async function assignToMe(): Promise<void> {
-  if (!auth.user?.id) return;
+  if (!auth.user?.id || sale.value?.administrativeAssignee) return;
   actionError.value = null;
   try {
     await assigneeMutation.mutateAsync({
@@ -179,6 +173,7 @@ async function assignToMe(): Promise<void> {
       <template #actions>
         <div class="d-flex flex-wrap ga-2">
           <StatusBadge v-if="sale" :status="sale.status" />
+          <SaleResolutionActions v-if="sale" :sale="sale" />
           <v-btn variant="text" :to="{ name: 'admin-sales' }">Volver</v-btn>
           <v-btn
             v-if="showStartReview"
@@ -200,7 +195,12 @@ async function assignToMe(): Promise<void> {
             Solicitar corrección
           </v-btn>
           <v-btn
-            v-if="canReview && showAdminActions && sale?.status === 'IN_REVIEW'"
+            v-if="
+              canReview &&
+              showAdminActions &&
+              sale?.status === 'IN_REVIEW' &&
+              !sale.administrativeAssignee
+            "
             variant="tonal"
             :loading="assigneeMutation.isPending.value"
             @click="assignToMe"
@@ -219,6 +219,8 @@ async function assignToMe(): Promise<void> {
       </template>
     </PageHeader>
 
+    <SaleAssigneeNotice v-if="sale" :assignee="sale.administrativeAssignee" />
+
     <ErrorState
       v-if="saleQuery.error.value"
       :message="apiErrorMessage(saleQuery.error.value)"
@@ -234,6 +236,13 @@ async function assignToMe(): Promise<void> {
     />
 
     <template v-else-if="sale">
+      <SaleResolutionNotice
+        :status="sale.status"
+        :history="historyQuery.data.value"
+        :loading="historyQuery.isFetching.value"
+        :error="!!historyQuery.error.value"
+        @retry="historyQuery.refetch()"
+      />
       <v-alert
         v-if="actionError"
         type="error"
@@ -310,146 +319,65 @@ async function assignToMe(): Promise<void> {
             </v-row>
           </v-card>
 
-          <v-card v-else-if="section === 'details'" class="pa-4 pa-md-6">
-            <h2 class="text-h6 mb-4">Datos de venta</h2>
-            <v-row dense>
-              <v-col cols="12" sm="6">Prepaga: {{ sale.healthInsurer.name }}</v-col>
-              <v-col cols="12" sm="6">Plan: {{ sale.healthPlan?.name ?? '—' }}</v-col>
-              <v-col cols="12" sm="6">Tipo: {{ customerTypeLabel(sale.customerType) }}</v-col>
-              <v-col cols="12">{{ sale.observations || 'Sin observaciones del vendedor.' }}</v-col>
-            </v-row>
-          </v-card>
+          <AdminSaleData
+            v-else-if="
+              section === 'details' ||
+              section === 'members' ||
+              section === 'employment' ||
+              section === 'billing'
+            "
+            :sale="sale"
+            :section="section"
+          />
 
-          <v-card v-else-if="section === 'members'" class="pa-4 pa-md-6">
-            <h2 class="text-h6 mb-4">Integrantes</h2>
-            <v-table density="comfortable">
-              <thead>
-                <tr>
-                  <th>Rol</th>
-                  <th>Nombre</th>
-                  <th>CUIL</th>
-                  <th>Edad</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="member in sale.members" :key="member.id">
-                  <td>{{ memberTypeLabel(member.memberType) }}</td>
-                  <td>
-                    {{ [member.lastName, member.firstName].filter(Boolean).join(', ') || '—' }}
-                  </td>
-                  <td>{{ member.cuil ?? '—' }}</td>
-                  <td>{{ member.age ?? '—' }}</td>
-                </tr>
-              </tbody>
-            </v-table>
-            <p class="text-caption text-medium-emphasis mt-3 mb-0">
-              Los detalles clínicos sensibles no se destacan en esta vista de revisión.
-            </p>
-          </v-card>
-
-          <v-card v-else-if="section === 'contact'" class="pa-4 pa-md-6">
+          <v-card
+            v-else-if="section === 'contact'"
+            class="pa-4 pa-md-6"
+            data-testid="admin-sale-contact"
+          >
             <h2 class="text-h6 mb-4">Contacto</h2>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                {{ sale.contact?.areaCode ?? '' }} {{ sale.contact?.phone ?? '—' }}
-              </v-col>
-              <v-col cols="12" sm="6">{{ sale.contact?.email ?? '—' }}</v-col>
-              <v-col cols="12">{{ sale.contact?.address ?? '—' }}</v-col>
-              <v-col cols="12" sm="6">{{ sale.contact?.postalCode ?? '—' }}</v-col>
-              <v-col cols="12" sm="6">{{ sale.contact?.province ?? '—' }}</v-col>
-            </v-row>
+            <SaleDetailFields
+              :fields="[
+                {
+                  label: 'Teléfono',
+                  value: [sale.contact?.areaCode, sale.contact?.phone].filter(Boolean).join(' '),
+                },
+                { label: 'Correo electrónico', value: sale.contact?.email },
+                { label: 'Domicilio', value: sale.contact?.address },
+                { label: 'Código postal', value: sale.contact?.postalCode },
+                { label: 'Provincia', value: sale.contact?.province },
+              ]"
+            />
           </v-card>
 
-          <v-card v-else-if="section === 'employment'" class="pa-4 pa-md-6">
-            <template v-if="sale.employment">
-              <h2 class="text-h6 mb-4">Situación laboral</h2>
-              <div v-for="employer in sale.employment.employers" :key="employer.id" class="mb-1">
-                CUIT: {{ employer.employerCuit }}
-              </div>
-              <div>Obra social: {{ sale.employment.currentInsurance ?? '—' }}</div>
-              <div>Sueldo bruto: {{ sale.employment.grossSalary ?? '—' }}</div>
-            </template>
-            <template v-if="sale.taxInfo">
-              <h2 class="text-h6 mb-4 mt-4">Situación impositiva</h2>
-              <div>Categoría: {{ sale.taxInfo.monotaxCategory ?? '—' }}</div>
-              <div>Obra social: {{ sale.taxInfo.currentInsurance ?? '—' }}</div>
-            </template>
-          </v-card>
-
-          <v-card v-else-if="section === 'billing'" class="pa-4 pa-md-6">
-            <h2 class="text-h6 mb-4">Cobranza</h2>
-            <div>Forma de pago: {{ paymentMethodLabel }}</div>
-            <div>
-              Titular pagador:
-              {{
-                sale.billing?.holderIsPayer === true
-                  ? 'Sí'
-                  : sale.billing?.holderIsPayer === false
-                    ? 'No'
-                    : '—'
-              }}
-            </div>
-            <div v-if="sale.billing?.cardLastFour">
-              Tarjeta {{ sale.billing.cardBrand ?? '' }} **** {{ sale.billing.cardLastFour }}
-            </div>
-            <div
-              v-if="sale.billing?.paymentMethod === 'CBU' && sale.billing?.paymentMedium"
-            >
-              CBU/CVU/ALIAS: {{ sale.billing.paymentMedium }}
-            </div>
-          </v-card>
-
-          <v-card v-else-if="section === 'documents'" class="pa-4 pa-md-6">
-            <h2 class="text-h6 mb-4">Documentación</h2>
-            <v-list density="compact">
-              <v-list-item
-                v-for="category in documentsQuery.data.value?.requiredCategories ?? []"
-                :key="`${category.documentType}-${category.saleMemberId ?? 'sale'}`"
-              >
-                <v-list-item-title class="text-wrap">{{ category.label }}</v-list-item-title>
-                <template #append>
-                  <v-chip
-                    size="x-small"
-                    variant="tonal"
-                    :color="category.satisfied ? 'success' : 'warning'"
-                  >
-                    {{ category.satisfied ? 'Completo' : 'Pendiente' }}
-                  </v-chip>
-                </template>
-              </v-list-item>
-            </v-list>
-            <v-list v-if="documentsQuery.data.value?.items?.length" density="compact" class="mt-2">
-              <v-list-item v-for="doc in documentsQuery.data.value.items" :key="doc.id">
-                <v-list-item-title class="text-wrap">
-                  {{ doc.originalFilename || 'Archivo' }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ documentTypeLabel(doc.documentType) }}
-                </v-list-item-subtitle>
-                <template #append>
-                  <v-btn
-                    icon="mdi-download"
-                    variant="text"
-                    size="small"
-                    aria-label="Descargar"
-                    @click="
-                      downloadMutation.mutate({
-                        documentId: doc.id,
-                        filename: doc.originalFilename,
-                      })
-                    "
-                  />
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card>
+          <SaleDetailDocuments
+            v-else-if="section === 'documents'"
+            :documents="documentsQuery.data.value"
+            :members="sale.members"
+            :loading="documentsQuery.isFetching.value"
+            :error="
+              documentsQuery.error.value ? apiErrorMessage(documentsQuery.error.value) : undefined
+            "
+            :download-error="
+              downloadMutation.error.value
+                ? apiErrorMessage(downloadMutation.error.value)
+                : undefined
+            "
+            :downloading-id="
+              downloadMutation.isPending.value
+                ? downloadMutation.variables.value?.documentId
+                : undefined
+            "
+            @retry="documentsQuery.refetch()"
+            @download="downloadMutation.mutate($event)"
+          />
 
           <v-card v-else-if="section === 'observations'" class="pa-4 pa-md-6">
             <h2 class="text-h6 mb-4">Observaciones</h2>
             <SaleObservationsPanel
               :sale-id="saleId"
               :can-observe="canObserve && showAdminActions"
-              :can-resolve="canObserve"
+              :can-resolve="canObserve && showAdminActions"
             />
           </v-card>
 
@@ -481,12 +409,12 @@ async function assignToMe(): Promise<void> {
                     <StatusBadge :status="entry.toStatus" />
                   </div>
                 </v-list-item-title>
-                <v-list-item-subtitle
+                <p
                   v-if="saleHistoryReasonLabel(entry.reason)"
-                  class="text-wrap mt-1"
+                  class="text-body-2 text-medium-emphasis text-break mt-1 mb-0"
                 >
                   {{ saleHistoryReasonLabel(entry.reason) }}
-                </v-list-item-subtitle>
+                </p>
               </v-list-item>
             </v-list>
             <p v-else class="text-medium-emphasis mb-0">Sin cambios de estado.</p>

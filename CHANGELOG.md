@@ -16,8 +16,42 @@ Section headings used in this repository:
 
 ## [Unreleased]
 
+### Corrección de errores
+
+- Codificación UTF-8 corregida en las pantallas de administrativos, vendedores y objetivos de supervisión; acentos y símbolos legibles. Nuevo control `check:encoding` integrado en `pnpm check` para prevenir archivos con codificación inválida.
+
+
+### Cambios técnicos
+
+- Normalización del formato y saltos de línea LF según Prettier, EditorConfig y Git, incluidos los archivos existentes en Windows, para restablecer los chequeos globales. Guía de mantenimiento del formato documentada.
+
+
+### Nuevo
+
+- Circuito de resolución con **Aprobada** / **Rechazada**: acciones del administrativo, confirmación y motivo obligatorio de rechazo, estado final visible para vendedor y demás roles, historial y notificaciones. Filtros/etiquetas actualizados, bloqueo de nuevas gestiones en ventas cerradas y recuperación ante conflicto de versión.
+
+
 ### Ajuste UX/UI
 
+- Menú de notificaciones más ancho y adaptable, título destacado y número/titular junto a la fecha en una sola línea.
+
+- Notificaciones de ventas identificadas únicamente por número simple y nombre del titular, con texto completo y navegación al detalle conservada.
+
+- Revisión administrativa completa: datos personales y de salud de cada integrante, FUM y preexistencias, información laboral/impositiva, cobranza con vencimiento y pagador alternativo, observaciones y documentación identificada. Se eliminó el recorte de datos clínicos y se muestran faltantes en las secciones aplicables.
+
+- Responsable administrativo visible en todas las secciones de revisión y en el detalle de venta. Tomar responsabilidad se muestra únicamente si el caso en revisión aún no tiene administrativo asignado.
+
+- Revisión administrativa: datos de contacto con etiquetas explícitas y faltantes identificados, reutilizando la presentación del detalle de venta.
+
+- Selector compartido **DateField**: calendario Vuetify adaptado a tema claro/oscuro, icono visible al extremo derecho, apertura desde todo el campo y teclado, selección de mes/año y fecha/hora con aplicar/cancelar. Reutilizado en filtros, integrantes y seguimientos; valores API y fechas locales conservados.
+
+- **Prioridades de hoy**: máximo 5 ventas en el inicio administrativo, conservando el orden de prioridad y el acceso a la cola completa.
+
+- **Inicio**: actividad reciente del vendedor y eventos recientes del administrador limitados a los últimos 5 registros por fecha, manteniendo acceso al listado completo.
+
+- **Detalle de venta**: titular y cobertura destacados, datos etiquetados, integrantes con información personal y de salud desplegable, cobranza según pagador y metadatos separados. Documentación con avance, archivos legibles y errores recuperables; historial reciente primero y adaptación a móvil en ambos temas.
+
+- **Alta de venta**: asteriscos obligatorios según el formulario de referencia, avance por sección, contador de integrantes, lista de pendientes navegable y acciones agrupadas. Presentar se habilita con datos y documentos completos/verificados y borrador guardado; el detalle respeta la misma condición. Se conservan las ramas condicionales por tipo de venta, integrante y pagador, con validación de formatos y vencimientos.
 - Marca visible solo como **Altium** (sin “CRM” ni “(Dev)” en título de pestaña, meta, subtítulos y textos de UI).
 
 ## [0.1.0] - 2026-10-25

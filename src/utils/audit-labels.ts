@@ -22,6 +22,8 @@ const AUDIT_ACTION_LABELS: Readonly<Record<string, string>> = {
   'sale.update': 'Actualización de venta',
   'sale.submit': 'Presentación de venta',
   'sale.return': 'Devolución de venta',
+  'sale.approve': 'Aprobación de venta',
+  'sale.reject': 'Rechazo de venta',
   'sale.access_denied': 'Acceso denegado a venta',
   'sale.document.upload': 'Subida de documento de venta',
   'sale.document.download': 'Descarga de documento de venta',

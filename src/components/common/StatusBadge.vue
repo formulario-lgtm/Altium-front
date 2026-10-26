@@ -16,6 +16,8 @@ const DEFINITIONS: Record<string, BadgeDefinition> = {
   SUBMITTED: { label: 'Presentada', color: 'info' },
   IN_REVIEW: { label: 'En revisión', color: 'primary' },
   RETURNED: { label: 'Devuelta', color: 'warning' },
+  APPROVED: { label: 'Aprobada', color: 'success' },
+  REJECTED: { label: 'Rechazada', color: 'error' },
   OPEN: { label: 'Abierta', color: 'warning' },
   RESOLVED: { label: 'Resuelta', color: 'success' },
 };

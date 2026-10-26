@@ -28,6 +28,14 @@ test.describe('Supervision UI', () => {
     await mockApi(page, { authenticated: true, permissions: SUPERVISOR_PERMISSIONS });
     await page.goto('/supervision/sellers');
     await expect(page.getByTestId('supervision-sellers')).toBeVisible();
+    await expect(
+      page.getByText('Comparativa de presentaciones, objetivos y devoluciones del período.', {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('columnheader', { name: 'Última actividad', exact: true }),
+    ).toBeVisible();
     await expect(page.getByText('Pérez, Ana')).toBeVisible();
     await expect(page.getByRole('cell', { name: 'Sin objetivo', exact: true })).toBeVisible();
     await page
@@ -41,6 +49,15 @@ test.describe('Supervision UI', () => {
     await mockApi(page, { authenticated: true, permissions: SUPERVISOR_PERMISSIONS });
     await page.goto('/supervision/administratives');
     await expect(page.getByTestId('supervision-administratives')).toBeVisible();
+    await expect(
+      page.getByText(
+        'Volumen de gestiones, tiempos de primera revisión y seguimientos. No es un ranking de calidad.',
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('columnheader', { name: '1ª revisión (prom.)', exact: true }),
+    ).toBeVisible();
     await expect(page.getByText('López, María')).toBeVisible();
     await page.goto('/supervision/goals');
     await expect(page.getByTestId('supervision-goals')).toBeVisible();

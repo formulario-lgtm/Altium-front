@@ -150,7 +150,7 @@ async function downloadDoc(doc: SaleDocumentMeta): Promise<void> {
       >
         <div class="d-flex flex-wrap align-start justify-space-between ga-3 mb-2">
           <div class="min-w-0">
-            <p class="text-subtitle-2 font-weight-medium mb-1">{{ category.label }}</p>
+            <p class="text-subtitle-2 font-weight-medium mb-1">{{ category.label }} *</p>
             <div class="d-flex flex-wrap align-center ga-2">
               <v-chip
                 size="small"

@@ -44,7 +44,7 @@ function openDetail(item: AdministrativeListItem): void {
   <div data-testid="supervision-administratives">
     <PageHeader
       title="Administrativos"
-      subtitle="Volumen de gestiones, tiempos de primera revisión y seguimientos. No es un ranking de calidad."
+      subtitle="Volumen de gestiones, tiempos de primera revisiÃ³n y seguimientos. No es un ranking de calidad."
     />
 
     <SupervisionPeriodFilters v-model:year="year" v-model:month="month" v-model:team-id="teamId" />
@@ -83,7 +83,7 @@ function openDetail(item: AdministrativeListItem): void {
           { title: 'Administrativo', key: 'name' },
           { title: 'Equipo', key: 'teamName' },
           { title: 'Revisiones iniciadas', key: 'reviewsStarted' },
-          { title: '1ª revisión (prom.)', key: 'avgFirstReviewHours' },
+          { title: '1Âª revisiÃ³n (prom.)', key: 'avgFirstReviewHours' },
           { title: 'Devoluciones', key: 'returnsPerformed' },
           { title: 'Seg. pendientes', key: 'followUpsPending' },
           { title: 'Seg. vencidos', key: 'followUpsOverdue' },
@@ -97,7 +97,7 @@ function openDetail(item: AdministrativeListItem): void {
           {{ personName(item.firstName, item.lastName) }}
         </template>
         <template #[`item.teamName`]="{ item }">
-          {{ item.teamName ?? '—' }}
+          {{ item.teamName ?? 'â€”' }}
         </template>
         <template #[`item.avgFirstReviewHours`]="{ item }">
           {{ formatHours(item.avgFirstReviewHours) }}

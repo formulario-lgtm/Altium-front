@@ -20,6 +20,8 @@ export const SALE_STATUS_OPTIONS: { title: string; value: SaleStatus }[] = [
   { title: 'Presentada', value: 'SUBMITTED' },
   { title: 'En revisión', value: 'IN_REVIEW' },
   { title: 'Devuelta', value: 'RETURNED' },
+  { title: 'Aprobada', value: 'APPROVED' },
+  { title: 'Rechazada', value: 'REJECTED' },
 ];
 
 /** Statuses shown in the administrative sales queue (excludes drafts). */
@@ -27,6 +29,8 @@ export const ADMIN_SALE_STATUS_OPTIONS: { title: string; value: SaleStatus }[] =
   { title: 'Presentada', value: 'SUBMITTED' },
   { title: 'En revisión', value: 'IN_REVIEW' },
   { title: 'Devuelta', value: 'RETURNED' },
+  { title: 'Aprobada', value: 'APPROVED' },
+  { title: 'Rechazada', value: 'REJECTED' },
 ];
 
 export const FOLLOW_UP_TYPE_OPTIONS = [

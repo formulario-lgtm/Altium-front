@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DateField from '@/components/common/DateField.vue';
 import { computed, ref, watch } from 'vue';
 import EmptyState from '@/components/common/EmptyState.vue';
 import ErrorState from '@/components/common/ErrorState.vue';
@@ -25,7 +26,7 @@ watch([debouncedAction, debouncedEntityType, fromDate, toDate], () => {
   page.value = 1;
 });
 
-/** `<input type="date">` gives local dates; convert to inclusive ISO bounds. */
+/** `DateField` gives local calendar dates; convert to inclusive ISO bounds. */
 function toIsoBound(value: string, endOfDay: boolean): string | undefined {
   if (!value) return undefined;
   const date = new Date(`${value}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}`);
@@ -101,10 +102,10 @@ const headers = [
         />
       </v-col>
       <v-col cols="6" md="3">
-        <v-text-field v-model="fromDate" label="Desde" type="date" />
+        <DateField v-model="fromDate" label="Desde" type="date" />
       </v-col>
       <v-col cols="6" md="3">
-        <v-text-field v-model="toDate" label="Hasta" type="date" />
+        <DateField v-model="toDate" label="Hasta" type="date" />
       </v-col>
     </v-row>
 

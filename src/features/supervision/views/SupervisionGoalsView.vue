@@ -86,9 +86,9 @@ function subjectLabel(goal: MonthlyGoal, sellerName?: string): string {
     if (goal.teamId && teamNameById.value.has(goal.teamId)) {
       return teamNameById.value.get(goal.teamId)!;
     }
-    return goal.teamId ? `Equipo ${goal.teamId.slice(0, 8)}…` : 'Equipo';
+    return goal.teamId ? `Equipo ${goal.teamId.slice(0, 8)}â€¦` : 'Equipo';
   }
-  return sellerName ?? (goal.userId ? `Usuario ${goal.userId.slice(0, 8)}…` : 'Usuario');
+  return sellerName ?? (goal.userId ? `Usuario ${goal.userId.slice(0, 8)}â€¦` : 'Usuario');
 }
 
 function goalTypeLabel(type: string): string {
@@ -138,7 +138,7 @@ function openHistory(goal: MonthlyGoal): void {
     <EmptyState
       v-else-if="!goalsQuery.isLoading.value && rows.length === 0"
       title="Sin objetivos"
-      text="No hay objetivos cargados para este período y alcance."
+      text="No hay objetivos cargados para este perÃ­odo y alcance."
     />
 
     <v-card v-else>
@@ -146,8 +146,8 @@ function openHistory(goal: MonthlyGoal): void {
         :items="rows"
         :loading="goalsQuery.isFetching.value"
         :headers="[
-          { title: 'Período', key: 'period' },
-          { title: 'Métrica', key: 'metric' },
+          { title: 'PerÃ­odo', key: 'period' },
+          { title: 'MÃ©trica', key: 'metric' },
           { title: 'Sujeto', key: 'subject' },
           { title: 'Objetivo', key: 'target' },
           { title: 'Real', key: 'actual' },
@@ -170,14 +170,14 @@ function openHistory(goal: MonthlyGoal): void {
           {{ item.goal.targetValue }}
         </template>
         <template #[`item.actual`]="{ item }">
-          {{ item.actual === null ? '—' : item.actual }}
+          {{ item.actual === null ? 'â€”' : item.actual }}
         </template>
         <template #[`item.compliance`]="{ item }">
           <span v-if="item.compliance === null">Sin dato / Sin objetivo aplicable</span>
           <span v-else>{{ Math.round(item.compliance) }}%</span>
         </template>
         <template #[`item.delta`]="{ item }">
-          {{ item.delta === null ? '—' : item.delta > 0 ? `+${item.delta}` : item.delta }}
+          {{ item.delta === null ? 'â€”' : item.delta > 0 ? `+${item.delta}` : item.delta }}
         </template>
         <template #[`item.actions`]="{ item }">
           <v-btn variant="text" size="small" @click="openHistory(item.goal)">Historial</v-btn>
@@ -212,8 +212,8 @@ function openHistory(goal: MonthlyGoal): void {
             <v-list-item
               v-for="row in historyQuery.data.value.items"
               :key="row.id"
-              :title="`${row.previousValue ?? '—'} ? ${row.newValue}`"
-              :subtitle="`${formatDateTime(row.changedAt)}${row.reason ? ` · ${row.reason}` : ''}`"
+              :title="`${row.previousValue ?? 'â€”'} ? ${row.newValue}`"
+              :subtitle="`${formatDateTime(row.changedAt)}${row.reason ? ` Â· ${row.reason}` : ''}`"
             />
           </v-list>
           <p v-else class="text-medium-emphasis mb-0">Sin cambios registrados.</p>

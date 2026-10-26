@@ -13,6 +13,7 @@
 | EmptyState           | `src/components/common/EmptyState.vue`           | [empty-state.md](empty-state.md)                       |
 | ErrorState           | `src/components/common/ErrorState.vue`           | [error-state.md](error-state.md)                       |
 | GlobalLoadingOverlay | `src/components/common/GlobalLoadingOverlay.vue` | [global-loading-overlay.md](global-loading-overlay.md) |
+| DateField            | `src/components/common/DateField.vue`            | [date-field.md](date-field.md)                         |
 | PasswordField        | `src/components/common/PasswordField.vue`        | [password-field.md](password-field.md)                 |
 | UserAvatar           | `src/components/common/UserAvatar.vue`           | [user-avatar.md](user-avatar.md)                       |
 

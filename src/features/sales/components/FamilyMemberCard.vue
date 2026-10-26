@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DateField from '@/components/common/DateField.vue';
 import { computed } from 'vue';
 import type { SaleMemberInput } from '@/services/http';
 import { memberFieldErrorProps } from '../utils/sale-field-errors';
@@ -83,26 +84,29 @@ function patch(partial: Partial<SaleMemberInput>): void {
       <v-col cols="12" md="4">
         <v-text-field
           :model-value="member.cuil ?? ''"
-          label="CUIL"
+          label="CUIL *"
+          required
           maxlength="11"
           :disabled="disabled"
           v-bind="err('cuil')"
           @update:model-value="patch({ cuil: $event || null })"
         />
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="6" md="4">
         <v-text-field
           :model-value="member.lastName ?? ''"
-          label="Apellido"
+          label="Apellido *"
+          required
           :disabled="disabled"
           v-bind="err('lastName')"
           @update:model-value="patch({ lastName: $event || null })"
         />
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="6" md="4">
         <v-text-field
           :model-value="member.firstName ?? ''"
-          label="Nombre"
+          label="Nombre *"
+          required
           :disabled="disabled"
           v-bind="err('firstName')"
           @update:model-value="patch({ firstName: $event || null })"
@@ -112,7 +116,8 @@ function patch(partial: Partial<SaleMemberInput>): void {
         <v-select
           :model-value="member.sex"
           :items="SEX_OPTIONS"
-          label="Sexo"
+          label="Sexo *"
+          required
           clearable
           :disabled="disabled"
           v-bind="err('sex')"
@@ -120,22 +125,24 @@ function patch(partial: Partial<SaleMemberInput>): void {
         />
       </v-col>
       <v-col cols="12" md="3">
-        <v-text-field
+        <DateField
           :model-value="member.birthDate ?? ''"
           type="date"
-          label="Fecha de nacimiento"
+          label="Fecha de nacimiento *"
+          required
           :disabled="disabled"
           v-bind="err('birthDate')"
           @update:model-value="patch({ birthDate: $event || null })"
         />
       </v-col>
-      <v-col cols="12" md="2">
+      <v-col cols="6" md="2">
         <v-text-field :model-value="age ?? ''" label="Edad" readonly />
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="6" md="4">
         <v-text-field
           :model-value="member.nationality ?? ''"
-          label="Nacionalidad"
+          label="Nacionalidad *"
+          required
           :disabled="disabled"
           v-bind="err('nationality')"
           @update:model-value="patch({ nationality: $event || null })"
@@ -145,29 +152,34 @@ function patch(partial: Partial<SaleMemberInput>): void {
         <v-select
           :model-value="member.maritalStatus"
           :items="MARITAL_OPTIONS"
-          label="Estado civil"
+          label="Estado civil *"
+          required
           clearable
           :disabled="disabled"
           v-bind="err('maritalStatus')"
           @update:model-value="patch({ maritalStatus: $event })"
         />
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="6" md="4">
         <v-text-field
           :model-value="member.weightKg ?? ''"
           type="number"
-          label="Peso (kg)"
+          label="Peso *"
+          suffix="kg"
+          required
           step="0.1"
           :disabled="disabled"
           v-bind="err('weightKg')"
           @update:model-value="patch({ weightKg: $event === '' ? null : Number($event) })"
         />
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="6" md="4">
         <v-text-field
           :model-value="member.heightCm ?? ''"
           type="number"
-          label="Altura (cm)"
+          label="Altura *"
+          suffix="cm"
+          required
           step="0.1"
           :disabled="disabled"
           v-bind="err('heightCm')"
@@ -175,10 +187,11 @@ function patch(partial: Partial<SaleMemberInput>): void {
         />
       </v-col>
       <v-col v-if="fumVisible" cols="12" md="4">
-        <v-text-field
+        <DateField
           :model-value="member.lastMenstrualPeriod ?? ''"
           type="date"
-          label="FUM"
+          label="FUM *"
+          required
           hint="Sexo F y edad mayor de 12"
           persistent-hint
           :disabled="disabled"
@@ -190,7 +203,8 @@ function patch(partial: Partial<SaleMemberInput>): void {
         <v-select
           :model-value="member.hasPreexistingConditions ? 'Si' : 'No'"
           :items="['No', 'Si']"
-          label="¿Tiene preexistencias?"
+          label="¿Tiene preexistencias? *"
+          required
           :disabled="disabled"
           v-bind="err('hasPreexistingConditions')"
           @update:model-value="
@@ -205,7 +219,8 @@ function patch(partial: Partial<SaleMemberInput>): void {
       <v-col v-if="member.hasPreexistingConditions" cols="12">
         <v-textarea
           :model-value="member.preexistingConditionsDetails ?? ''"
-          label="Detalle de preexistencia"
+          label="Detalle de preexistencia *"
+          required
           rows="2"
           :disabled="disabled"
           v-bind="err('preexistingConditionsDetails')"

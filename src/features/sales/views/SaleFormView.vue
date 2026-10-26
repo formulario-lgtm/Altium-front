@@ -11,7 +11,13 @@ import {
   isApiError,
   type SaleMemberInput,
 } from '@/services/http';
+import SaleContactFields from '../components/SaleContactFields.vue';
+import SaleEmploymentFields from '../components/SaleEmploymentFields.vue';
+import SaleTaxFields from '../components/SaleTaxFields.vue';
+import SaleBillingFields from '../components/SaleBillingFields.vue';
 import FamilyMemberCard from '../components/FamilyMemberCard.vue';
+import SaleFormProgress from '../components/SaleFormProgress.vue';
+import { getSaleReadiness } from '../utils/sale-readiness';
 import SaleDocuments from '../components/SaleDocuments.vue';
 import SaleSaveStatus from '../components/SaleSaveStatus.vue';
 import SaleSectionNav, { type SaleSectionId } from '../components/SaleSectionNav.vue';
@@ -25,13 +31,7 @@ import {
 import { emptyMember } from '../utils/sale-form-model';
 import { fieldErrorProps, saleFieldPathLabel } from '../utils/sale-field-errors';
 import { formatSaleNumber } from '@/utils/format';
-import {
-  ARGENTINA_PROVINCES,
-  CUSTOMER_TYPE_OPTIONS,
-  healthPlanOptionLabel,
-  MONOTAX_CATEGORIES,
-  PAYMENT_METHOD_OPTIONS,
-} from '../utils/sale-labels';
+import { CUSTOMER_TYPE_OPTIONS, healthPlanOptionLabel } from '../utils/sale-labels';
 
 const route = useRoute();
 const router = useRouter();
@@ -53,6 +53,30 @@ const allFieldErrors = computed(() => ({
   ...form.fieldErrors.value,
   ...submitFieldErrors.value,
 }));
+const readiness = computed(() =>
+  getSaleReadiness(
+    form.model.value,
+    documentsQuery.error.value ? undefined : documentsQuery.data.value,
+  ),
+);
+const canPresent = computed(
+  () =>
+    form.editable.value &&
+    readiness.value.ready &&
+    form.saveStatus.value === 'saved' &&
+    !documentsQuery.isFetching.value &&
+    !documentsQuery.error.value &&
+    !submitMutation.isPending.value,
+);
+const presentationHint = computed(() =>
+  readiness.value.pending.length
+    ? `Completá o corregí ${readiness.value.pending.length} requisitos antes de presentar.`
+    : form.saveStatus.value === 'error'
+      ? 'Guardá el borrador sin errores antes de presentar.'
+      : !canPresent.value
+        ? 'Esperá a que finalicen el guardado y la verificación de documentos.'
+        : 'La venta está lista para presentar.',
+);
 
 function fieldProps(path: string) {
   return fieldErrorProps(allFieldErrors.value, path);
@@ -174,14 +198,6 @@ function updateMemberAt(index: number, member: SaleMemberInput): void {
   form.model.value.members[index] = member;
 }
 
-function addEmployer(): void {
-  if (!form.model.value) return;
-  form.model.value.employment.employers.push({
-    employerCuit: '',
-    displayOrder: form.model.value.employment.employers.length,
-  });
-}
-
 function sectionForField(field: string): SaleSectionId {
   if (field.startsWith('members')) return 'members';
   if (field.startsWith('contact')) return 'contact';
@@ -193,10 +209,18 @@ function sectionForField(field: string): SaleSectionId {
 
 async function onSubmitConfirm(): Promise<void> {
   submitConfirm.value = false;
+  if (!canPresent.value) return;
   submitError.value = null;
   submitFieldErrors.value = {};
-  await form.persist();
-  if (form.versionConflict.value) return;
+  const saved = await form.persist();
+  if (
+    !saved ||
+    form.versionConflict.value ||
+    !readiness.value.ready ||
+    form.saveStatus.value !== 'saved' ||
+    documentsQuery.error.value
+  )
+    return;
   try {
     const sale = await submitMutation.mutateAsync(saleId.value);
     await router.push({ name: 'sale-detail', params: { id: sale.id } });
@@ -215,15 +239,17 @@ async function onSubmitConfirm(): Promise<void> {
   <div>
     <PageHeader
       :title="
-        form.sale.value
-          ? `Venta ${formatSaleNumber(form.sale.value.saleNumber)}`
-          : 'Editar venta'
+        form.sale.value ? `Venta ${formatSaleNumber(form.sale.value.saleNumber)}` : 'Editar venta'
       "
-      subtitle="Completá las secciones. El borrador se guarda automáticamente."
+      subtitle="Completá la venta a tu ritmo. Tu avance se guarda automáticamente en Altium."
     >
       <template #actions>
         <div class="d-flex flex-wrap align-center ga-3">
           <StatusBadge v-if="form.sale.value" :status="form.sale.value.status" />
+          <v-chip v-if="form.model.value" variant="tonal"
+            >{{ form.model.value.members.length }}
+            {{ form.model.value.members.length === 1 ? 'integrante' : 'integrantes' }}</v-chip
+          >
           <SaleSaveStatus :status="form.saveStatus.value" :error-message="form.saveError.value" />
           <v-btn variant="text" :to="{ name: 'sales' }">Volver</v-btn>
         </div>
@@ -273,10 +299,20 @@ async function onSubmitConfirm(): Promise<void> {
       </ul>
     </v-alert>
 
+    <SaleFormProgress
+      v-if="form.model.value"
+      :readiness="readiness"
+      :sections="sections"
+      @navigate="section = $event"
+    />
     <v-row v-if="form.model.value" align="start">
       <v-col cols="12" md="3" class="d-none d-md-block">
-        <v-card class="pa-2 position-sticky" style="top: 1rem">
-          <SaleSectionNav v-model="section" :sections="sections" />
+        <v-card class="pa-2 position-sticky" style="top: 5rem">
+          <SaleSectionNav
+            v-model="section"
+            :sections="sections"
+            :completion="readiness.bySection"
+          />
         </v-card>
       </v-col>
 
@@ -291,6 +327,26 @@ async function onSubmitConfirm(): Promise<void> {
         />
 
         <v-card class="pa-4 pa-md-6 mb-4">
+          <div class="d-flex flex-wrap align-center justify-space-between ga-2 mb-3">
+            <span class="text-caption text-medium-emphasis"
+              >Paso {{ sections.findIndex((item) => item.id === section) + 1 }} de
+              {{ sections.length }}</span
+            >
+            <v-chip
+              v-if="readiness.bySection[section].total"
+              :color="
+                readiness.bySection[section].complete === readiness.bySection[section].total
+                  ? 'success'
+                  : 'secondary'
+              "
+              variant="tonal"
+              >{{ readiness.bySection[section].complete }}/{{
+                readiness.bySection[section].total
+              }}
+              completos</v-chip
+            >
+            <span v-else class="text-caption text-medium-emphasis">Opcional</span>
+          </div>
           <template v-if="section === 'details'">
             <h2 class="text-h6 mb-4">Datos de la venta</h2>
             <v-row dense>
@@ -299,7 +355,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.healthInsurerId"
                   :items="insurerItems"
                   :loading="insurersQuery.isFetching.value"
-                  label="Prepaga"
+                  label="Prepaga *"
+                  required
                   :disabled="!form.editable.value"
                   v-bind="fieldProps('healthInsurerId')"
                   @update:model-value="clearFieldError('healthInsurerId')"
@@ -309,7 +366,8 @@ async function onSubmitConfirm(): Promise<void> {
                 <v-select
                   v-model="form.model.value.customerType"
                   :items="CUSTOMER_TYPE_OPTIONS"
-                  label="Tipo de venta"
+                  label="Tipo de venta *"
+                  required
                   clearable
                   :disabled="!form.editable.value"
                   v-bind="fieldProps('customerType')"
@@ -321,7 +379,8 @@ async function onSubmitConfirm(): Promise<void> {
                   v-model="form.model.value.healthPlanId"
                   :items="planItems"
                   :loading="plansQuery.isFetching.value"
-                  label="Plan"
+                  label="Plan *"
+                  required
                   clearable
                   :disabled="!form.editable.value || !form.model.value.healthInsurerId"
                   v-bind="fieldProps('healthPlanId')"
@@ -387,287 +446,49 @@ async function onSubmitConfirm(): Promise<void> {
           </template>
 
           <template v-else-if="section === 'contact'">
-            <h2 class="text-h6 mb-4">Contacto y domicilio</h2>
-            <v-row dense>
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.model.value.contact.areaCode"
-                  label="Código de área"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('contact.areaCode')"
-                  @update:model-value="clearFieldError('contact.areaCode')"
-                />
-              </v-col>
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.model.value.contact.phone"
-                  label="Teléfono"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('contact.phone')"
-                  @update:model-value="clearFieldError('contact.phone')"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.model.value.contact.email"
-                  label="Email"
-                  type="email"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('contact.email')"
-                  @update:model-value="clearFieldError('contact.email')"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="form.model.value.contact.address"
-                  label="Domicilio"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('contact.address')"
-                  @update:model-value="clearFieldError('contact.address')"
-                />
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.model.value.contact.postalCode"
-                  label="Código postal"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('contact.postalCode')"
-                  @update:model-value="clearFieldError('contact.postalCode')"
-                />
-              </v-col>
-              <v-col cols="12" md="8">
-                <v-select
-                  v-model="form.model.value.contact.province"
-                  :items="ARGENTINA_PROVINCES"
-                  label="Provincia"
-                  clearable
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('contact.province')"
-                  @update:model-value="clearFieldError('contact.province')"
-                />
-              </v-col>
-            </v-row>
+            <SaleContactFields
+              v-model="form.model.value.contact"
+              :disabled="!form.editable.value"
+              :field-errors="allFieldErrors"
+              @clear-field-error="clearFieldError"
+            />
           </template>
 
           <template v-else-if="section === 'employment'">
-            <h2 class="text-h6 mb-4">Situación laboral</h2>
-            <div
-              v-for="(employer, index) in form.model.value.employment.employers"
-              :key="employer.id ?? index"
-              class="d-flex ga-2 align-center mb-2"
-            >
-              <v-text-field
-                v-model="employer.employerCuit"
-                :label="`CUIT empleador ${index + 1}`"
-                maxlength="11"
-                :disabled="!form.editable.value"
-                v-bind="fieldProps(`employment.employers[${index}].employerCuit`)"
-                @update:model-value="clearFieldError(`employment.employers[${index}].employerCuit`)"
-              />
-              <v-btn
-                v-if="index > 0 && form.editable.value"
-                icon="mdi-close"
-                variant="text"
-                aria-label="Quitar empleador"
-                @click="form.model.value.employment.employers.splice(index, 1)"
-              />
-            </div>
-            <v-btn v-if="form.editable.value" class="mb-4" variant="tonal" @click="addEmployer">
-              + Agregar CUIT empleador
-            </v-btn>
-            <v-row dense>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.model.value.employment.currentInsurance"
-                  label="Obra social actual"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('employment.currentInsurance')"
-                  @update:model-value="clearFieldError('employment.currentInsurance')"
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  :model-value="form.model.value.employment.grossSalary ?? ''"
-                  type="number"
-                  label="Sueldo bruto (s/ aporte)"
-                  step="0.01"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('employment.grossSalary')"
-                  @update:model-value="
-                    clearFieldError('employment.grossSalary');
-                    form.model.value!.employment.grossSalary =
-                      $event === '' ? null : Number($event);
-                  "
-                />
-              </v-col>
-            </v-row>
+            <SaleEmploymentFields
+              v-model="form.model.value.employment"
+              :disabled="!form.editable.value"
+              :field-errors="allFieldErrors"
+              @clear-field-error="clearFieldError"
+            />
           </template>
 
           <template v-else-if="section === 'tax'">
-            <h2 class="text-h6 mb-4">Situación impositiva</h2>
-            <v-row dense>
-              <v-col cols="12" md="4">
-                <v-select
-                  v-model="form.model.value.taxInfo.monotaxCategory"
-                  :items="MONOTAX_CATEGORIES"
-                  label="Categoría de monotributo"
-                  clearable
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('taxInfo.monotaxCategory')"
-                  @update:model-value="clearFieldError('taxInfo.monotaxCategory')"
-                />
-              </v-col>
-              <v-col cols="12" md="8">
-                <v-text-field
-                  v-model="form.model.value.taxInfo.currentInsurance"
-                  label="Obra social actual"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('taxInfo.currentInsurance')"
-                  @update:model-value="clearFieldError('taxInfo.currentInsurance')"
-                />
-              </v-col>
-            </v-row>
+            <SaleTaxFields
+              v-model="form.model.value.taxInfo"
+              :disabled="!form.editable.value"
+              :field-errors="allFieldErrors"
+              @clear-field-error="clearFieldError"
+            />
           </template>
 
           <template v-else-if="section === 'billing'">
-            <h2 class="text-h6 mb-2">Cobranza y facturación</h2>
-            <v-alert type="info" variant="tonal" class="mb-4" density="compact">
-              No envíes el número completo de tarjeta ni el CVV. Con CBU/CVU/ALIAS alcanza el dato
-              textual.
-            </v-alert>
-            <v-row dense>
-              <v-col cols="12" md="4">
-                <v-select
-                  v-model="form.model.value.billing.paymentMethod"
-                  :items="PAYMENT_METHOD_OPTIONS"
-                  label="Forma de pago"
-                  clearable
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('billing.paymentMethod')"
-                  @update:model-value="clearFieldError('billing.paymentMethod')"
-                />
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-select
-                  :model-value="
-                    form.model.value.billing.holderIsPayer === null
-                      ? null
-                      : form.model.value.billing.holderIsPayer
-                        ? 'Si'
-                        : 'No'
-                  "
-                  :items="['Si', 'No']"
-                  label="¿El titular es el pagador?"
-                  clearable
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('billing.holderIsPayer')"
-                  @update:model-value="
-                    clearFieldError('billing.holderIsPayer');
-                    form.model.value!.billing.holderIsPayer =
-                      $event === 'Si' ? true : $event === 'No' ? false : null;
-                  "
-                />
-              </v-col>
-            </v-row>
-
-            <template v-if="form.model.value.billing.holderIsPayer === true">
-              <v-text-field
-                v-if="form.model.value.billing.paymentMethod === 'CBU'"
-                v-model="form.model.value.billing.paymentMedium"
-                class="mt-2"
-                label="CBU/CVU/ALIAS"
-                :disabled="!form.editable.value"
-                v-bind="fieldProps('billing.paymentMedium')"
-                @update:model-value="clearFieldError('billing.paymentMedium')"
-              />
-              <v-row v-if="form.model.value.billing.paymentMethod === 'CARD'" dense class="mt-2">
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.model.value.billing.cardBrand"
-                    label="Marca de tarjeta"
-                    :disabled="!form.editable.value"
-                    v-bind="fieldProps('billing.cardBrand')"
-                    @update:model-value="clearFieldError('billing.cardBrand')"
-                  />
-                </v-col>
-                <v-col cols="12" md="4">
-                  <v-text-field
-                    v-model="form.model.value.billing.cardLastFour"
-                    label="Últimos 4 dígitos"
-                    maxlength="4"
-                    :disabled="!form.editable.value"
-                    v-bind="fieldProps('billing.cardLastFour')"
-                    @update:model-value="clearFieldError('billing.cardLastFour')"
-                  />
-                </v-col>
-                <v-col cols="6" md="2">
-                  <v-text-field
-                    :model-value="form.model.value.billing.cardExpiryMonth ?? ''"
-                    type="number"
-                    label="Mes"
-                    min="1"
-                    max="12"
-                    :disabled="!form.editable.value"
-                    v-bind="fieldProps('billing.cardExpiryMonth')"
-                    @update:model-value="
-                      clearFieldError('billing.cardExpiryMonth');
-                      form.model.value!.billing.cardExpiryMonth =
-                        $event === '' ? null : Number($event);
-                    "
-                  />
-                </v-col>
-                <v-col cols="6" md="2">
-                  <v-text-field
-                    :model-value="form.model.value.billing.cardExpiryYear ?? ''"
-                    type="number"
-                    label="Año"
-                    :disabled="!form.editable.value"
-                    v-bind="fieldProps('billing.cardExpiryYear')"
-                    @update:model-value="
-                      clearFieldError('billing.cardExpiryYear');
-                      form.model.value!.billing.cardExpiryYear =
-                        $event === '' ? null : Number($event);
-                    "
-                  />
-                </v-col>
-              </v-row>
-            </template>
-
-            <v-row v-else-if="form.model.value.billing.holderIsPayer === false" dense class="mt-2">
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.model.value.billing.payerIdentifier"
-                  label="CUIT / CUIL del pagador"
-                  maxlength="11"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('billing.payerIdentifier')"
-                  @update:model-value="clearFieldError('billing.payerIdentifier')"
-                />
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.model.value.billing.payerEmail"
-                  label="Email del pagador"
-                  type="email"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('billing.payerEmail')"
-                  @update:model-value="clearFieldError('billing.payerEmail')"
-                />
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="form.model.value.billing.payerPhone"
-                  label="Teléfono del pagador"
-                  :disabled="!form.editable.value"
-                  v-bind="fieldProps('billing.payerPhone')"
-                  @update:model-value="clearFieldError('billing.payerPhone')"
-                />
-              </v-col>
-            </v-row>
+            <SaleBillingFields
+              v-model="form.model.value.billing"
+              :disabled="!form.editable.value"
+              :field-errors="allFieldErrors"
+              @clear-field-error="clearFieldError"
+            />
           </template>
 
           <template v-else-if="section === 'documents'">
             <h2 class="text-h6 mb-2">Documentación respaldatoria</h2>
+            <ErrorState
+              v-if="documentsQuery.error.value"
+              :message="apiErrorMessage(documentsQuery.error.value)"
+              :loading="documentsQuery.isFetching.value"
+              @retry="documentsQuery.refetch()"
+            />
             <v-alert
               v-if="allFieldErrors.documents"
               type="error"
@@ -695,37 +516,42 @@ async function onSubmitConfirm(): Promise<void> {
           </template>
         </v-card>
 
-        <div class="d-flex flex-wrap justify-space-between ga-2">
-          <v-btn variant="tonal" :disabled="sections[0]?.id === section" @click="goSection(-1)">
-            Anterior
-          </v-btn>
-          <div class="d-flex flex-wrap ga-2">
-            <v-btn
-              v-if="form.editable.value"
-              variant="tonal"
-              :loading="form.saveStatus.value === 'saving'"
-              @click="form.persist()"
-            >
-              Guardar borrador
+        <v-card class="pa-4">
+          <p class="text-body-2 text-medium-emphasis mb-3" role="status">{{ presentationHint }}</p>
+          <div class="d-flex flex-wrap justify-space-between ga-2">
+            <v-btn variant="tonal" :disabled="sections[0]?.id === section" @click="goSection(-1)">
+              Anterior
             </v-btn>
-            <v-btn
-              v-if="sections[sections.length - 1]?.id !== section"
-              color="primary"
-              variant="tonal"
-              @click="goSection(1)"
-            >
-              Continuar
-            </v-btn>
-            <v-btn
-              v-if="form.editable.value"
-              color="primary"
-              :loading="submitMutation.isPending.value"
-              @click="submitConfirm = true"
-            >
-              Presentar venta
-            </v-btn>
+            <div class="d-flex flex-wrap ga-2">
+              <v-btn
+                v-if="form.editable.value"
+                variant="tonal"
+                :loading="form.saveStatus.value === 'saving'"
+                @click="form.persist()"
+              >
+                Guardar borrador
+              </v-btn>
+              <v-btn
+                v-if="sections[sections.length - 1]?.id !== section"
+                color="primary"
+                :variant="canPresent ? 'tonal' : 'flat'"
+                @click="goSection(1)"
+              >
+                Continuar
+              </v-btn>
+              <v-btn
+                v-if="form.editable.value"
+                :color="canPresent ? 'primary' : 'secondary'"
+                :variant="canPresent ? 'flat' : 'outlined'"
+                :loading="submitMutation.isPending.value"
+                :disabled="!canPresent"
+                @click="submitConfirm = true"
+              >
+                Presentar venta
+              </v-btn>
+            </div>
           </div>
-        </div>
+        </v-card>
       </v-col>
     </v-row>
 

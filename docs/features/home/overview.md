@@ -2,7 +2,7 @@
 
 | Field        | Value       |
 | ------------ | ----------- |
-| Last updated | 2026-10-25  |
+| Last updated | 2026-10-26  |
 | Version      | 0.1.0       |
 | Status       | Implemented |
 
@@ -31,7 +31,7 @@ Priority (first match wins):
 3. KPI cards (clickable when a filtered route exists)
 4. Alerts / attention queue
 5. Chart(s) only when the API returns non-zero series
-6. Recent activity (role-specific)
+6. Recent activity (role-specific): seller sales and admin security events show at most the latest five records, sorted by update/event timestamp descending without mutating the API response. Full lists remain available via Ver todas / Ver auditoría. Administrative priorities show the first five sales in API priority order, with Ver cola linking to the complete queue. Upcoming follow-ups and seller pace lists keep their existing behavior.
 
 Period: seller and administrative lock to the current BA month. Supervisor allows past months and an optional team; admin allows past months for its global overview. `HomePeriodFilters` syncs to the route query, with month/year side by side on phones. Admin does not expose a team selector because the endpoint computes global metrics regardless of `teamId`.
 

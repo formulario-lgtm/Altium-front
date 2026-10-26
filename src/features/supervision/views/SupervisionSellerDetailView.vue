@@ -196,9 +196,7 @@ function openSale(id: string): void {
               v-for="sale in sellerQuery.data.value.recentSales"
               :key="sale.id"
               :title="formatSaleNumber(sale.saleNumber)"
-              :subtitle="
-                sale.firstSubmittedAt ? formatDateTime(sale.firstSubmittedAt) : ''
-              "
+              :subtitle="sale.firstSubmittedAt ? formatDateTime(sale.firstSubmittedAt) : ''"
               :disabled="!canOpenSale || !sale.id"
               @click="sale.id && openSale(sale.id)"
             >

@@ -55,6 +55,7 @@ export type SaleListQuery = NonNullable<operations['Sales_listSales']['parameter
 export type CreateSaleBody = Schemas['CreateSaleDto'];
 export type UpdateSaleBody = Schemas['UpdateSaleDto'];
 export type ReturnSaleBody = Schemas['ReturnSaleDto'];
+export type ResolveSaleBody = Schemas['ResolveSaleDto'];
 export type SaleMember = Schemas['SaleMemberDto'];
 export type SaleMemberInput = Schemas['SaleMemberInputDto'];
 export type SaleDocuments = Schemas['SaleDocumentsResponseDto'];

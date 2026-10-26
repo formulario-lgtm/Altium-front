@@ -7,11 +7,13 @@ import {
   resolveSaleObservation,
   setSaleAssignee,
   startSaleReview,
+  resolveSale,
   listSaleFollowUps,
   listSaleObservations,
   type CreateSaleFollowUpBody,
   type CreateSaleObservationBody,
   type PatchSaleAssigneeBody,
+  type ResolveSaleBody,
 } from '@/services/http';
 import { queryKeys } from '@/services/http/query-keys';
 
@@ -51,6 +53,22 @@ export function useSaleFollowUpsQuery(id: MaybeRefOrGetter<string>) {
     queryFn: ({ signal }) => listSaleFollowUps(toValue(id), { signal }),
     enabled: computed(() => Boolean(toValue(id))),
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useResolveSaleMutation() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: ResolveSaleBody }) => resolveSale(id, body),
+    onSuccess: async (sale) => {
+      client.setQueryData(queryKeys.sales.detail(sale.id), sale);
+      await Promise.all([
+        invalidateSaleWorkspace(client, sale.id),
+        client.invalidateQueries({ queryKey: queryKeys.home.all }),
+        client.invalidateQueries({ queryKey: queryKeys.supervision.all }),
+        client.invalidateQueries({ queryKey: queryKeys.audit.all }),
+      ]);
+    },
   });
 }
 

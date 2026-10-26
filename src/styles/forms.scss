@@ -123,32 +123,34 @@
   padding: 0.65rem 0.5rem !important;
 }
 
-/* ——— Native date / time inside fields ——— */
+/* ——— Shared date fields and calendar ——— */
 
-.v-field input[type='date'],
-.v-field input[type='time'],
-.v-field input[type='datetime-local'],
-.v-field input[type='month'],
-.v-field input[type='week'] {
-  color-scheme: inherit;
-  font: inherit;
-}
-
-.v-field input[type='date']::-webkit-calendar-picker-indicator,
-.v-field input[type='time']::-webkit-calendar-picker-indicator,
-.v-field input[type='datetime-local']::-webkit-calendar-picker-indicator,
-.v-field input[type='month']::-webkit-calendar-picker-indicator,
-.v-field input[type='week']::-webkit-calendar-picker-indicator {
+.altium-date-field .v-field__input,
+.altium-date-field .v-field__append-inner {
   cursor: pointer;
-  opacity: 0.75;
 }
 
-.v-theme--dark .v-field input[type='date']::-webkit-calendar-picker-indicator,
-.v-theme--dark .v-field input[type='time']::-webkit-calendar-picker-indicator,
-.v-theme--dark .v-field input[type='datetime-local']::-webkit-calendar-picker-indicator,
-.v-theme--dark .v-field input[type='month']::-webkit-calendar-picker-indicator,
-.v-theme--dark .v-field input[type='week']::-webkit-calendar-picker-indicator {
-  filter: invert(0.85) sepia(0.35) saturate(3.5) hue-rotate(185deg);
+.altium-date-field .v-field__input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.altium-date-calendar {
+  width: min(360px, calc(100vw - 24px));
+}
+.altium-date-calendar .v-picker {
+  border: 0;
+  box-shadow: none;
+}
+.altium-date-calendar .v-date-picker-month {
+  padding-inline: 8px;
+}
+
+/* Native time control inside DateField follows the active theme. */
+.v-theme--dark .v-field input[type='time'] {
+  color-scheme: dark;
+}
+.v-theme--light .v-field input[type='time'] {
+  color-scheme: light;
 }
 
 /* ——— Select / autocomplete menus ——— */

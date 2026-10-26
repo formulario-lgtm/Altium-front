@@ -5,9 +5,17 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue';
 import ErrorState from '@/components/common/ErrorState.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
+import EmptyState from '@/components/common/EmptyState.vue';
+import SaleDetailData from '../components/SaleDetailData.vue';
+import SaleDetailFields from '../components/SaleDetailFields.vue';
+import SaleDetailDocuments from '../components/SaleDetailDocuments.vue';
+import SaleResolutionNotice from '../components/SaleResolutionNotice.vue';
+import SaleAssigneeNotice from '../components/SaleAssigneeNotice.vue';
 import { apiErrorMessage, isApiError } from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
 import { formatDateTime, formatSaleNumber } from '@/utils/format';
+import { getSaleReadiness } from '../utils/sale-readiness';
+import { saleToFormModel } from '../utils/sale-form-model';
 import {
   useDownloadSaleDocumentMutation,
   useExportSaleMutation,
@@ -22,10 +30,7 @@ import {
   canEditSaleStatus,
   canReturnForCorrection,
   customerTypeLabel,
-  documentTypeLabel,
-  memberTypeLabel,
   saleHistoryReasonLabel,
-  PAYMENT_METHOD_OPTIONS,
 } from '../utils/sale-labels';
 
 const route = useRoute();
@@ -49,6 +54,21 @@ const canReturn = computed(() => auth.hasPermission('sales.return'));
 const canReviewAdmin = computed(() => auth.hasPermission('sales.review'));
 const sale = computed(() => saleQuery.data.value);
 const editable = computed(() => canEditSaleStatus(sale.value?.status));
+const readiness = computed(() =>
+  getSaleReadiness(
+    sale.value ? saleToFormModel(sale.value) : null,
+    documentsQuery.error.value ? undefined : documentsQuery.data.value,
+  ),
+);
+const readyToPresent = computed(
+  () =>
+    canSubmit.value &&
+    editable.value &&
+    readiness.value.ready &&
+    !documentsQuery.isFetching.value &&
+    !documentsQuery.error.value &&
+    !saleQuery.isFetching.value,
+);
 const canReturnSale = computed(() => canReturn.value && canReturnForCorrection(sale.value?.status));
 const showCorrections = computed(
   () =>
@@ -62,13 +82,19 @@ const returnConfirm = ref(false);
 const returnReason = ref('');
 const actionError = ref<string | null>(null);
 
-const paymentMethodLabel = computed(() => {
-  const method = sale.value?.billing?.paymentMethod;
-  return PAYMENT_METHOD_OPTIONS.find((option) => option.value === method)?.title ?? '—';
+const holderName = computed(() => {
+  const holder = sale.value?.members.find((member) => member.memberType === 'HOLDER');
+  return [holder?.firstName, holder?.lastName].filter(Boolean).join(' ') || 'Titular sin completar';
 });
+const history = computed(() =>
+  [...(historyQuery.data.value?.items ?? [])].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  ),
+);
 
 async function onSubmit(): Promise<void> {
   submitConfirm.value = false;
+  if (!readyToPresent.value) return;
   actionError.value = null;
   try {
     await submitMutation.mutateAsync(saleId.value);
@@ -102,12 +128,12 @@ async function onReturn(): Promise<void> {
   <div>
     <PageHeader
       :title="sale ? `Venta ${formatSaleNumber(sale.saleNumber)}` : 'Detalle de venta'"
-      :subtitle="sale ? `Prepaga: ${sale.healthInsurer?.name ?? '—'}` : 'Cargando…'"
+      :subtitle="sale ? holderName : 'Cargando…'"
     >
       <template #actions>
-        <div class="d-flex flex-wrap ga-2">
+        <div class="d-flex align-center flex-wrap ga-2">
           <StatusBadge v-if="sale" :status="sale.status" />
-          <v-btn variant="text" :to="{ name: 'sales' }">Volver</v-btn>
+          <v-btn variant="text" prepend-icon="mdi-arrow-left" :to="{ name: 'sales' }">Volver</v-btn>
           <v-btn
             v-if="canReviewAdmin"
             variant="tonal"
@@ -118,7 +144,8 @@ async function onReturn(): Promise<void> {
           <v-btn
             v-if="canUpdate && editable"
             color="primary"
-            variant="tonal"
+            :variant="readyToPresent ? 'tonal' : 'flat'"
+            prepend-icon="mdi-pencil-outline"
             :to="{ name: 'sale-edit', params: { id: saleId } }"
           >
             Editar
@@ -126,7 +153,14 @@ async function onReturn(): Promise<void> {
           <v-btn
             v-if="canSubmit && editable"
             color="primary"
+            :variant="readyToPresent ? 'flat' : 'outlined'"
             :loading="submitMutation.isPending.value"
+            :disabled="!readyToPresent"
+            :title="
+              readyToPresent
+                ? undefined
+                : 'Completá los datos obligatorios y la documentación desde Editar.'
+            "
             @click="submitConfirm = true"
           >
             Presentar
@@ -143,6 +177,7 @@ async function onReturn(): Promise<void> {
           <v-btn
             v-if="canExport && sale && sale.status !== 'DRAFT'"
             variant="tonal"
+            prepend-icon="mdi-download"
             :loading="exportMutation.isPending.value"
             @click="exportMutation.mutate(saleId)"
           >
@@ -151,6 +186,8 @@ async function onReturn(): Promise<void> {
         </div>
       </template>
     </PageHeader>
+
+    <SaleAssigneeNotice v-if="sale" :assignee="sale.administrativeAssignee" />
 
     <ErrorState
       v-if="saleQuery.error.value"
@@ -167,6 +204,13 @@ async function onReturn(): Promise<void> {
     />
 
     <template v-else-if="sale">
+      <SaleResolutionNotice
+        :status="sale.status"
+        :history="historyQuery.data.value"
+        :loading="historyQuery.isFetching.value"
+        :error="!!historyQuery.error.value"
+        @retry="historyQuery.refetch()"
+      />
       <v-alert
         v-if="actionError"
         type="error"
@@ -192,186 +236,94 @@ async function onReturn(): Promise<void> {
         </template>
       </v-alert>
 
-      <v-row dense>
-        <v-col cols="12" md="8">
-          <v-card class="pa-4 pa-md-6 mb-4">
-            <h2 class="text-h6 mb-4">Resumen</h2>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                <div class="text-caption text-medium-emphasis">Tipo de venta</div>
-                <div>{{ customerTypeLabel(sale.customerType) }}</div>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <div class="text-caption text-medium-emphasis">Plan</div>
-                <div>{{ sale.healthPlan?.name ?? '—' }}</div>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <div class="text-caption text-medium-emphasis">Creada</div>
-                <div>{{ formatDateTime(sale.createdAt) }}</div>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <div class="text-caption text-medium-emphasis">Presentada</div>
-                <div>{{ sale.submittedAt ? formatDateTime(sale.submittedAt) : '—' }}</div>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <div class="text-caption text-medium-emphasis">Última modificación</div>
-                <div>{{ formatDateTime(sale.updatedAt) }}</div>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <div class="text-caption text-medium-emphasis">Vendedor</div>
-                <div>{{ sale.seller.firstName }} {{ sale.seller.lastName }}</div>
-              </v-col>
-            </v-row>
-          </v-card>
+      <v-card class="pa-4 pa-md-6 mb-4" data-testid="sale-detail-summary">
+        <div class="d-flex flex-wrap justify-space-between align-center ga-3 mb-5">
+          <h2 class="text-h6">Cobertura de la venta</h2>
+          <v-chip variant="tonal" prepend-icon="mdi-account-group-outline"
+            >{{ sale.members.length }}
+            {{ sale.members.length === 1 ? 'integrante' : 'integrantes' }}</v-chip
+          >
+        </div>
+        <SaleDetailFields
+          wide
+          :fields="[
+            { label: 'Prepaga', value: sale.healthInsurer?.name },
+            { label: 'Plan', value: sale.healthPlan?.name },
+            {
+              label: 'Tipo de venta',
+              value: sale.customerType ? customerTypeLabel(sale.customerType) : null,
+            },
+            { label: 'Titular', value: holderName },
+          ]"
+        />
+      </v-card>
 
-          <v-card class="pa-4 pa-md-6 mb-4">
-            <h2 class="text-h6 mb-4">Integrantes</h2>
-            <v-table density="comfortable">
-              <thead>
-                <tr>
-                  <th>Rol</th>
-                  <th>Nombre</th>
-                  <th>CUIL</th>
-                  <th>Edad</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="member in sale.members" :key="member.id">
-                  <td>{{ memberTypeLabel(member.memberType) }}</td>
-                  <td>
-                    {{ [member.lastName, member.firstName].filter(Boolean).join(', ') || '—' }}
-                  </td>
-                  <td>{{ member.cuil ?? '—' }}</td>
-                  <td>{{ member.age ?? '—' }}</td>
-                </tr>
-              </tbody>
-            </v-table>
-          </v-card>
+      <v-alert
+        v-if="canUpdate && editable && !readyToPresent"
+        type="info"
+        class="mb-4"
+        title="Esta venta todavía está en preparación"
+        :text="
+          documentsQuery.error.value
+            ? 'No pudimos verificar la documentación. Reintentá la carga antes de presentar.'
+            : documentsQuery.isFetching.value || saleQuery.isFetching.value
+              ? 'Verificando los datos y la documentación de la venta…'
+              : `Completá o corregí los ${readiness.pending.length} requisitos pendientes desde Editar para presentar la venta.`
+        "
+      />
 
-          <v-card class="pa-4 pa-md-6 mb-4">
-            <h2 class="text-h6 mb-4">Contacto</h2>
-            <v-row dense>
-              <v-col cols="12" sm="6">
-                {{ sale.contact?.areaCode ?? '' }} {{ sale.contact?.phone ?? '—' }}
-              </v-col>
-              <v-col cols="12" sm="6">{{ sale.contact?.email ?? '—' }}</v-col>
-              <v-col cols="12">{{ sale.contact?.address ?? '—' }}</v-col>
-              <v-col cols="12" sm="6">{{ sale.contact?.postalCode ?? '—' }}</v-col>
-              <v-col cols="12" sm="6">{{ sale.contact?.province ?? '—' }}</v-col>
-            </v-row>
-          </v-card>
+      <v-row>
+        <v-col cols="12" md="8" class="sale-detail-column">
+          <SaleDetailData :sale="sale" />
 
-          <v-card v-if="sale.employment" class="pa-4 pa-md-6 mb-4">
-            <h2 class="text-h6 mb-4">Situación laboral</h2>
-            <div v-for="employer in sale.employment.employers" :key="employer.id" class="mb-1">
-              CUIT: {{ employer.employerCuit }}
-            </div>
-            <div>Obra social: {{ sale.employment.currentInsurance ?? '—' }}</div>
-            <div>Sueldo bruto: {{ sale.employment.grossSalary ?? '—' }}</div>
-          </v-card>
-
-          <v-card v-if="sale.taxInfo" class="pa-4 pa-md-6 mb-4">
-            <h2 class="text-h6 mb-4">Situación impositiva</h2>
-            <div>Categoría: {{ sale.taxInfo.monotaxCategory ?? '—' }}</div>
-            <div>Obra social: {{ sale.taxInfo.currentInsurance ?? '—' }}</div>
-          </v-card>
-
-          <v-card class="pa-4 pa-md-6 mb-4">
-            <h2 class="text-h6 mb-4">Cobranza</h2>
-            <div>Forma de pago: {{ paymentMethodLabel }}</div>
-            <div>
-              Titular pagador:
-              {{
-                sale.billing?.holderIsPayer === true
-                  ? 'Sí'
-                  : sale.billing?.holderIsPayer === false
-                    ? 'No'
-                    : '—'
-              }}
-            </div>
-            <div v-if="sale.billing?.cardLastFour">
-              Tarjeta {{ sale.billing.cardBrand ?? '' }} **** {{ sale.billing.cardLastFour }}
-            </div>
-            <div
-              v-if="sale.billing?.paymentMethod === 'CBU' && sale.billing?.paymentMedium"
-            >
-              CBU/CVU/ALIAS: {{ sale.billing.paymentMedium }}
-            </div>
-          </v-card>
-
-          <v-card v-if="sale.observations" class="pa-4 pa-md-6 mb-4">
-            <h2 class="text-h6 mb-2">Observaciones del vendedor</h2>
-            <p class="mb-0">{{ sale.observations }}</p>
-          </v-card>
-
-          <v-card v-if="showCorrections" class="pa-4 pa-md-6 mb-4" data-testid="sale-corrections">
-            <h2 class="text-h6 mb-4">Solicitudes de corrección</h2>
+          <v-card v-if="showCorrections" class="pa-4 pa-md-6 mt-4" data-testid="sale-corrections">
+            <h2 class="text-h6 mb-4">Seguimiento de la venta</h2>
             <SaleObservationsPanel :sale-id="saleId" />
           </v-card>
         </v-col>
 
-        <v-col cols="12" md="4">
-          <v-card class="pa-4 mb-4">
-            <h2 class="text-h6 mb-3">Documentación</h2>
-            <v-list density="compact">
-              <v-list-item
-                v-for="category in documentsQuery.data.value?.requiredCategories ?? []"
-                :key="`${category.documentType}-${category.saleMemberId ?? 'sale'}`"
-              >
-                <v-list-item-title class="text-wrap">{{ category.label }}</v-list-item-title>
-                <template #append>
-                  <v-chip
-                    size="x-small"
-                    variant="tonal"
-                    :color="category.satisfied ? 'success' : 'warning'"
-                  >
-                    {{ category.satisfied ? 'Completo' : 'Pendiente' }}
-                  </v-chip>
-                </template>
-              </v-list-item>
-            </v-list>
-            <v-list v-if="documentsQuery.data.value?.items?.length" density="compact" class="mt-2">
-              <v-list-item v-for="doc in documentsQuery.data.value.items" :key="doc.id">
-                <v-list-item-title class="text-wrap">
-                  {{ doc.originalFilename || 'Archivo' }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ documentTypeLabel(doc.documentType) }}
-                </v-list-item-subtitle>
-                <template #append>
-                  <v-btn
-                    icon="mdi-download"
-                    variant="text"
-                    size="small"
-                    aria-label="Descargar"
-                    :loading="
-                      downloadMutation.isPending.value &&
-                      downloadMutation.variables.value?.documentId === doc.id
-                    "
-                    @click="
-                      downloadMutation.mutate({
-                        documentId: doc.id,
-                        filename: doc.originalFilename,
-                      })
-                    "
-                  />
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card>
+        <v-col cols="12" md="4" class="sale-detail-column">
+          <SaleDetailDocuments
+            class="mb-4"
+            :documents="documentsQuery.data.value"
+            :loading="documentsQuery.isFetching.value"
+            :error="
+              documentsQuery.error.value ? apiErrorMessage(documentsQuery.error.value) : undefined
+            "
+            :download-error="
+              downloadMutation.error.value
+                ? apiErrorMessage(downloadMutation.error.value)
+                : undefined
+            "
+            :downloading-id="
+              downloadMutation.isPending.value
+                ? downloadMutation.variables.value?.documentId
+                : undefined
+            "
+            @retry="documentsQuery.refetch()"
+            @download="downloadMutation.mutate($event)"
+          />
 
           <v-card class="pa-4">
-            <h2 class="text-h6 mb-3">Historial</h2>
-            <v-list
-              v-if="historyQuery.data.value?.items.length"
-              class="bg-transparent pa-0"
-              density="compact"
-            >
-              <v-list-item
-                v-for="entry in historyQuery.data.value.items"
-                :key="entry.id"
-                class="px-0"
-              >
+            <h2 class="text-h6 mb-1">
+              <v-icon icon="mdi-history" size="22" class="mr-2 text-primary" />Historial
+            </h2>
+            <p class="text-body-2 text-medium-emphasis mb-4">
+              Los movimientos más recientes primero.
+            </p>
+            <ErrorState
+              v-if="historyQuery.error.value"
+              :message="apiErrorMessage(historyQuery.error.value)"
+              @retry="historyQuery.refetch()"
+            />
+            <v-progress-linear
+              v-else-if="historyQuery.isLoading.value"
+              indeterminate
+              color="primary"
+              aria-label="Cargando historial"
+            />
+            <v-list v-else-if="history.length" class="bg-transparent pa-0" density="compact">
+              <v-list-item v-for="entry in history" :key="entry.id" class="px-0">
                 <v-list-item-title class="text-wrap">
                   <div class="text-caption text-medium-emphasis mb-1">
                     {{ formatDateTime(entry.createdAt) }}
@@ -383,15 +335,21 @@ async function onReturn(): Promise<void> {
                     <StatusBadge :status="entry.toStatus" />
                   </div>
                 </v-list-item-title>
-                <v-list-item-subtitle
+                <p
                   v-if="saleHistoryReasonLabel(entry.reason)"
-                  class="text-wrap mt-1"
+                  class="text-body-2 text-medium-emphasis text-break mt-1 mb-0"
                 >
                   {{ saleHistoryReasonLabel(entry.reason) }}
-                </v-list-item-subtitle>
+                </p>
               </v-list-item>
             </v-list>
-            <p v-else class="text-medium-emphasis mb-0">Sin cambios de estado.</p>
+            <EmptyState
+              v-else
+              compact
+              title="Sin cambios de estado"
+              text="Los próximos movimientos se mostrarán acá."
+              icon="mdi-history"
+            />
           </v-card>
         </v-col>
       </v-row>
@@ -426,3 +384,9 @@ async function onReturn(): Promise<void> {
     </ConfirmDialog>
   </div>
 </template>
+
+<style scoped>
+.sale-detail-column {
+  min-width: 0;
+}
+</style>

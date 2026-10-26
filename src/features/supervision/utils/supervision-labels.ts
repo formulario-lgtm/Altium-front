@@ -109,6 +109,8 @@ export function saleStatusLabel(status: string): string {
     SUBMITTED: 'Presentada',
     IN_REVIEW: 'En revisión',
     RETURNED: 'Devuelta',
+    APPROVED: 'Aprobada',
+    REJECTED: 'Rechazada',
   };
   return map[status] ?? status;
 }

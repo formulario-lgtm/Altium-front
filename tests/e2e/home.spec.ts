@@ -30,19 +30,24 @@ test.describe('Home by role', () => {
           kpi.code === 'COMPLIANCE' ? { ...kpi, value: null, availability: 'NO_GOAL' } : kpi,
         );
       }
-      home.recentSales = Array.from({ length: 5 }, (_, index) => ({
+      home.recentSales = Array.from({ length: 8 }, (_, index) => ({
         ...home.recentSales[0]!,
         id: `a1b2c3d4-3333-4000-8000-00000000000${index + 1}`,
-        saleNumber: `V-00000${5 - index}`,
+        saleNumber: `V-00000${index < 5 ? 5 - index : index + 1}`,
+        updatedAt: `2026-10-${String(25 - index).padStart(2, '0')}T12:00:00.000Z`,
         status: index === 0 ? 'SUBMITTED' : 'DRAFT',
         holderFirstName: index === 4 ? null : index === 3 ? ' José ' : 'María',
         holderLastName: index >= 3 ? null : 'Gómez',
       }));
+      home.recentSales.reverse();
       await page.route('**/api/v1/home/seller?*', (route) => route.fulfill({ json: home }));
       await page.goto('/');
       await expect(page.getByTestId('seller-progress')).toBeVisible();
       const holders = page.getByTestId('home-sale-holder');
       await expect(holders).toHaveCount(5);
+      await expect(
+        page.getByTestId('seller-activity').getByRole('link', { name: 'Ver todas' }),
+      ).toBeVisible();
       await expect(holders.nth(0)).toHaveText('María Gómez');
       await expect(
         page.getByRole('link', { name: /Venta 5.*Ver detalle/ }).locator('.v-list-item-title'),

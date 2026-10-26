@@ -10,7 +10,9 @@ withDefaults(
 
 <template>
   <section class="home-section d-flex flex-column flex-grow-1 h-100 w-100 mb-6">
-    <header class="home-section__header d-flex flex-wrap align-start justify-space-between ga-2 mb-3">
+    <header
+      class="home-section__header d-flex flex-wrap align-start justify-space-between ga-2 mb-3"
+    >
       <div class="home-section__titles min-w-0 flex-grow-1">
         <h2 class="text-subtitle-1 font-weight-bold mb-0">{{ title }}</h2>
         <!-- Always reserve one subtitle line so paired columns share the same baseline. -->

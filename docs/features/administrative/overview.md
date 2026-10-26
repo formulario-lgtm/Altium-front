@@ -2,7 +2,7 @@
 
 | Field        | Value       |
 | ------------ | ----------- |
-| Last updated | 2026-10-25  |
+| Last updated | 2026-10-26  |
 | Version      | 0.1.0       |
 | Status       | Implemented |
 
@@ -39,7 +39,9 @@ Actions by status/permission:
 
 - `SUBMITTED` → iniciar revisión (`sales.review`), solicitar corrección (`sales.return` + motivo).
 - `IN_REVIEW` → corrección, nota interna, seguimiento, tomar responsabilidad (`PATCH …/assignee`).
+- `SUBMITTED` / `IN_REVIEW` → Aprobar / Rechazar (`sales.review`). `SaleResolutionActions` requires confirmation and a trimmed 3–2000 character rejection reason (optional approval note). The dialog captures the sale version at opening; stale decisions remain unconfirmed and offer Revisar versión actual.
 - `RETURNED` → consulta; wait for seller resubmit.
+- `APPROVED` / `REJECTED` → final, read-only. `SaleResolutionNotice` shows reason, actor and date from scoped history and offers retry on load errors. No edit, return, resubmit, notes, correction resolution, follow-up or assignment controls. Existing documents/history/export remain accessible. Backend closes pending follow-ups and notifies the seller.
 
 Return is never optimistic: waits for API success before closing the dialog.
 
@@ -49,6 +51,7 @@ Work queue of sales (backend status filter) plus dashboard pending count. Per-sa
 
 ## Components
 
+- `AdminSaleData` renders complete business data for details, family members, employment/tax and billing using the typed Sale API contract and shared labelled fields. Personal/medical data is expanded for every member; no summary-only table or clinical-data omission notice. FUM and preexisting-condition descriptions appear when applicable or saved. Payment expiration, alternative payer and provider reference are included; card data remains limited to the brand/last-four metadata stored by the API. Employment/tax sections remain visible for the corresponding customer type even when data is missing.
 - `AdminReviewSectionNav`, `SaleObservationsPanel`, `SaleFollowUpsPanel`
 - Global `NotificationsMenu` in `AppHeader`
 
@@ -73,4 +76,20 @@ Work queue of sales (backend status filter) plus dashboard pending count. Per-sa
 
 ## Out of scope
 
-Email/push, approval/final states, assignment admin UI (`administrative.assignments.manage`), calendar widgets, inventing list filters absent from OpenAPI.
+Email/push, reopening final cases, assignment admin UI (`administrative.assignments.manage`), calendar widgets, inventing list filters absent from OpenAPI.
+
+## Insurer resolution integration
+
+`POST /api/v1/sales/{id}/resolve` sends the generated `ResolveSaleBody` (APPROVED/REJECTED, version and conditional reason). Success refreshes sale detail/history, lists, follow-ups, administrative dashboard, home, supervision, audit and notifications. Server permission and data scope remain authoritative. Monthly actions include resolutions; presentation metrics retain their original meaning. E2E: `sale-resolution.spec.ts` covers both decisions, required rejection reason, CSRF, stale version recovery and seller/supervisor/admin visibility.
+
+## Shared date controls
+
+Date filters and form dates use [DateField](../../components/date-field.md): themed calendar, full-control activation, right-aligned icon and Spanish date display. Date-only models remain YYYY-MM-DD. Follow-up date/time models remain local YYYY-MM-DDTHH:mm until the existing HTTP conversion.
+
+## Contact data and responsibility
+
+The review Contacto section reuses `SaleDetailFields` to label phone, email, address, postal code and province, with Sin completar for absent values and a responsive grid. Tomar responsabilidad assigns the current user as the administrative assignee; it does not change sale status. Iniciar revisión automatically assigns the actor only when no assignee was set.
+
+The administrative assignee is displayed above every review section through `SaleAssigneeNotice`, and also in the general sale detail visible to sellers and other scoped roles. Tomar responsabilidad is offered only for unassigned IN_REVIEW cases; it is hidden for every existing assignee, including the current user. The handler also checks that the local sale is still unassigned. Success updates the assignee through the existing server mutation and query invalidation. No reassignment control is exposed here.
+
+Document review reuses `SaleDetailDocuments`: full filenames, required categories, associated family member, upload timestamp, size/status, download and explicit loading/error recovery. Seller observations keep line breaks. E2E coverage in `administrative-review-data.spec.ts` includes full family/medical fields, alternative payer, card expiration, multiple employers and incomplete applicable sections.
