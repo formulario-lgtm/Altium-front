@@ -118,7 +118,7 @@ function openHistory(goal: MonthlyGoal): void {
   <div data-testid="supervision-goals">
     <PageHeader
       title="Objetivos mensuales"
-      subtitle="Metas independientes por equipo o persona. Sin objetivo ? 0% de cumplimiento."
+      subtitle="Metas independientes por equipo o persona. Sin objetivo no se inventa un 0%."
     >
       <template v-if="canManage" #actions>
         <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">Nuevo objetivo</v-btn>
@@ -162,7 +162,6 @@ function openHistory(goal: MonthlyGoal): void {
         </template>
         <template #[`item.metric`]="{ item }">
           {{ goalTypeLabel(item.goal.goalType) }}
-          <span class="text-caption text-medium-emphasis">({{ item.goal.unit }})</span>
         </template>
         <template #[`item.subject`]="{ item }">
           {{ item.subjectLabel }}

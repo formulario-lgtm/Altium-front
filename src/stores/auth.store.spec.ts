@@ -49,6 +49,7 @@ describe('auth store', () => {
     expect(store.status).toBe('authenticated');
     expect(store.displayName).toBe('Ana Pérez');
     expect(store.roleCode).toBe('SUPERVISOR');
+    expect(getCsrfToken()).toBe('csrf-1');
     expect(store.hasPermission('users.read')).toBe(true);
     expect(store.hasPermission('users.create')).toBe(false);
     expect(store.hasAnyPermission(['users.create', 'teams.read'])).toBe(true);

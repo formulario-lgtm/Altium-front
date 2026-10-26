@@ -16,6 +16,40 @@ export function seriesHasData(series: readonly HomeSeriesPoint[] | undefined): b
   return (series ?? []).some((point) => point.count > 0);
 }
 
+/** Daily counts, deliberately separate from the monthly goal progress. */
+export function buildSellerPresentedOption(
+  series: readonly HomeSeriesPoint[],
+  palette: ChartPalette,
+): EChartsCoreOption {
+  return buildDailyCountOption(series, palette);
+}
+
+export function buildDailyCountOption(
+  series: readonly HomeSeriesPoint[],
+  palette: ChartPalette,
+  seriesName = 'Presentadas',
+): EChartsCoreOption {
+  return {
+    tooltip: { trigger: 'axis' },
+    grid: { left: 28, right: 8, top: 24, bottom: 28 },
+    xAxis: {
+      type: 'category',
+      data: series.map((point) => `${point.key.slice(8, 10)}/${point.key.slice(5, 7)}`),
+      ...baseAxis(palette),
+    },
+    yAxis: { type: 'value', min: 0, minInterval: 1, ...baseAxis(palette) },
+    series: [
+      {
+        name: seriesName,
+        type: 'bar',
+        barMaxWidth: 24,
+        data: series.map((point) => point.count),
+        itemStyle: { color: palette.primary, borderRadius: [4, 4, 0, 0] },
+      },
+    ],
+  };
+}
+
 export function buildPresentedLineOption(
   series: readonly HomeSeriesPoint[],
   palette: ChartPalette,
@@ -58,30 +92,27 @@ export function buildPresentedLineOption(
   return option;
 }
 
+/** Admin home returns a six-month series, not daily points. */
+export function buildMonthlyCountOption(
+  series: readonly HomeSeriesPoint[],
+  palette: ChartPalette,
+): EChartsCoreOption {
+  return {
+    ...buildDailyCountOption(series, palette),
+    xAxis: {
+      type: 'category',
+      data: series.map((point) => `${point.key.slice(5, 7)}/${point.key.slice(2, 4)}`),
+      ...baseAxis(palette),
+    },
+  };
+}
+
 export function buildActivityBarOption(
   series: readonly HomeSeriesPoint[],
   palette: ChartPalette,
   seriesName = 'Acciones',
 ): EChartsCoreOption {
-  return {
-    tooltip: { trigger: 'axis' },
-    legend: { data: [seriesName], textStyle: { color: palette.textSecondary } },
-    grid: { left: 40, right: 16, top: 40, bottom: 32 },
-    xAxis: {
-      type: 'category',
-      data: series.map((s) => dayLabel(s.key)),
-      ...baseAxis(palette),
-    },
-    yAxis: { type: 'value', name: 'Cantidad', minInterval: 1, ...baseAxis(palette) },
-    series: [
-      {
-        name: seriesName,
-        type: 'bar',
-        data: series.map((s) => s.count),
-        itemStyle: { color: palette.primary },
-      },
-    ],
-  };
+  return buildDailyCountOption(series, palette, seriesName);
 }
 
 export function buildComplianceBySellerOption(
@@ -98,24 +129,40 @@ export function buildComplianceBySellerOption(
       trigger: 'axis',
       valueFormatter: (v: unknown) => `${Number(v).toFixed(0)}%`,
     },
-    grid: { left: 100, right: 24, top: 24, bottom: 32 },
-    xAxis: { type: 'value', name: '%', ...baseAxis(palette) },
+    grid: {
+      left: 8,
+      right: 48,
+      top: 16,
+      bottom: 28,
+      outerBoundsMode: 'same',
+      outerBoundsContain: 'axisLabel',
+    },
+    xAxis: {
+      type: 'value',
+      min: 0,
+      max: Math.max(
+        100,
+        ...rows.map((seller) => Math.ceil((seller.compliancePercent ?? 0) / 25) * 25),
+      ),
+      ...baseAxis(palette),
+      axisLabel: { color: palette.textSecondary, formatter: '{value}%' },
+    },
     yAxis: {
       type: 'category',
-      data: rows.map((s) => s.lastName || s.firstName),
+      data: rows.map((s) => `${s.firstName} ${s.lastName}`.trim()),
+      inverse: true,
       ...baseAxis(palette),
+      axisLabel: { color: palette.textSecondary, width: 130, overflow: 'truncate' },
     },
     series: [
       {
         type: 'bar',
+        barMaxWidth: 20,
+        label: { show: true, position: 'right', formatter: '{c}%', color: palette.text },
         data: rows.map((s) => Math.round(s.compliancePercent ?? 0)),
         itemStyle: {
           color: (params: { data: number }) =>
-            params.data >= 100
-              ? palette.success
-              : params.data >= 70
-                ? palette.warning
-                : palette.error,
+            params.data >= 100 ? palette.success : palette.primary,
         },
       },
     ],
@@ -135,9 +182,20 @@ export function buildTeamPerformanceOption(
     tooltip: { trigger: 'axis' },
     legend: {
       data: ['Presentadas', 'Cumplimiento %'],
+      bottom: 0,
+      type: 'scroll',
+      itemWidth: 12,
+      itemHeight: 10,
       textStyle: { color: palette.textSecondary },
     },
-    grid: { left: 48, right: 48, top: 40, bottom: 48 },
+    grid: {
+      left: 36,
+      right: 36,
+      top: 32,
+      bottom: 64,
+      outerBoundsMode: 'same',
+      outerBoundsContain: 'axisLabel',
+    },
     xAxis: {
       type: 'category',
       data: teams.map((t) => t.teamName),
@@ -149,12 +207,22 @@ export function buildTeamPerformanceOption(
     },
     yAxis: [
       { type: 'value', name: 'Ventas', minInterval: 1, ...baseAxis(palette) },
-      { type: 'value', name: '%', max: 120, ...baseAxis(palette) },
+      {
+        type: 'value',
+        name: '%',
+        min: 0,
+        max: Math.max(
+          100,
+          ...teams.map((team) => Math.ceil((team.compliancePercent ?? 0) / 25) * 25),
+        ),
+        ...baseAxis(palette),
+      },
     ],
     series: [
       {
         name: 'Presentadas',
         type: 'bar',
+        barMaxWidth: 32,
         data: teams.map((t) => t.salesPresented),
         itemStyle: { color: palette.primary },
       },
@@ -162,6 +230,9 @@ export function buildTeamPerformanceOption(
         name: 'Cumplimiento %',
         type: 'line',
         yAxisIndex: 1,
+        symbol: 'circle',
+        symbolSize: 8,
+        label: { show: true, position: 'top', formatter: '{c}%', color: palette.success },
         data: teams.map((t) =>
           t.hasGoal && t.compliancePercent != null ? Math.round(t.compliancePercent) : null,
         ),

@@ -1890,7 +1890,7 @@
             "type": "string"
           },
           "cbuCapturePending": {
-            "description": "True when encrypted CBU storage is not yet available",
+            "description": "Deprecated: always false. CBU/CVU/ALIAS is stored in paymentMedium as plain text.",
             "type": "boolean"
           },
           "holderIsPayer": {
@@ -3180,7 +3180,7 @@
           },
           "recentSales": {
             "items": {
-              "$ref": "#/components/schemas/HomeSaleRefDto"
+              "$ref": "#/components/schemas/SellerRecentSaleDto"
             },
             "type": "array"
           },
@@ -3278,6 +3278,47 @@
         },
         "required": [
           "items"
+        ],
+        "type": "object"
+      },
+      "SellerRecentSaleDto": {
+        "properties": {
+          "holderFirstName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holderLastName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "saleNumber": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "SUBMITTED",
+              "IN_REVIEW",
+              "RETURNED"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "saleNumber",
+          "status",
+          "updatedAt",
+          "holderFirstName",
+          "holderLastName"
         ],
         "type": "object"
       },

@@ -6,6 +6,8 @@ defineProps<{
   icon: string;
   help?: string;
   clickable?: boolean;
+  /** Two-column mobile summaries without crowding the metric with an icon. */
+  compactMobile?: boolean;
 }>();
 
 const emit = defineEmits<{ click: [] }>();
@@ -22,7 +24,13 @@ const emit = defineEmits<{ click: [] }>();
     @keydown.enter="clickable && emit('click')"
   >
     <v-card-text class="d-flex align-start ga-3">
-      <v-avatar color="primary" variant="tonal" size="40" rounded="lg">
+      <v-avatar
+        color="primary"
+        variant="tonal"
+        size="40"
+        rounded="lg"
+        :class="{ 'd-none d-sm-flex': compactMobile }"
+      >
         <v-icon :icon="icon" />
       </v-avatar>
       <div class="min-w-0 flex-grow-1">
@@ -39,7 +47,13 @@ const emit = defineEmits<{ click: [] }>();
             </template>
           </v-tooltip>
         </div>
-        <p class="text-h5 font-weight-bold mb-1" data-testid="supervision-kpi-value">{{ value }}</p>
+        <p
+          :class="compactMobile ? 'text-h6 text-sm-h5' : 'text-h5'"
+          class="font-weight-bold mb-1"
+          data-testid="supervision-kpi-value"
+        >
+          {{ value }}
+        </p>
         <p class="text-caption text-medium-emphasis mb-0">{{ hint }}</p>
       </div>
     </v-card-text>

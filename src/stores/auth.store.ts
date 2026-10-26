@@ -2,12 +2,14 @@ import { defineStore } from 'pinia';
 import { computed, ref, shallowRef } from 'vue';
 import {
   clearCsrfToken,
+  setCsrfToken,
   isApiError,
   type AuthSessionResponse,
   type AuthSessionSummary,
   type AuthUser,
 } from '@/services/http';
 import { fetchMe } from '@/services/http/auth.service';
+import { advanceSessionVersion } from '@/services/http/session-version';
 
 export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -39,6 +41,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setSession(response: AuthSessionResponse): void {
     sessionEpoch += 1;
+    advanceSessionVersion();
+    setCsrfToken(response.csrfToken);
     user.value = response.user;
     permissions.value = [...response.permissions];
     session.value = response.session;
@@ -48,6 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function clearSession(): void {
     sessionEpoch += 1;
+    advanceSessionVersion();
     user.value = null;
     permissions.value = [];
     session.value = null;

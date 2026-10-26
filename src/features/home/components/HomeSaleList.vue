@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth.store';
 import EmptyState from '@/components/common/EmptyState.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import type { HomeSaleRef } from '@/services/http';
@@ -13,22 +13,35 @@ const props = withDefaults(
     emptyText?: string;
     /** Seller detail vs administrative review route. */
     reviewMode?: boolean;
+    /** Explicit sale labels and next action for the seller workspace. */
+    showAction?: boolean;
+    holderNames?: Readonly<Record<string, string>>;
   }>(),
   {
     emptyTitle: 'Sin operaciones',
     emptyText: 'No hay elementos para mostrar.',
     reviewMode: false,
+    showAction: false,
+    holderNames: undefined,
   },
 );
 
-const router = useRouter();
+const auth = useAuthStore();
 
-function open(sale: HomeSaleRef): void {
+function saleRoute(sale: HomeSaleRef) {
   if (props.reviewMode) {
-    void router.push({ name: 'admin-sale-review', params: { id: sale.id } });
-    return;
+    return { name: 'admin-sale-review', params: { id: sale.id } };
   }
-  void router.push({ name: 'sale-detail', params: { id: sale.id } });
+  return { name: canContinue(sale) ? 'sale-edit' : 'sale-detail', params: { id: sale.id } };
+}
+
+function canContinue(sale: HomeSaleRef): boolean {
+  return (
+    props.showAction &&
+    !props.reviewMode &&
+    auth.hasPermission('sales.update') &&
+    (sale.status === 'DRAFT' || sale.status === 'RETURNED')
+  );
 }
 </script>
 
@@ -44,16 +57,44 @@ function open(sale: HomeSaleRef): void {
     <v-list-item
       v-for="sale in sales"
       :key="sale.id"
+      :value="sale.id"
       class="home-sale-list__item"
-      role="link"
-      tabindex="0"
-      @click="open(sale)"
-      @keydown.enter="open(sale)"
+      :to="saleRoute(sale)"
     >
-      <v-list-item-title>{{ formatSaleNumber(sale.saleNumber) }}</v-list-item-title>
-      <v-list-item-subtitle>{{ formatDateTime(sale.updatedAt) }}</v-list-item-subtitle>
+      <v-list-item-title :class="{ 'font-weight-medium': showAction, 'text-wrap': holderNames }">
+        {{ showAction ? 'Venta ' : '' }}{{ formatSaleNumber(sale.saleNumber)
+        }}<template v-if="holderNames">
+          -
+          <span data-testid="home-sale-holder">{{
+            holderNames[sale.id] || 'Titular sin completar'
+          }}</span></template
+        >
+      </v-list-item-title>
+      <v-list-item-subtitle
+        >{{ showAction ? 'Actualizada ' : ''
+        }}{{ formatDateTime(sale.updatedAt) }}</v-list-item-subtitle
+      >
       <template #append>
-        <StatusBadge :label="saleStatusLabel(sale.status)" :status="sale.status" />
+        <div class="d-flex align-center ga-3">
+          <div class="text-end">
+            <StatusBadge :label="saleStatusLabel(sale.status)" :status="sale.status" />
+            <span v-if="showAction" class="d-block text-caption text-primary mt-1">{{
+              canContinue(sale)
+                ? sale.status === 'RETURNED'
+                  ? 'Corregir'
+                  : 'Continuar'
+                : reviewMode
+                  ? 'Revisar'
+                  : 'Ver detalle'
+            }}</span>
+          </div>
+          <v-icon
+            v-if="showAction"
+            icon="mdi-chevron-right"
+            size="18"
+            class="text-medium-emphasis"
+          />
+        </div>
       </template>
     </v-list-item>
   </v-list>
@@ -62,7 +103,7 @@ function open(sale: HomeSaleRef): void {
 <style scoped lang="scss">
 .home-sale-list__item {
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--altium-radius-sm);
 
   &:hover {
     background: rgba(var(--v-theme-primary), 0.06);

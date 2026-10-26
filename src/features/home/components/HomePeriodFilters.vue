@@ -33,7 +33,7 @@ const showTeamFilter = computed(
 
 <template>
   <v-row dense class="altium-filters mb-4" data-testid="home-period-filters">
-    <v-col cols="12" sm="4" md="3">
+    <v-col cols="6" sm="4" md="3">
       <v-select
         v-model="month"
         :items="[...MONTH_OPTIONS]"
@@ -44,7 +44,7 @@ const showTeamFilter = computed(
         :disabled="disabled"
       />
     </v-col>
-    <v-col cols="12" sm="4" md="3">
+    <v-col cols="6" sm="4" md="3">
       <v-select v-model="year" :items="years" label="Año" hide-details :disabled="disabled" />
     </v-col>
     <v-col v-if="showTeamFilter" cols="12" sm="4" md="4">

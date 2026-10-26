@@ -2,7 +2,7 @@
 
 | Field        | Value       |
 | ------------ | ----------- |
-| Last updated | 2026-10-24  |
+| Last updated | 2026-10-25  |
 | Version      | 0.1.0       |
 | Status       | Implemented |
 
@@ -23,6 +23,7 @@ Authenticated users opening these routes are sent to `/` (or to change-password 
 
 ## Expected behavior
 
+- Session recovery keeps the current tab usable: old requests are cancelled when the session expires, old-session 401s cannot invalidate a new login, and a failed login during an API outage can be retried with the same `redirect` URL after connectivity returns. Stale boot probes cannot replace the current CSRF token.
 - **Login:** email + password (+ “Recordar mi correo”). On success the store is filled from the response; navigation goes to the sanitized `redirect` query (internal paths only) or `/`. If `user.mustChangePassword`, goes to `/account/change-password`.
 - **Forgot password:** always shows the same neutral message (“Si el correo está registrado, recibirás instrucciones…”). It never claims the email was delivered — the backend answers 200 regardless and **no email provider exists yet** (`console_dev` in development, `noop` in production). Only transport/validation/rate-limit errors are shown.
 - **Reset / activate:** read `?token=`; missing token shows a warning with next steps. On success → `/login?reason=password-set`. Invalid/expired token → `AUTH_TOKEN_INVALID` message.

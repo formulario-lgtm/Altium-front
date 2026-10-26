@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router';
 import EmptyState from '@/components/common/EmptyState.vue';
 import type { HomeAlert } from '@/services/http';
 import { HOME_ALERT_SEVERITY_COLOR } from '../utils/home-labels';
+import { useAuthStore } from '@/stores/auth.store';
+import { accessibleHomeRoute } from '../utils/home-navigation';
 
 const props = defineProps<{
   alerts: readonly HomeAlert[];
@@ -13,14 +15,12 @@ const props = defineProps<{
 }>();
 
 const router = useRouter();
-
-function open(alert: HomeAlert): void {
-  const to = props.resolveRoute?.(alert) ?? null;
-  if (to) void router.push(to);
-}
-
-function clickable(alert: HomeAlert): boolean {
-  return Boolean(props.resolveRoute?.(alert));
+const auth = useAuthStore();
+function destination(alert: HomeAlert): RouteLocationRaw | undefined {
+  return (
+    accessibleHomeRoute(router, props.resolveRoute?.(alert) ?? null, auth.hasPermission) ??
+    undefined
+  );
 }
 </script>
 
@@ -36,11 +36,8 @@ function clickable(alert: HomeAlert): boolean {
     <v-list-item
       v-for="alert in alerts"
       :key="`${alert.code}-${alert.entityId ?? alert.title}`"
-      :class="{ 'home-alert-list__item--clickable': clickable(alert) }"
-      :role="clickable(alert) ? 'link' : undefined"
-      :tabindex="clickable(alert) ? 0 : undefined"
-      @click="clickable(alert) && open(alert)"
-      @keydown.enter="clickable(alert) && open(alert)"
+      :value="`${alert.code}-${alert.entityId ?? alert.title}`"
+      :to="destination(alert)"
     >
       <template #prepend>
         <v-avatar
@@ -52,8 +49,8 @@ function clickable(alert: HomeAlert): boolean {
           <v-icon icon="mdi-alert-circle-outline" size="20" />
         </v-avatar>
       </template>
-      <v-list-item-title>{{ alert.title }}</v-list-item-title>
-      <v-list-item-subtitle>{{ alert.description }}</v-list-item-subtitle>
+      <v-list-item-title class="text-wrap">{{ alert.title }}</v-list-item-title>
+      <v-list-item-subtitle class="text-wrap">{{ alert.description }}</v-list-item-subtitle>
       <template #append>
         <v-chip
           v-if="alert.count != null"
@@ -63,18 +60,13 @@ function clickable(alert: HomeAlert): boolean {
         >
           {{ alert.count }}
         </v-chip>
+        <v-icon
+          v-if="destination(alert)"
+          icon="mdi-chevron-right"
+          size="18"
+          class="text-medium-emphasis ml-2"
+        />
       </template>
     </v-list-item>
   </v-list>
 </template>
-
-<style scoped lang="scss">
-.home-alert-list__item--clickable {
-  cursor: pointer;
-  border-radius: 8px;
-
-  &:hover {
-    background: rgba(var(--v-theme-primary), 0.06);
-  }
-}
-</style>

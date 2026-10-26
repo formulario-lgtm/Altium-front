@@ -1745,7 +1745,7 @@ export interface components {
             cardExpiryMonth: number | null;
             cardExpiryYear: number | null;
             cardLastFour: string | null;
-            /** @description True when encrypted CBU storage is not yet available */
+            /** @description Deprecated: always false. CBU/CVU/ALIAS is stored in paymentMedium as plain text. */
             cbuCapturePending: boolean;
             holderIsPayer: boolean | null;
             payerEmail: string | null;
@@ -2081,7 +2081,7 @@ export interface components {
             notifications: components["schemas"]["HomeNotificationRefDto"][];
             period: components["schemas"]["HomePeriodMetaDto"];
             presentedToday: number;
-            recentSales: components["schemas"]["HomeSaleRefDto"][];
+            recentSales: components["schemas"]["SellerRecentSaleDto"][];
             /** @description max(0, target − presented); null when no usable goal */
             remainingToGoal: number | null;
             returnedNeedingCorrection: components["schemas"]["HomeSaleRefDto"][];
@@ -2105,6 +2105,17 @@ export interface components {
         };
         SellerListResponseDto: {
             items: components["schemas"]["SellerListItemDto"][];
+        };
+        SellerRecentSaleDto: {
+            holderFirstName: string | null;
+            holderLastName: string | null;
+            /** Format: uuid */
+            id: string;
+            saleNumber: string;
+            /** @enum {string} */
+            status: "DRAFT" | "SUBMITTED" | "IN_REVIEW" | "RETURNED";
+            /** Format: date-time */
+            updatedAt: string;
         };
         SessionDto: {
             /** Format: date-time */

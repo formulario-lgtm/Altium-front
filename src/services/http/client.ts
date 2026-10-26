@@ -5,6 +5,7 @@ import { clearCsrfToken, CSRF_HEADER, getCsrfToken, isMutatingMethod } from './c
 import { toApiError, toApiErrorFromResponse } from './errors';
 import { beginGlobalLoading, endGlobalLoading, isSilentLoadingUrl } from './loading';
 import { createTimedFetch } from './timed-fetch';
+import { getSessionVersion } from './session-version';
 
 export const REQUEST_ID_HEADER = 'x-request-id';
 
@@ -81,8 +82,10 @@ function createTracingMiddleware(): Middleware {
 }
 
 function createSessionMiddleware(): Middleware {
+  const requestSessions = new WeakMap<Request, number>();
   return {
     async onRequest({ request }) {
+      requestSessions.set(request, getSessionVersion());
       if (!isMutatingMethod(request.method)) {
         return request;
       }
@@ -96,7 +99,11 @@ function createSessionMiddleware(): Middleware {
       return request;
     },
     async onResponse({ request, response }) {
-      if (response.status === 401 && !isUnauthorizedExempt(request.url)) {
+      if (
+        response.status === 401 &&
+        !isUnauthorizedExempt(request.url) &&
+        requestSessions.get(request) === getSessionVersion()
+      ) {
         notifyUnauthorized(request.url);
       }
       return response;

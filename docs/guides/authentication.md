@@ -31,7 +31,7 @@ Never store passwords, tokens, cookies or session data in `localStorage`/`sessio
 ## CSRF
 
 - Header `x-csrf-token` (`CSRF_HEADER`) on mutating methods, taken from memory; fallback: readable cookie `altium_csrf` when the API shares the site.
-- Captured from the body of `login`, `GET /auth/me` and `change-password` (`auth.service.ts`).
+- Captured from login/password-change responses; session boot applies the `GET /auth/me` token in `auth.store.setSession()` only after checking that the probe is current. A late boot response cannot overwrite a newer login's token.
 - The OpenAPI contract declares the header as required, so services pass `params: { header: csrfHeaders() }`; the middleware overwrites it with the current token.
 - Public routes (`login`, `forgot-password`, `reset-password`, `activate`) do not need it.
 
@@ -54,6 +54,8 @@ Never store passwords, tokens, cookies or session data in `localStorage`/`sessio
 
 - Always: clear store + CSRF + Query cache.
 - Redirect to `/login?redirect=…&reason=expired` **only** if the user was authenticated and is not already on a guest page — avoids loops during boot (`me` → 401) and on login failures (login 401 is exempt in the middleware).
+- Each outgoing request captures an in-memory session version (`services/http/session-version.ts`). `setSession` and `clearSession` advance it; a 401 from a previous version still fails its original request but cannot clear the current CSRF/session or trigger another redirect. This also prevents several old 401s from repeatedly clearing Query during re-login.
+- `createTimedFetch` merges the timeout signal with cancellation from both a `Request` object and `RequestInit`. Query cancellation on logout/expiry therefore aborts pending native fetches and releases the global loading overlay, including on the login page. Pending calls cannot keep the redirect login blocked until timeout after the API restarts.
 
 ## Logout
 

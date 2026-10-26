@@ -2,6 +2,17 @@ import { describe, expect, it, vi } from 'vitest';
 import { createTimedFetch } from './timed-fetch';
 
 describe('createTimedFetch', () => {
+  it('propagates cancellation carried by a Request object from openapi-fetch', async () => {
+    const controller = new AbortController();
+    const baseFetch: typeof fetch = (_input, init) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(init.signal?.reason), { once: true });
+      });
+    const request = new Request('http://api.test/health', { signal: controller.signal });
+    const pending = createTimedFetch(50, baseFetch)(request);
+    controller.abort(new DOMException('Cancelled old session query', 'AbortError'));
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+  });
   it('aborts with TimeoutError when the request exceeds timeoutMs', async () => {
     const baseFetch = vi.fn(
       (_input: RequestInfo | URL, init?: RequestInit) =>

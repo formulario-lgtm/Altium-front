@@ -2,14 +2,18 @@
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
 import type { HomeQuickAction } from '../utils/home-navigation';
+import { withHomePeriod } from '../utils/home-navigation';
+import type { HomePeriodTeamQuery } from '@/services/http';
 
 const props = withDefaults(
   defineProps<{
     actions: readonly HomeQuickAction[];
     /** Compact row for PageHeader actions (next to the greeting). */
     inline?: boolean;
+    primaryKey?: string;
+    period?: HomePeriodTeamQuery;
   }>(),
-  { inline: false },
+  { inline: false, primaryKey: undefined, period: undefined },
 );
 
 const auth = useAuthStore();
@@ -26,15 +30,31 @@ const visible = computed(() =>
     :class="{ 'home-quick-actions--inline': inline }"
     data-testid="home-quick-actions"
   >
-    <v-card
-      v-for="action in visible"
-      :key="action.key"
-      :to="action.to"
-      class="home-quick-actions__card"
-      :class="{ 'home-quick-actions__card--inline': inline }"
-    >
-      <v-card-item :prepend-icon="action.icon" :title="action.title" :subtitle="action.description" />
-    </v-card>
+    <template v-if="inline">
+      <v-btn
+        v-for="action in visible"
+        :key="action.key"
+        :to="withHomePeriod(action.to, period) ?? undefined"
+        :prepend-icon="action.icon"
+        :variant="action.key === primaryKey ? 'flat' : 'outlined'"
+        :color="action.key === primaryKey ? 'primary' : undefined"
+        >{{ action.title }}</v-btn
+      >
+    </template>
+    <template v-else>
+      <v-card
+        v-for="action in visible"
+        :key="action.key"
+        :to="withHomePeriod(action.to, period) ?? undefined"
+        class="home-quick-actions__card"
+      >
+        <v-card-item
+          :prepend-icon="action.icon"
+          :title="action.title"
+          :subtitle="action.description"
+        />
+      </v-card>
+    </template>
   </div>
   <p v-else-if="!inline" class="text-body-2 text-medium-emphasis mb-0">
     No hay accesos rápidos disponibles para tu rol.
@@ -51,7 +71,7 @@ const visible = computed(() =>
   &--inline {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
     align-items: stretch;
     gap: 0.75rem;
     width: auto;
@@ -61,11 +81,5 @@ const visible = computed(() =>
 
 .home-quick-actions__card {
   height: 100%;
-
-  &--inline {
-    flex: 0 1 auto;
-    min-width: 10.5rem;
-    max-width: 14rem;
-  }
 }
 </style>

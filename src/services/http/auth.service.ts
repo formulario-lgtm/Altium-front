@@ -25,7 +25,8 @@ export async function login(body: LoginBody): Promise<AuthSessionResponse> {
 
 export async function fetchMe(options?: RequestOptions): Promise<AuthSessionResponse> {
   const result = await apiClient.GET('/api/v1/auth/me', { signal: options?.signal });
-  return rememberCsrf(parseApiResult(result));
+  // The store applies the token only after checking that this probe is still current.
+  return parseApiResult(result);
 }
 
 export async function logout(): Promise<void> {

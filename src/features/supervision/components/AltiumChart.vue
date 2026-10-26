@@ -32,6 +32,7 @@ const props = defineProps<{
 const root = ref<HTMLElement | null>(null);
 const chart = shallowRef<echarts.ECharts | null>(null);
 const theme = useTheme();
+let resizeObserver: ResizeObserver | undefined;
 
 function applyThemeOption(option: EChartsCoreOption): EChartsCoreOption {
   const palette = chartPalette(theme.global.current.value.dark);
@@ -58,11 +59,14 @@ function render(): void {
 
 onMounted(() => {
   render();
-  window.addEventListener('resize', resize);
+  if (root.value) {
+    resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(root.value);
+  }
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', resize);
+  resizeObserver?.disconnect();
   chart.value?.dispose();
   chart.value = null;
 });

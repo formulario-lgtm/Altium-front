@@ -65,6 +65,8 @@ export function sellerHomeFixture(): Schemas['SellerHomeResponseDto'] {
     recentSales: [
       {
         id: SALE_ID,
+        holderFirstName: 'María',
+        holderLastName: 'Gómez',
         saleNumber: 'V-000001',
         status: 'DRAFT',
         updatedAt: '2026-10-24T12:00:00.000Z',
@@ -304,8 +306,12 @@ export function adminHomeFixture(): Schemas['AdminHomeResponseDto'] {
       compliancePercent: 75,
     },
     monthlyPresented: [
-      { key: '2026-10-01', count: 5 },
-      { key: '2026-10-02', count: 7 },
+      { key: '2026-05', count: 5 },
+      { key: '2026-06', count: 10 },
+      { key: '2026-07', count: 18 },
+      { key: '2026-08', count: 24 },
+      { key: '2026-09', count: 31 },
+      { key: '2026-10', count: 40 },
     ],
     teamPerformance: [
       {

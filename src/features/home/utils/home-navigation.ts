@@ -1,5 +1,22 @@
-import type { RouteLocationRaw } from 'vue-router';
-import type { HomeAlert } from '@/services/http';
+import type { RouteLocationRaw, Router } from 'vue-router';
+import type { HomeAlert, HomePeriodTeamQuery } from '@/services/http';
+
+export function withHomePeriod(
+  to: RouteLocationRaw | null,
+  period?: HomePeriodTeamQuery,
+): RouteLocationRaw | null {
+  if (!to || !period || typeof to === 'string') return to;
+  return { ...to, query: { ...to.query, ...period } };
+}
+
+/** A summary may be visible even when the user cannot open its management screen. */
+export function accessibleHomeRoute(
+  router: Pick<Router, 'resolve'>,
+  to: RouteLocationRaw | null,
+  hasPermission: (code: string) => boolean,
+): RouteLocationRaw | null {
+  return to && (router.resolve(to).meta.permissions ?? []).every(hasPermission) ? to : null;
+}
 
 export type HomeQuickAction = {
   key: string;
@@ -196,7 +213,7 @@ export const ADMIN_QUICK_ACTIONS: HomeQuickAction[] = [
   },
   {
     key: 'admin-sales',
-    title: 'Ventas',
+    title: 'Gestión de ventas',
     icon: 'mdi-clipboard-text-outline',
     to: { name: 'admin-sales' },
     permission: 'sales.review',

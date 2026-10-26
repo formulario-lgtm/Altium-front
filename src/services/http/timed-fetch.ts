@@ -15,6 +15,9 @@ export function createTimedFetch(
     }, timeoutMs);
 
     const signals: AbortSignal[] = [timeoutController.signal];
+    if (input instanceof Request) {
+      signals.push(input.signal);
+    }
     if (init?.signal) {
       signals.push(init.signal);
     }

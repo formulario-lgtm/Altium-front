@@ -9,6 +9,7 @@ import {
 import { clearCsrfToken, getCsrfToken, setCsrfToken } from './csrf';
 import { isApiError } from './errors';
 import { resetGlobalLoading, useGlobalLoadingState } from './loading';
+import { advanceSessionVersion } from './session-version';
 
 function problem(status: number, code: string): Response {
   return new Response(JSON.stringify({ type: 'about:blank', title: code, status, code }), {
@@ -18,6 +19,28 @@ function problem(status: number, code: string): Response {
 }
 
 describe('session middleware', () => {
+  it('ignores an old session 401 after a successful new login', async () => {
+    let finish!: (response: Response) => void;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const handler = vi.fn();
+    const unregister = onUnauthorized(handler);
+    const client = createApiClient({ baseUrl: 'http://api.test', fetch: fetchMock });
+    const pending = client.GET('/api/v1/notifications/unread-count');
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    advanceSessionVersion();
+    setCsrfToken('new-session-csrf');
+    finish(problem(401, 'AUTH_SESSION_EXPIRED'));
+    const result = await pending;
+    unregister();
+    expect(result.response.status).toBe(401);
+    expect(handler).not.toHaveBeenCalled();
+    expect(getCsrfToken()).toBe('new-session-csrf');
+  });
   afterEach(() => {
     clearCsrfToken();
     resetGlobalLoading();
