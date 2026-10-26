@@ -37,7 +37,7 @@ const fallbackActions = computed<HomeQuickAction[]>(() =>
   <SupervisorHomeView v-else-if="variant === 'supervisor'" />
   <SellerHomeView v-else-if="variant === 'seller'" />
   <div v-else data-testid="fallback-home">
-    <PageHeader :title="greeting" subtitle="Bienvenido a Altium CRM.">
+    <PageHeader :title="greeting" subtitle="Bienvenido a Altium.">
       <template #actions>
         <HomeQuickActions inline :actions="fallbackActions" />
       </template>

@@ -30,7 +30,7 @@ Standard page title block: design-system title/subtitle typography plus optional
 ## Usage
 
 ```vue
-<PageHeader title="Usuarios" subtitle="Cuentas con acceso a Altium CRM.">
+<PageHeader title="Usuarios" subtitle="Cuentas con acceso a Altium.">
   <template #actions>
     <v-btn color="primary" prepend-icon="mdi-account-plus-outline">Nuevo usuario</v-btn>
   </template>

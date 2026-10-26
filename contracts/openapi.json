@@ -4099,8 +4099,8 @@
     }
   },
   "info": {
-    "description": "REST contract for the Altium CRM backend. Successful responses return the resource JSON directly (or `{ items, pageInfo }` for collections). Errors use Problem Details (`application/problem+json`) per RFC 9457. Authentication uses an HttpOnly session cookie plus a double-submit CSRF header on mutating requests. CRM business endpoints are not implemented yet.",
-    "title": "Altium CRM API",
+    "description": "REST contract for the Altium backend. Successful responses return the resource JSON directly (or `{ items, pageInfo }` for collections). Errors use Problem Details (`application/problem+json`) per RFC 9457. Authentication uses an HttpOnly session cookie plus a double-submit CSRF header on mutating requests.",
+    "title": "Altium API",
     "version": "0.1.0"
   },
   "openapi": "3.0.0",

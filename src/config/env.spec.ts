@@ -3,7 +3,7 @@ import { loadAppEnv } from './env';
 
 function createMetaEnv(overrides: Partial<ImportMetaEnv> = {}): ImportMetaEnv {
   return {
-    VITE_APP_TITLE: 'Altium CRM',
+    VITE_APP_TITLE: 'Altium',
     VITE_API_BASE_URL: 'http://localhost:3000',
     VITE_API_TIMEOUT_MS: '15000',
     VITE_API_WITH_CREDENTIALS: 'true',

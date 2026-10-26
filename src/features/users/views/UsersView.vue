@@ -211,7 +211,7 @@ function hasRowActions(user: User): boolean {
 
 <template>
   <div>
-    <PageHeader title="Usuarios" subtitle="Cuentas con acceso a Altium CRM.">
+    <PageHeader title="Usuarios" subtitle="Cuentas con acceso a Altium.">
       <template v-if="canCreate" #actions>
         <v-btn color="primary" prepend-icon="mdi-account-plus-outline" @click="openCreate">
           Nuevo usuario

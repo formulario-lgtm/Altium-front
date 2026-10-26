@@ -120,7 +120,7 @@ async function downloadDoc(doc: SaleDocumentMeta): Promise<void> {
   <div>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Adjuntá JPEG, PNG o PDF (máx. 10 MB). Los archivos se guardan de forma privada en el
-      almacenamiento del CRM.
+      almacenamiento de Altium.
     </p>
 
     <v-alert

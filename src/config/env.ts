@@ -43,7 +43,7 @@ export function loadAppEnv(metaEnv: ImportMetaEnv = import.meta.env): AppEnv {
   const timeoutRaw = metaEnv.VITE_API_TIMEOUT_MS || metaEnv.VITE_API_TIMEOUT;
 
   return {
-    appTitle: metaEnv.VITE_APP_TITLE?.trim() || 'Altium CRM',
+    appTitle: metaEnv.VITE_APP_TITLE?.trim() || 'Altium',
     apiBaseUrl: apiBaseUrl.replace(/\/$/, ''),
     apiTimeoutMs: readPositiveInt(timeoutRaw, 15_000),
     apiWithCredentials: readBoolean(metaEnv.VITE_API_WITH_CREDENTIALS, true),

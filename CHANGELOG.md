@@ -16,6 +16,10 @@ Section headings used in this repository:
 
 ## [Unreleased]
 
+### Ajuste UX/UI
+
+- Marca visible solo como **Altium** (sin “CRM” ni “(Dev)” en título de pestaña, meta, subtítulos y textos de UI).
+
 ## [0.1.0] - 2026-10-25
 
 Primera entrega usable del CRM Altium (SPA Vue 3). Resumen por capas y roles.
