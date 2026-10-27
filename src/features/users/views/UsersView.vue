@@ -132,8 +132,8 @@ async function submitForm(values: UserFormValues): Promise<void> {
       }
       snackbar.value = 'Usuario actualizado.';
     } else {
-      await createMutation.mutateAsync(values);
-      snackbar.value = 'Usuario creado como pendiente de activación.';
+      const created = await createMutation.mutateAsync(values);
+      snackbar.value = `Usuario ${created.username} creado como pendiente de activación.`;
     }
     formOpen.value = false;
   } catch {
@@ -223,7 +223,7 @@ function hasRowActions(user: User): boolean {
       <v-col cols="12" md="5">
         <v-text-field
           v-model="search"
-          label="Buscar por nombre o correo"
+          label="Buscar por nombre, usuario o correo"
           prepend-inner-icon="mdi-magnify"
           clearable
           maxlength="100"
@@ -264,6 +264,7 @@ function hasRowActions(user: User): boolean {
             <UserAvatar :initials="initialsFromPerson(item)" :size="40" />
             <div style="min-width: 0">
               <div class="font-weight-medium text-truncate">{{ fullName(item) }}</div>
+              <div class="text-body-2 text-truncate">Usuario: {{ item.username }}</div>
               <div class="text-caption text-medium-emphasis text-truncate">{{ item.email }}</div>
             </div>
           </div>

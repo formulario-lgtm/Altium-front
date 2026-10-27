@@ -18,9 +18,11 @@ const props = defineProps<{
   error?: string;
   downloadError?: string;
   downloadingId?: string;
+  downloadingAll?: boolean;
 }>();
 defineEmits<{
   retry: [];
+  'download-all': [];
   download: [document: { documentId: string; filename: string }];
 }>();
 const categories = computed(() => props.documents?.requiredCategories ?? []);
@@ -39,10 +41,32 @@ function documentOwner(memberId: string | null) {
 
 <template>
   <v-card class="pa-4 pa-md-5" data-testid="sale-detail-documents">
-    <h2 class="text-h6 mb-1">
-      <v-icon icon="mdi-file-document-outline" size="22" class="mr-2 text-primary" />Documentación
-    </h2>
-    <p class="text-body-2 text-medium-emphasis mb-4">Requisitos y archivos de esta venta.</p>
+    <div class="d-flex flex-wrap justify-space-between align-start ga-3 mb-4">
+      <div>
+        <h2 class="text-h6 mb-1">
+          <v-icon
+            icon="mdi-file-document-outline"
+            size="22"
+            class="mr-2 text-primary"
+          />Documentación
+        </h2>
+        <p class="text-body-2 text-medium-emphasis mb-0">Requisitos y archivos de esta venta.</p>
+      </div>
+      <v-btn
+        color="primary"
+        variant="tonal"
+        prepend-icon="mdi-folder-download-outline"
+        :loading="downloadingAll"
+        :disabled="
+          loading ||
+          Boolean(error) ||
+          Boolean(downloadingId) ||
+          !documents?.items.some((doc) => doc.status === 'UPLOADED')
+        "
+        @click="$emit('download-all')"
+        >Descargar todo</v-btn
+      >
+    </div>
     <ErrorState v-if="error" :message="error" @retry="$emit('retry')" />
     <v-progress-linear
       v-else-if="loading && !documents"
@@ -113,6 +137,7 @@ function documentOwner(memberId: string | null) {
               size="small"
               :aria-label="`Descargar ${doc.originalFilename || 'archivo'}`"
               :loading="downloadingId === doc.id"
+              :disabled="downloadingAll || doc.status !== 'UPLOADED'"
               @click="
                 $emit('download', {
                   documentId: doc.id,

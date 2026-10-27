@@ -382,7 +382,7 @@ export interface paths {
         };
         /**
          * Supervisor home summary
-         * @description Composes supervision dashboard KPIs for teams the actor supervises.
+         * @description Monthly presentations, current cohort statuses and administrative activity for supervised teams. Defaults to the current Buenos Aires month.
          */
         get: operations["Home_getSupervisor"];
         put?: never;
@@ -555,7 +555,7 @@ export interface paths {
         head?: never;
         /**
          * Update a draft or returned sale
-         * @description Requires matching optimistic `version`. Rejects plaintext card/CBU secrets.
+         * @description Requires matching optimistic `version`. Full card data is encrypted at rest; dedicated cbu field is rejected.
          */
         patch: operations["Sales_updateSale"];
         trace?: never;
@@ -633,6 +633,26 @@ export interface paths {
          * @description Streams the private object through the API. Prefer short-lived signed URLs in a future iteration if needed.
          */
         get: operations["Sales_downloadSaleDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/{id}/documents/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download all accessible uploaded sale documents as a ZIP
+         * @description Streams private documents with the same scope, card restrictions and per-file audit as individual downloads. Pending files are excluded.
+         */
+        get: operations["Sales_downloadSaleDocuments"];
         put?: never;
         post?: never;
         delete?: never;
@@ -869,10 +889,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List monthly goals in supervision scope */
+        /**
+         * List monthly goals in supervision scope
+         * @description Temporarily disabled: returns 403 for all roles while monthly goals are paused; stored goals are preserved.
+         */
         get: operations["Supervision_listGoals"];
         put?: never;
-        /** Create a monthly goal for a team or user in scope */
+        /**
+         * Create a monthly goal for a team or user in scope
+         * @description Temporarily disabled: returns 403 for all roles while monthly goals are paused; stored goals are preserved.
+         */
         post: operations["Supervision_createGoal"];
         delete?: never;
         options?: never;
@@ -893,7 +919,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update a monthly goal target value (closed months require reason) */
+        /**
+         * Update a monthly goal target value (closed months require reason)
+         * @description Temporarily disabled: returns 403 for all roles while monthly goals are paused; stored goals are preserved.
+         */
         patch: operations["Supervision_patchGoal"];
         trace?: never;
     };
@@ -904,7 +933,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Goal change history */
+        /**
+         * Goal change history
+         * @description Temporarily disabled: returns 403 for all roles while monthly goals are paused; stored goals are preserved.
+         */
         get: operations["Supervision_getGoalHistory"];
         put?: never;
         post?: never;
@@ -1092,7 +1124,7 @@ export interface paths {
         head?: never;
         /**
          * Update a user
-         * @description Explicit fields only. Changing the email or role revokes the user sessions. The last active SUPER_ADMIN cannot be demoted.
+         * @description Explicit fields only. Changing the role revokes the user sessions. Email changes keep the username and sessions and invalidate outstanding activation/reset links. The last active SUPER_ADMIN cannot be demoted.
          */
         patch: operations["Users_updateUser"];
         trace?: never;
@@ -1348,6 +1380,11 @@ export interface components {
             mustChangePassword: boolean;
             role: components["schemas"]["AuthRoleDto"];
             status: components["schemas"]["UserStatus"];
+            /**
+             * @description Stable login username
+             * @example aperez
+             */
+            username: string;
         };
         ChangePasswordDto: {
             /** Format: password */
@@ -1606,13 +1643,10 @@ export interface components {
             teamName: string;
         };
         LoginDto: {
-            /**
-             * Format: email
-             * @example user@altium.example
-             */
-            email: string;
             /** Format: password */
             password: string;
+            /** @example aperez */
+            username: string;
         };
         MessageResponseDto: {
             message: string;
@@ -1717,7 +1751,7 @@ export interface components {
         };
         RequiredDocumentCategoryDto: {
             /** @enum {string} */
-            documentType: "PAYSLIP" | "DNI_FRONT" | "DNI_BACK" | "BIRTH_CERTIFICATE" | "MONOTAX_FORM" | "PAYMENT_PROOF" | "OTHER";
+            documentType: "PAYSLIP" | "DNI_FRONT" | "DNI_BACK" | "BIRTH_CERTIFICATE" | "MONOTAX_FORM" | "PAYMENT_PROOF" | "CARD_FRONT" | "CARD_BACK" | "OTHER";
             label: string;
             /** Format: uuid */
             saleMemberId: string | null;
@@ -1776,8 +1810,11 @@ export interface components {
             cardExpiryMonth: number | null;
             cardExpiryYear: number | null;
             cardLastFour: string | null;
+            /** @description Available to the seller, administrative and admin within sale scope; never exported */
+            cardNumber?: string | null;
             /** @description Deprecated: always false. CBU/CVU/ALIAS is stored in paymentMedium as plain text. */
             cbuCapturePending: boolean;
+            cvv?: string | null;
             holderIsPayer: boolean | null;
             payerEmail: string | null;
             payerIdentifier: string | null;
@@ -1792,12 +1829,12 @@ export interface components {
             cardExpiryMonth?: number | null;
             cardExpiryYear?: number | null;
             cardLastFour?: string | null;
-            /** @description Full card number — rejected; do not send */
-            cardNumber?: string;
+            /** @description Full card number, digits only; encrypted at rest */
+            cardNumber?: string | null;
             /** @description Plaintext CBU — rejected; do not send */
             cbu?: string;
-            /** @description CVV — rejected; do not send */
-            cvv?: string;
+            /** @description CVV/CVC, digits only; encrypted at rest */
+            cvv?: string | null;
             holderIsPayer?: boolean | null;
             payerEmail?: string | null;
             payerIdentifier?: string | null;
@@ -1833,7 +1870,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             /** @enum {string} */
-            documentType: "PAYSLIP" | "DNI_FRONT" | "DNI_BACK" | "BIRTH_CERTIFICATE" | "MONOTAX_FORM" | "PAYMENT_PROOF" | "OTHER";
+            documentType: "PAYSLIP" | "DNI_FRONT" | "DNI_BACK" | "BIRTH_CERTIFICATE" | "MONOTAX_FORM" | "PAYMENT_PROOF" | "CARD_FRONT" | "CARD_BACK" | "OTHER";
             fileSize: number | null;
             /** Format: uuid */
             id: string;
@@ -2202,19 +2239,78 @@ export interface components {
             timeZone: string;
             year: number;
         };
+        SupervisorAdministrativeSummaryDto: {
+            /** Format: uuid */
+            administrativeUserId: string;
+            approved: number;
+            /** @description Current assigned submitted/in-review stock, including older months */
+            currentWorkload: number;
+            firstName: string;
+            lastName: string;
+            rejected: number;
+            /** @description Return movements during the month; repeated returns count again */
+            returns: number;
+            /** @description Distinct sales first reviewed within this month, attributed to the first reviewer of the month */
+            reviewsStarted: number;
+            /** @description Current role, including other authorized reviewers */
+            roleCode: string;
+        };
+        SupervisorAdministrativeTotalsDto: {
+            approved: number;
+            /** @description Current assigned submitted/in-review stock, including older months */
+            currentWorkload: number;
+            rejected: number;
+            /** @description Return movements during the month; repeated returns count again */
+            returns: number;
+            /** @description Distinct sales first reviewed within this month, attributed to the first reviewer of the month */
+            reviewsStarted: number;
+        };
         SupervisorHomeResponseDto: {
+            administratives: components["schemas"]["SupervisorAdministrativeSummaryDto"][];
+            administrativeTotals: components["schemas"]["SupervisorAdministrativeTotalsDto"];
             alerts: components["schemas"]["HomeAlertDto"][];
-            compliance: components["schemas"]["HomeComplianceDto"];
-            dailyPresented: components["schemas"]["HomeSeriesPointDto"][];
+            /** @deprecated */
+            compliance?: components["schemas"]["HomeComplianceDto"];
+            /** @deprecated */
+            dailyPresented?: components["schemas"]["HomeSeriesPointDto"][];
             /** @description Underlying supervision dashboard */
-            dashboard: components["schemas"]["SupervisionDashboardDto"];
-            expectedPercent: number;
+            dashboard?: components["schemas"]["SupervisionDashboardDto"];
+            /** @deprecated */
+            expectedPercent?: number;
+            /** @description Current overdue OPEN follow-ups in scope */
+            followUpsOverdue: number;
             kpis: components["schemas"]["HomeKpiDto"][];
             period: components["schemas"]["HomePeriodMetaDto"];
-            sellersBehindPace: components["schemas"]["HomeSellerPaceDto"][];
+            sellers: components["schemas"]["SupervisorSellerSummaryDto"][];
+            /** @deprecated */
+            sellersBehindPace?: components["schemas"]["HomeSellerPaceDto"][];
+            sellerTotals: components["schemas"]["SupervisorSalesTotalsDto"];
             /** Format: uuid */
             teamId?: string | null;
-            teamSummaries: components["schemas"]["HomeTeamSummaryDto"][];
+            /** @deprecated */
+            teamSummaries?: components["schemas"]["HomeTeamSummaryDto"][];
+            /** @description Current unassigned submitted/in-review sales, including older months */
+            unassigned: number;
+        };
+        SupervisorSalesTotalsDto: {
+            approved: number;
+            inReview: number;
+            rejected: number;
+            returned: number;
+            salesPresented: number;
+            submitted: number;
+        };
+        SupervisorSellerSummaryDto: {
+            approved: number;
+            firstName: string;
+            inReview: number;
+            lastName: string;
+            rejected: number;
+            returned: number;
+            salesPresented: number;
+            /** Format: uuid */
+            sellerId: string;
+            submitted: number;
         };
         TeamDto: {
             /** @description Members without a leftAt date */
@@ -2339,6 +2435,11 @@ export interface components {
             status: components["schemas"]["UserStatus"];
             /** Format: date-time */
             updatedAt: string;
+            /**
+             * @description Stable login username
+             * @example aperez
+             */
+            username: string;
         };
         UserListResponseDto: {
             items: components["schemas"]["UserDto"][];
@@ -4268,6 +4369,63 @@ export interface operations {
             };
         };
     };
+    Sales_downloadSaleDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     Sales_exportSaleExcel: {
         parameters: {
             query?: never;
@@ -5953,7 +6111,7 @@ export interface operations {
             query?: {
                 limit?: number;
                 offset?: number;
-                /** @description Case-insensitive match on name or email */
+                /** @description Case-insensitive match on name, username or email */
                 q?: string;
                 status?: components["schemas"]["UserStatus"];
                 roleId?: string;

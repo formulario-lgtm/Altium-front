@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MONTHLY_GOALS_ENABLED } from '@/config/features';
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import EmptyState from '@/components/common/EmptyState.vue';
@@ -50,7 +51,7 @@ function formatActivity(value: string | null): string {
   <div data-testid="supervision-sellers">
     <PageHeader
       title="Vendedores"
-      subtitle="Comparativa de presentaciones, objetivos y devoluciones del período."
+      subtitle="Comparativa de presentaciones y devoluciones del período."
     />
 
     <SupervisionPeriodFilters v-model:year="year" v-model:month="month" v-model:team-id="teamId" />
@@ -89,8 +90,12 @@ function formatActivity(value: string | null): string {
           { title: 'Vendedor', key: 'name', sortable: true },
           { title: 'Equipo', key: 'teamName' },
           { title: 'Presentadas', key: 'salesPresented' },
-          { title: 'Objetivo', key: 'target' },
-          { title: 'Cumplimiento', key: 'compliance' },
+          ...(MONTHLY_GOALS_ENABLED
+            ? [
+                { title: 'Objetivo', key: 'target' },
+                { title: 'Cumplimiento', key: 'compliance' },
+              ]
+            : []),
           { title: 'Devueltas', key: 'returnedStock' },
           { title: 'Tasa devolución', key: 'returnRate' },
           { title: 'Última actividad', key: 'lastActivityAt' },

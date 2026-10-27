@@ -17,14 +17,14 @@ Any 401 (non-public route) ──▶ clear CSRF ─▶ onUnauthorized handlers �
 
 ## Where state lives
 
-| Data                         | Location                                      | Persisted?                       |
-| ---------------------------- | --------------------------------------------- | -------------------------------- |
-| Session cookie               | Browser (`altium_session`, HttpOnly)          | Cookie only, unreadable by JS    |
-| CSRF token                   | `src/services/http/csrf.ts` (module memory)   | No                               |
-| User, permissions, session   | `src/stores/auth.store.ts` (Pinia)            | No                               |
-| Remote lists (users, teams…) | TanStack Query cache                          | No (cleared on login/logout/401) |
-| Remembered email             | `localStorage['altium.auth.rememberedEmail']` | Yes — email only, opt-in         |
-| Theme                        | `localStorage['altium.ui.theme']`             | Yes                              |
+| Data                         | Location                                         | Persisted?                       |
+| ---------------------------- | ------------------------------------------------ | -------------------------------- |
+| Session cookie               | Browser (`altium_session`, HttpOnly)             | Cookie only, unreadable by JS    |
+| CSRF token                   | `src/services/http/csrf.ts` (module memory)      | No                               |
+| User, permissions, session   | `src/stores/auth.store.ts` (Pinia)               | No                               |
+| Remote lists (users, teams…) | TanStack Query cache                             | No (cleared on login/logout/401) |
+| Remembered username          | `localStorage['altium.auth.rememberedUsername']` | Yes — username only, opt-in      |
+| Theme                        | `localStorage['altium.ui.theme']`                | Yes                              |
 
 Never store passwords, tokens, cookies or session data in `localStorage`/`sessionStorage`. `GET /auth/me` is **not** cached in Query to avoid duplicating the store.
 
@@ -83,3 +83,5 @@ In development, read links with `pnpm auth:dev-token` in Altium-back.
 
 - Unit: `csrf.spec.ts`, `client.spec.ts` (CSRF header, 401 hook), `auth.store.spec.ts`, `guards.spec.ts`
 - E2E: `tests/e2e/auth.spec.ts` with mocked API (`tests/e2e/support/api-mock.ts`)
+
+Login sends `{ username, password }`. Email remains required contact data for activation/reset. Usernames are assigned once by the backend and remain unchanged after name/email edits. Only opted-in usernames are stored locally; obsolete remembered emails are removed.

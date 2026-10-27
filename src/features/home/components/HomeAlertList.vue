@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { MONTHLY_GOALS_ENABLED, isGoalMetric } from '@/config/features';
 import type { RouteLocationRaw } from 'vue-router';
 import { useRouter } from 'vue-router';
 import EmptyState from '@/components/common/EmptyState.vue';
@@ -14,6 +16,9 @@ const props = defineProps<{
   resolveRoute?: (alert: HomeAlert) => RouteLocationRaw | null;
 }>();
 
+const visibleAlerts = computed(() =>
+  props.alerts.filter((alert) => MONTHLY_GOALS_ENABLED || !isGoalMetric(alert.code)),
+);
 const router = useRouter();
 const auth = useAuthStore();
 function destination(alert: HomeAlert): RouteLocationRaw | undefined {
@@ -26,7 +31,7 @@ function destination(alert: HomeAlert): RouteLocationRaw | undefined {
 
 <template>
   <EmptyState
-    v-if="alerts.length === 0"
+    v-if="visibleAlerts.length === 0"
     :title="emptyTitle ?? 'Sin pendientes'"
     :text="emptyText ?? 'No hay alertas para este período.'"
     icon="mdi-check-circle-outline"
@@ -34,7 +39,7 @@ function destination(alert: HomeAlert): RouteLocationRaw | undefined {
   />
   <v-list v-else lines="two" class="bg-transparent pa-0" data-testid="home-alert-list">
     <v-list-item
-      v-for="alert in alerts"
+      v-for="alert in visibleAlerts"
       :key="`${alert.code}-${alert.entityId ?? alert.title}`"
       :value="`${alert.code}-${alert.entityId ?? alert.title}`"
       :to="destination(alert)"

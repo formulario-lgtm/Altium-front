@@ -105,6 +105,8 @@ export function saleToFormModel(sale: Sale): SaleFormModel {
       payerPhone: sale.billing?.payerPhone ?? null,
       cardBrand: sale.billing?.cardBrand ?? null,
       cardLastFour: sale.billing?.cardLastFour ?? null,
+      cardNumber: sale.billing?.cardNumber ?? null,
+      cvv: sale.billing?.cvv ?? null,
       cardExpiryMonth: sale.billing?.cardExpiryMonth ?? null,
       cardExpiryYear: sale.billing?.cardExpiryYear ?? null,
       paymentProviderReference: sale.billing?.paymentProviderReference ?? null,
@@ -112,7 +114,7 @@ export function saleToFormModel(sale: Sale): SaleFormModel {
   };
 }
 
-/** Build PATCH body — never includes cardNumber/cvv/cbu. */
+/** Build the typed PATCH body; full card fields are encrypted by the API. */
 export function formModelToUpdateBody(model: SaleFormModel): UpdateSaleBody {
   const customerType = model.customerType;
   const body: UpdateSaleBody = {
@@ -138,7 +140,9 @@ export function formModelToUpdateBody(model: SaleFormModel): UpdateSaleBody {
       payerEmail: model.billing.payerEmail,
       payerPhone: model.billing.payerPhone,
       cardBrand: model.billing.cardBrand,
-      cardLastFour: model.billing.cardLastFour,
+      cardLastFour: model.billing.cardNumber?.slice(-4) || model.billing.cardLastFour,
+      cardNumber: model.billing.paymentMethod === 'CARD' ? model.billing.cardNumber : null,
+      cvv: model.billing.paymentMethod === 'CARD' ? model.billing.cvv : null,
       cardExpiryMonth: model.billing.cardExpiryMonth,
       cardExpiryYear: model.billing.cardExpiryYear,
       paymentProviderReference: model.billing.paymentProviderReference,

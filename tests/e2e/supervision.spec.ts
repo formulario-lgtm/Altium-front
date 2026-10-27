@@ -6,11 +6,11 @@ test.describe('Supervision UI', () => {
     await mockApi(page, { authenticated: true, permissions: SUPERVISOR_PERMISSIONS });
     await page.goto('/');
     await expect(page.getByTestId('supervisor-home')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Vendedores bajo ritmo' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Vendedores', exact: true })).toBeVisible();
     const nav = page.getByRole('navigation', { name: 'Navegación principal' });
     await expect(nav.getByRole('link', { name: 'Vendedores', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Administrativos', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Objetivos', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Objetivos', exact: true })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: 'Gestión de ventas' })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: 'Mis ventas' })).toHaveCount(0);
   });
@@ -29,7 +29,7 @@ test.describe('Supervision UI', () => {
     await page.goto('/supervision/sellers');
     await expect(page.getByTestId('supervision-sellers')).toBeVisible();
     await expect(
-      page.getByText('Comparativa de presentaciones, objetivos y devoluciones del período.', {
+      page.getByText('Comparativa de presentaciones y devoluciones del período.', {
         exact: true,
       }),
     ).toBeVisible();
@@ -37,7 +37,7 @@ test.describe('Supervision UI', () => {
       page.getByRole('columnheader', { name: 'Última actividad', exact: true }),
     ).toBeVisible();
     await expect(page.getByText('Pérez, Ana')).toBeVisible();
-    await expect(page.getByRole('cell', { name: 'Sin objetivo', exact: true })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Objetivo', exact: true })).toHaveCount(0);
     await page
       .getByRole('row', { name: /Pérez, Ana/ })
       .getByRole('button', { name: 'Ver' })
@@ -45,7 +45,7 @@ test.describe('Supervision UI', () => {
     await expect(page.getByTestId('supervision-seller-detail')).toBeVisible();
   });
 
-  test('lists administrativas and goals', async ({ page }) => {
+  test('lists administrativas and blocks paused goals', async ({ page }) => {
     await mockApi(page, { authenticated: true, permissions: SUPERVISOR_PERMISSIONS });
     await page.goto('/supervision/administratives');
     await expect(page.getByTestId('supervision-administratives')).toBeVisible();
@@ -60,8 +60,8 @@ test.describe('Supervision UI', () => {
     ).toBeVisible();
     await expect(page.getByText('López, María')).toBeVisible();
     await page.goto('/supervision/goals');
-    await expect(page.getByTestId('supervision-goals')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Nuevo objetivo' })).toBeVisible();
+    await expect(page.getByTestId('supervisor-home')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Nuevo objetivo' })).toHaveCount(0);
   });
 
   test('denies supervision routes without permission', async ({ page }) => {

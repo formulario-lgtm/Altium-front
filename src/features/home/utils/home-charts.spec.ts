@@ -58,7 +58,7 @@ describe('operational home charts', () => {
     expect(option.xAxis.max).toBeGreaterThanOrEqual(160);
   });
 
-  it('does not invent compliance for teams without a goal or clip exceeded goals', () => {
+  it('shows only sales while monthly goals are paused', () => {
     const option = buildTeamPerformanceOption(
       [
         { teamName: 'Norte', salesPresented: 16, hasGoal: true, compliancePercent: 160 },
@@ -66,7 +66,8 @@ describe('operational home charts', () => {
       ],
       paletteFromTheme(true),
     );
-    expect(option.yAxis[1].max).toBeGreaterThanOrEqual(160);
-    expect(option.series[1]).toMatchObject({ data: [160, null] });
+    expect(option.series).toHaveLength(1);
+    expect(option.series[0]).toMatchObject({ name: 'Presentadas', data: [16, 2] });
+    expect(JSON.stringify(option)).not.toContain('Cumplimiento');
   });
 });

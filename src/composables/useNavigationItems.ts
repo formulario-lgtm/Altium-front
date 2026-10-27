@@ -1,5 +1,6 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { isFeatureRouteEnabled } from '@/config/features';
 import { NAV_ITEMS, type NavItem } from '@/app/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -10,6 +11,7 @@ export function useNavigationItems() {
 
   const items = computed<NavItem[]>(() =>
     NAV_ITEMS.filter((item) => {
+      if (!isFeatureRouteEnabled(item.routeName)) return false;
       const required = router.resolve({ name: item.routeName }).meta.permissions ?? [];
       return auth.hasAllPermissions(required);
     }),

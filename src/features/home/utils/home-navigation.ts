@@ -1,3 +1,4 @@
+import { isFeatureRouteEnabled } from '@/config/features';
 import type { RouteLocationRaw, Router } from 'vue-router';
 import type { HomeAlert, HomePeriodTeamQuery } from '@/services/http';
 
@@ -15,7 +16,11 @@ export function accessibleHomeRoute(
   to: RouteLocationRaw | null,
   hasPermission: (code: string) => boolean,
 ): RouteLocationRaw | null {
-  return to && (router.resolve(to).meta.permissions ?? []).every(hasPermission) ? to : null;
+  return to &&
+    isFeatureRouteEnabled(router.resolve(to).name) &&
+    (router.resolve(to).meta.permissions ?? []).every(hasPermission)
+    ? to
+    : null;
 }
 
 export type HomeQuickAction = {
@@ -171,9 +176,18 @@ export const ADMINISTRATIVE_QUICK_ACTIONS: HomeQuickAction[] = [
 
 export const SUPERVISOR_QUICK_ACTIONS: HomeQuickAction[] = [
   {
+    key: 'teams',
+    title: 'Equipos',
+    description: 'Personas de tus equipos',
+    icon: 'mdi-account-group-outline',
+    to: { name: 'teams' },
+    permission: 'teams.read',
+  },
+
+  {
     key: 'sellers',
     title: 'Vendedores',
-    description: 'Cumplimiento del equipo',
+    description: 'Ventas y estados del mes',
     icon: 'mdi-account-tie',
     to: { name: 'supervision-sellers' },
     permission: 'supervision.analytics.read',
@@ -184,14 +198,6 @@ export const SUPERVISOR_QUICK_ACTIONS: HomeQuickAction[] = [
     description: 'Carga operativa',
     icon: 'mdi-account-hard-hat',
     to: { name: 'supervision-administratives' },
-    permission: 'supervision.analytics.read',
-  },
-  {
-    key: 'goals',
-    title: 'Objetivos',
-    description: 'Metas mensuales',
-    icon: 'mdi-flag-outline',
-    to: { name: 'supervision-goals' },
     permission: 'supervision.analytics.read',
   },
 ];

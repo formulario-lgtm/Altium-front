@@ -147,6 +147,8 @@ export function buildSale(overrides: Partial<Schemas['SaleDto']> = {}): Schemas[
       payerPhone: null,
       cardBrand: 'Visa',
       cardLastFour: '4242',
+      cardNumber: '4242424242424242',
+      cvv: '123',
       cardExpiryMonth: 12,
       cardExpiryYear: 2030,
       paymentProviderReference: null,
@@ -159,18 +161,22 @@ export function buildSale(overrides: Partial<Schemas['SaleDto']> = {}): Schemas[
   };
 }
 
-export function sessionResponse(permissions: string[]): Schemas['AuthSessionResponseDto'] {
+export function sessionResponse(
+  permissions: string[],
+  roleCode = 'SUPER_ADMIN',
+): Schemas['AuthSessionResponseDto'] {
   return {
     csrfToken: CSRF_TOKEN,
     permissions,
     session: { id: 'b3c1a6c2-0000-4000-8000-000000000001', expiresAt: '2030-01-01T00:00:00.000Z' },
     user: {
       id: '6f9619ff-8b86-4d01-b42d-00c04fc964ff',
+      username: 'aperez',
       email: 'ana.perez@altium.example',
       firstName: 'Ana',
       lastName: 'Pérez',
       mustChangePassword: false,
-      role: { id: '0b7c1d1e-5a43-4d3e-9d3e-1d6a4f2f8b11', code: 'SUPER_ADMIN' },
+      role: { id: '0b7c1d1e-5a43-4d3e-9d3e-1d6a4f2f8b11', code: roleCode },
       status: 'ACTIVE',
     },
   };
@@ -181,6 +187,7 @@ export const USERS: Schemas['UserDto'][] = [
     id: '6f9619ff-8b86-4d01-b42d-00c04fc964ff',
     firstName: 'Ana',
     lastName: 'Pérez',
+    username: 'aperez',
     email: 'ana.perez@altium.example',
     status: 'ACTIVE',
     mustChangePassword: false,
@@ -194,6 +201,7 @@ export const USERS: Schemas['UserDto'][] = [
     id: '3d2f6c0a-7b41-4a0e-8d52-6d0b2c9f1a77',
     firstName: 'Bruno',
     lastName: 'Gómez',
+    username: 'bgomez',
     email: 'bruno.gomez@altium.example',
     status: 'PENDING',
     mustChangePassword: false,
@@ -229,6 +237,7 @@ function problem(status: number, code: string, title: string): Schemas['ProblemD
 }
 
 export type MockApiOptions = {
+  roleCode?: string;
   authenticated?: boolean;
   permissions?: string[];
 };
@@ -286,9 +295,9 @@ export async function mockApi(page: Page, options: MockApiOptions = {}): Promise
 
     if (pathname === '/api/v1/auth/login' && method === 'POST') {
       const body = request.postDataJSON() as Schemas['LoginDto'];
-      if (body.password === VALID_PASSWORD) {
+      if (body.username === 'aperez' && body.password === VALID_PASSWORD) {
         state.authenticated = true;
-        await json(route, 200, sessionResponse(permissions));
+        await json(route, 200, sessionResponse(permissions, options.roleCode));
       } else {
         await json(route, 401, problem(401, 'AUTH_INVALID_CREDENTIALS', 'Invalid credentials'));
       }
@@ -301,7 +310,7 @@ export async function mockApi(page: Page, options: MockApiOptions = {}): Promise
     }
 
     if (pathname === '/api/v1/auth/me') {
-      await json(route, 200, sessionResponse(permissions));
+      await json(route, 200, sessionResponse(permissions, options.roleCode));
       return;
     }
 

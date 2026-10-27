@@ -107,10 +107,9 @@ test.describe('Home by role', () => {
       'href',
       '/sales?status=DRAFT',
     );
-    await expect(
-      page.getByRole('progressbar', { name: 'Cumplimiento del objetivo mensual' }),
-    ).toHaveAttribute('aria-valuenow', '40');
-    await expect(page.getByText('Te faltan 6 ventas para alcanzar tu objetivo.')).toBeVisible();
+    await expect(page.getByTestId('seller-home').getByText(/objetivo|cumplimiento/i)).toHaveCount(
+      0,
+    );
     await expect(
       page.getByTestId('seller-home').getByText('Ventas por corregir', { exact: true }),
     ).toHaveCount(0);
@@ -161,9 +160,7 @@ test.describe('Home by role', () => {
           page.getByRole('heading', { name: 'Todo al día con tus correcciones' }),
         ).toBeVisible();
         await expect(page.getByText('Tu primera venta empieza acá')).toBeVisible();
-        await expect(
-          page.getByTestId('seller-progress').getByText('Sin objetivo mensual', { exact: true }),
-        ).toBeVisible();
+        await expect(page.getByTestId('seller-progress').getByText(/objetivo/i)).toHaveCount(0);
         await expect(page.getByRole('progressbar')).toHaveCount(0);
         await expect(page.getByTestId('home-alert-list')).toHaveCount(0);
         await expect(page.getByRole('link', { name: /Continuar.*borrador/ })).toHaveCount(0);
@@ -182,13 +179,7 @@ test.describe('Home by role', () => {
     home.remainingToGoal = 0;
     await page.route('**/api/v1/home/seller?*', (route) => route.fulfill({ json: home }));
     await page.goto('/');
-    await expect(page.getByText('¡Alcanzaste tu objetivo mensual!')).toBeVisible();
-    await expect(
-      page.getByRole('progressbar', { name: 'Cumplimiento del objetivo mensual' }),
-    ).toHaveAttribute('aria-valuenow', '100');
-    await expect(
-      page.getByTestId('seller-progress').getByText('120%', { exact: true }),
-    ).toBeVisible();
+    await expect(page.getByTestId('seller-progress').getByText(/objetivo|120%/i)).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Nueva venta' })).toHaveCount(0);
     await expect(
       page.getByTestId('seller-work-queue').getByRole('link', { name: /Ver detalle/ }),
@@ -211,7 +202,7 @@ test.describe('Home by role', () => {
     await page.goto('/');
     await expect(
       page.getByText('Tu objetivo está configurado en cero.', { exact: false }),
-    ).toBeVisible();
+    ).toHaveCount(0);
     await expect(page.getByRole('progressbar')).toHaveCount(0);
     await expect(
       page.getByTestId('home-alert-list').getByText('Ventas por corregir'),

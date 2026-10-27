@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SalePaymentSecrets from './SalePaymentSecrets.vue';
 import type { Sale } from '@/services/http';
 import { formatDateTime } from '@/utils/format';
 import EmptyState from '@/components/common/EmptyState.vue';
@@ -178,6 +179,7 @@ const date = (value: string | null | undefined) =>
             : []),
         ]"
       />
+      <SalePaymentSecrets :card-number="sale.billing?.cardNumber" :cvv="sale.billing?.cvv" />
     </v-card>
 
     <v-card v-if="sale.observations" class="pa-4 pa-md-6">

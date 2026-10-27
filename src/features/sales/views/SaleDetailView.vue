@@ -18,6 +18,7 @@ import { getSaleReadiness } from '../utils/sale-readiness';
 import { saleToFormModel } from '../utils/sale-form-model';
 import {
   useDownloadSaleDocumentMutation,
+  useDownloadSaleDocumentsMutation,
   useExportSaleMutation,
   useReturnSaleMutation,
   useSaleDocumentsQuery,
@@ -44,6 +45,7 @@ const submitMutation = useSubmitSaleMutation();
 const returnMutation = useReturnSaleMutation();
 const exportMutation = useExportSaleMutation();
 const downloadMutation = useDownloadSaleDocumentMutation(saleId);
+const archiveMutation = useDownloadSaleDocumentsMutation(saleId);
 
 const canUpdate = computed(() => auth.hasPermission('sales.update'));
 /** Present uses the same backend permission as update (`sales.update`). */
@@ -291,17 +293,27 @@ async function onReturn(): Promise<void> {
               documentsQuery.error.value ? apiErrorMessage(documentsQuery.error.value) : undefined
             "
             :download-error="
-              downloadMutation.error.value
-                ? apiErrorMessage(downloadMutation.error.value)
-                : undefined
+              archiveMutation.error.value
+                ? apiErrorMessage(archiveMutation.error.value)
+                : downloadMutation.error.value
+                  ? apiErrorMessage(downloadMutation.error.value)
+                  : undefined
             "
             :downloading-id="
               downloadMutation.isPending.value
                 ? downloadMutation.variables.value?.documentId
                 : undefined
             "
+            :downloading-all="archiveMutation.isPending.value"
             @retry="documentsQuery.refetch()"
-            @download="downloadMutation.mutate($event)"
+            @download="
+              archiveMutation.reset();
+              downloadMutation.mutate($event);
+            "
+            @download-all="
+              downloadMutation.reset();
+              archiveMutation.mutate();
+            "
           />
 
           <v-card class="pa-4">

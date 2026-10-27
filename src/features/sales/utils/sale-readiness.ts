@@ -142,39 +142,49 @@ export function getSaleReadiness(model: SaleFormModel | null, documents?: SaleDo
     if (billing.holderIsPayer === true) {
       if (billing.paymentMethod === 'CBU')
         add('billing', 'billing.paymentMedium', billing.paymentMedium);
-      if (billing.paymentMethod === 'CARD') {
-        add('billing', 'billing.cardBrand', billing.cardBrand);
-        add(
-          'billing',
-          'billing.cardLastFour',
-          billing.cardLastFour,
-          (value) =>
-            z
-              .string()
-              .regex(/^\d{4}$/)
-              .safeParse(value).success,
-        );
-        add(
-          'billing',
-          'billing.cardExpiryMonth',
-          billing.cardExpiryMonth,
-          (value) => z.number().int().min(1).max(12).safeParse(value).success,
-        );
-        const now = new Date();
-        add(
-          'billing',
-          'billing.cardExpiryYear',
-          billing.cardExpiryYear,
-          (value) =>
-            z.number().int().min(now.getFullYear()).max(2100).safeParse(value).success &&
-            (Number(value) > now.getFullYear() ||
-              Number(billing.cardExpiryMonth) >= now.getMonth() + 1),
-        );
-      }
     } else if (billing.holderIsPayer === false) {
       add('billing', 'billing.payerIdentifier', billing.payerIdentifier, isValidSaleTaxId);
       add('billing', 'billing.payerEmail', billing.payerEmail, email);
       add('billing', 'billing.payerPhone', billing.payerPhone);
+    }
+    if (billing.paymentMethod === 'CARD') {
+      add('billing', 'billing.cardBrand', billing.cardBrand);
+      add(
+        'billing',
+        'billing.cardNumber',
+        billing.cardNumber,
+        (value) =>
+          z
+            .string()
+            .regex(/^\d{13,19}$/)
+            .safeParse(value).success,
+      );
+      add(
+        'billing',
+        'billing.cvv',
+        billing.cvv,
+        (value) =>
+          z
+            .string()
+            .regex(/^\d{3,4}$/)
+            .safeParse(value).success,
+      );
+      add(
+        'billing',
+        'billing.cardExpiryMonth',
+        billing.cardExpiryMonth,
+        (value) => z.number().int().min(1).max(12).safeParse(value).success,
+      );
+      const now = new Date();
+      add(
+        'billing',
+        'billing.cardExpiryYear',
+        billing.cardExpiryYear,
+        (value) =>
+          z.number().int().min(now.getFullYear()).max(2100).safeParse(value).success &&
+          (Number(value) > now.getFullYear() ||
+            Number(billing.cardExpiryMonth) >= now.getMonth() + 1),
+      );
     }
   }
   if (!documents)
@@ -182,7 +192,7 @@ export function getSaleReadiness(model: SaleFormModel | null, documents?: SaleDo
   else
     documents.requiredCategories.forEach((category, index) =>
       add(
-        'documents',
+        ['CARD_FRONT', 'CARD_BACK'].includes(category.documentType) ? 'billing' : 'documents',
         `documents.${index}`,
         category.satisfied,
         (value) => value === true,

@@ -6,14 +6,13 @@ import { vuetifyFieldConfig } from '@/composables/vuetifyField';
 import { apiErrorMessage } from '@/services/http';
 import { useForgotPasswordMutation } from '../composables/useAuthMutations';
 import { forgotPasswordSchema } from '../schemas/auth.schemas';
-import { readRememberedEmail } from '../utils/remembered-email';
 
 const mutation = useForgotPasswordMutation();
 const submitted = ref(false);
 
 const { defineField, handleSubmit } = useForm({
   validationSchema: toTypedSchema(forgotPasswordSchema),
-  initialValues: { email: readRememberedEmail() },
+  initialValues: { email: '' },
 });
 const [email, emailProps] = defineField('email', vuetifyFieldConfig);
 
@@ -59,7 +58,7 @@ const onSubmit = handleSubmit(async (values) => {
         v-bind="emailProps"
         label="Correo electrónico"
         type="email"
-        autocomplete="username"
+        autocomplete="email"
         prepend-inner-icon="mdi-email-outline"
         class="mb-4"
         autofocus

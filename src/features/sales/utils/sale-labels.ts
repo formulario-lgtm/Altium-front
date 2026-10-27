@@ -141,6 +141,8 @@ export const DOCUMENT_TYPE_LABELS: Record<SaleDocumentType, string> = {
   BIRTH_CERTIFICATE: 'Partida de nacimiento',
   MONOTAX_FORM: 'Formulario monotributo',
   PAYMENT_PROOF: 'Comprobante de pago',
+  CARD_FRONT: 'Tarjeta de crédito · Frente',
+  CARD_BACK: 'Tarjeta de crédito · Dorso',
   OTHER: 'Otro',
 };
 

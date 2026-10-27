@@ -23,7 +23,7 @@ export function chartPalette(isDark: boolean): ChartPalette {
     warning: t.warning,
     error: t.error,
     info: t.info,
-    series: [t.primary, t.info, t.success, t.warning, t.error, t.surfaceElevated, t.border],
+    series: [...new Set([t.primary, t.info, t.success, t.warning, t.error, t.textSecondary])],
   };
 }
 

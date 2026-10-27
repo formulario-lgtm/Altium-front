@@ -4,6 +4,7 @@ import {
   createSale,
   deleteSaleDocument,
   downloadSaleDocument,
+  downloadSaleDocuments,
   exportSaleExcel,
   getSale,
   getSaleDocuments,
@@ -175,6 +176,23 @@ export function useDownloadSaleDocumentMutation(saleId: MaybeRefOrGetter<string>
       link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
+    },
+  });
+}
+
+export function useDownloadSaleDocumentsMutation(saleId: MaybeRefOrGetter<string>) {
+  return useMutation({
+    mutationFn: async () => {
+      const { blob, filename } = await downloadSaleDocuments(toValue(saleId));
+      const url = URL.createObjectURL(blob);
+      try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
     },
   });
 }

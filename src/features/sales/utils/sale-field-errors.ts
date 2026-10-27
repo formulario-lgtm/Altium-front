@@ -74,6 +74,8 @@ export function saleFieldPathLabel(path: string): string {
     'billing.holderIsPayer': 'Titular pagador',
     'billing.paymentMedium': 'CBU/CVU/ALIAS',
     'billing.cardBrand': 'Marca de tarjeta',
+    'billing.cardNumber': 'Número de tarjeta',
+    'billing.cvv': 'CVV / CVC',
     'billing.cardLastFour': 'Últimos 4 de tarjeta',
     'billing.cardExpiryMonth': 'Mes de vencimiento',
     'billing.cardExpiryYear': 'Año de vencimiento',

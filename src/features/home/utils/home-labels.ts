@@ -3,16 +3,19 @@ import { MONTH_OPTIONS } from '@/features/supervision/utils/supervision-labels';
 
 export type HomeRoleVariant = 'seller' | 'administrative' | 'supervisor' | 'admin' | 'fallback';
 
-/** Priority: admin > administrative > supervisor > seller. */
+/** Prefer the account role; permission priority is the fallback for custom role configurations. */
 export const HOME_PERMISSION_PRIORITY = [
   { permission: 'home.admin.read', variant: 'admin' as const },
-  { permission: 'home.administrative.read', variant: 'administrative' as const },
   { permission: 'home.supervisor.read', variant: 'supervisor' as const },
+  { permission: 'home.administrative.read', variant: 'administrative' as const },
   { permission: 'home.seller.read', variant: 'seller' as const },
 ] as const;
 
 export const HOME_KPI_ICONS: Record<string, string> = {
   SALES_PRESENTED: 'mdi-chart-line',
+  REVIEWS_STARTED: 'mdi-clipboard-check-outline',
+  APPROVED: 'mdi-check-circle-outline',
+  REJECTED: 'mdi-close-circle-outline',
   COMPLIANCE: 'mdi-target',
   RETURNED_STOCK: 'mdi-backup-restore',
   DRAFTS: 'mdi-file-document-edit-outline',
@@ -31,7 +34,18 @@ export const HOME_ALERT_SEVERITY_COLOR: Record<'info' | 'warning' | 'critical', 
   critical: 'error',
 };
 
-export function resolveHomeVariant(hasPermission: (code: string) => boolean): HomeRoleVariant {
+export function resolveHomeVariant(
+  hasPermission: (code: string) => boolean,
+  roleCode?: string | null,
+): HomeRoleVariant {
+  const preferred: Record<string, HomeRoleVariant> = {
+    SUPER_ADMIN: 'admin',
+    SUPERVISOR: 'supervisor',
+    ADMINISTRATIVE: 'administrative',
+    SELLER: 'seller',
+  };
+  const role = roleCode ? preferred[roleCode] : undefined;
+  if (role && hasPermission(`home.${role}.read`)) return role;
   for (const entry of HOME_PERMISSION_PRIORITY) {
     if (hasPermission(entry.permission)) return entry.variant;
   }

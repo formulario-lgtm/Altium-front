@@ -10,11 +10,12 @@ import ThemeToggleButton from './ThemeToggleButton.vue';
 const props = withDefaults(
   defineProps<{
     userName?: string;
+    username?: string;
     roleCode?: string | null;
     showNavToggle?: boolean;
     loggingOut?: boolean;
   }>(),
-  { userName: '', roleCode: null, showNavToggle: true, loggingOut: false },
+  { userName: '', username: '', roleCode: null, showNavToggle: true, loggingOut: false },
 );
 
 const emit = defineEmits<{ 'toggle-nav': []; logout: [] }>();
@@ -73,6 +74,9 @@ const roleDisplay = computed(() => roleLabel(props.roleCode));
             <UserAvatar :initials="avatarInitials" :size="44" :label="userName" />
             <div class="altium-user-menu__identity">
               <p class="altium-user-menu__name">{{ userName }}</p>
+              <p v-if="username" class="text-caption text-medium-emphasis mb-1">
+                Usuario: {{ username }}
+              </p>
               <p v-if="roleDisplay" class="altium-user-menu__role">{{ roleDisplay }}</p>
             </div>
           </div>

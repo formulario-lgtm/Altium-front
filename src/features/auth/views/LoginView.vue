@@ -1,21 +1,23 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ROUTE_NAMES, sanitizeRedirect } from '@/app/router/guards';
+import { beginGlobalTask } from '@/services/http/loading';
 import { apiErrorMessage } from '@/services/http';
 import { useAuthStore } from '@/stores/auth.store';
 import LoginForm from '../components/LoginForm.vue';
 import { useLoginMutation } from '../composables/useAuthMutations';
 import type { LoginValues } from '../schemas/auth.schemas';
-import { readRememberedEmail, saveRememberedEmail } from '../utils/remembered-email';
+import { readRememberedUsername, saveRememberedUsername } from '../utils/remembered-username';
 
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
 const loginMutation = useLoginMutation();
 
-const initialEmail = readRememberedEmail();
-const isSubmitting = computed(() => loginMutation.isPending.value);
+const initialUsername = readRememberedUsername();
+const isSubmitting = ref(false);
+const navigationError = ref<string | null>(null);
 
 const notice = computed(() => {
   if (route.query.reason === 'expired') return 'Tu sesión terminó. Iniciá sesión nuevamente.';
@@ -24,23 +26,35 @@ const notice = computed(() => {
   return null;
 });
 
-const errorMessage = computed(() =>
-  loginMutation.error.value ? apiErrorMessage(loginMutation.error.value) : auth.bootError,
+const errorMessage = computed(
+  () =>
+    navigationError.value ??
+    (loginMutation.error.value ? apiErrorMessage(loginMutation.error.value) : auth.bootError),
 );
 
 async function onSubmit(values: LoginValues): Promise<void> {
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
+  navigationError.value = null;
+  const release = beginGlobalTask();
   try {
-    await loginMutation.mutateAsync({ email: values.email, password: values.password });
+    await nextTick();
+    await loginMutation.mutateAsync({ username: values.username, password: values.password });
+    saveRememberedUsername(values.username, values.remember);
+    await router.replace(
+      auth.mustChangePassword
+        ? { name: ROUTE_NAMES.changePassword }
+        : (sanitizeRedirect(route.query.redirect) ?? { name: ROUTE_NAMES.home }),
+    );
+    await nextTick();
   } catch {
-    return;
+    if (!loginMutation.error.value) {
+      navigationError.value = 'No se pudo abrir la pantalla. Volvé a intentar.';
+    }
+  } finally {
+    isSubmitting.value = false;
+    release();
   }
-  saveRememberedEmail(values.email, values.remember);
-
-  if (auth.mustChangePassword) {
-    await router.replace({ name: ROUTE_NAMES.changePassword });
-    return;
-  }
-  await router.replace(sanitizeRedirect(route.query.redirect) ?? { name: ROUTE_NAMES.home });
 }
 </script>
 
@@ -58,7 +72,7 @@ async function onSubmit(values: LoginValues): Promise<void> {
     <LoginForm
       :loading="isSubmitting"
       :error-message="errorMessage"
-      :initial-email="initialEmail"
+      :initial-username="initialUsername"
       @submit="onSubmit"
     />
 

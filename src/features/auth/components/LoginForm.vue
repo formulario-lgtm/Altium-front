@@ -6,8 +6,8 @@ import { vuetifyFieldConfig } from '@/composables/vuetifyField';
 import { loginSchema, type LoginValues } from '../schemas/auth.schemas';
 
 const props = withDefaults(
-  defineProps<{ loading?: boolean; errorMessage?: string | null; initialEmail?: string }>(),
-  { loading: false, errorMessage: null, initialEmail: '' },
+  defineProps<{ loading?: boolean; errorMessage?: string | null; initialUsername?: string }>(),
+  { loading: false, errorMessage: null, initialUsername: '' },
 );
 
 const emit = defineEmits<{ submit: [values: LoginValues] }>();
@@ -15,13 +15,13 @@ const emit = defineEmits<{ submit: [values: LoginValues] }>();
 const { defineField, handleSubmit } = useForm({
   validationSchema: toTypedSchema(loginSchema),
   initialValues: {
-    email: props.initialEmail,
+    username: props.initialUsername,
     password: '',
-    remember: Boolean(props.initialEmail),
+    remember: Boolean(props.initialUsername),
   },
 });
 
-const [email, emailProps] = defineField('email', vuetifyFieldConfig);
+const [username, usernameProps] = defineField('username', vuetifyFieldConfig);
 const [password, passwordProps] = defineField('password', vuetifyFieldConfig);
 const [remember] = defineField('remember');
 
@@ -29,19 +29,27 @@ const onSubmit = handleSubmit((values) => emit('submit', values));
 </script>
 
 <template>
-  <v-form novalidate class="login-form" data-testid="login-form" @submit.prevent="onSubmit">
+  <v-form
+    :disabled="loading"
+    novalidate
+    class="login-form"
+    data-testid="login-form"
+    @submit.prevent="onSubmit"
+  >
     <v-alert v-if="errorMessage" type="error" density="compact" class="mb-4" role="alert">
       {{ errorMessage }}
     </v-alert>
 
     <v-text-field
-      v-model="email"
-      v-bind="emailProps"
-      label="Correo electrónico"
-      type="email"
+      v-model="username"
+      v-bind="usernameProps"
+      label="Usuario"
+      type="text"
       autocomplete="username"
-      placeholder="admin@altium.local"
-      prepend-inner-icon="mdi-email-outline"
+      prepend-inner-icon="mdi-account-outline"
+      autocapitalize="none"
+      :spellcheck="false"
+      maxlength="100"
       density="default"
       class="mb-4"
       autofocus
@@ -56,7 +64,7 @@ const onSubmit = handleSubmit((values) => emit('submit', values));
     <div class="login-form__row">
       <v-checkbox
         v-model="remember"
-        label="Recordar mi correo"
+        label="Recordar mi usuario"
         density="comfortable"
         hide-details
         color="primary"
@@ -69,7 +77,7 @@ const onSubmit = handleSubmit((values) => emit('submit', values));
 
     <button class="login-form__submit" type="submit" :disabled="loading" @click.prevent="onSubmit">
       <span v-if="loading" class="login-form__spinner" aria-hidden="true" />
-      <span class="login-form__submit-label">Iniciar sesión</span>
+      <span class="login-form__submit-label">{{ loading ? 'Ingresando…' : 'Iniciar sesión' }}</span>
       <v-icon icon="mdi-arrow-right" size="22" aria-hidden="true" />
     </button>
   </v-form>
@@ -154,7 +162,7 @@ const onSubmit = handleSubmit((values) => emit('submit', values));
   }
 }
 
-:global(.v-theme--light) .login-form__submit {
+.v-theme--light .login-form__submit {
   box-shadow:
     0 10px 24px rgba(36, 94, 192, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);

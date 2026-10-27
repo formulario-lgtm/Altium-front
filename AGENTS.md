@@ -80,7 +80,7 @@ Full standards: [docs/standards/coding-standards.md](docs/standards/coding-stand
 - Central Problem Details mapping; `apiErrorMessage()` for user-facing copy.
 - Cookie session (`altium_session`, HttpOnly) + CSRF double submit: `x-csrf-token` on mutating calls from the in-memory store `src/services/http/csrf.ts` (fallback: `altium_csrf` cookie). 401 → `onUnauthorized` hook clears session and redirects to `/login`.
 - Session state in `src/stores/auth.store.ts` (Pinia, memory only). Routes use `meta.requiresAuth` / `guestOnly` / `permissions` (`src/app/router/guards.ts`).
-- No JWT/session/CSRF/password in `localStorage` (only theme and opt-in remembered email `altium.auth.rememberedEmail`). No secrets in `VITE_*`.
+- No JWT/session/CSRF/password in `localStorage` (only theme and opt-in remembered username `altium.auth.rememberedUsername`). No secrets in `VITE_*`.
 - Optional `/health` probe behind `VITE_ENABLE_HEALTH_CHECK` — UI must run without API.
 - Keep HTTP out of presentational components.
 

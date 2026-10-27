@@ -8,7 +8,13 @@ export const emailSchema = z
 
 /** Login does not enforce the password policy (backend only checks credentials). */
 export const loginSchema = z.object({
-  email: emailSchema,
+  username: z
+    .string({ required_error: 'Ingresa tu usuario.' })
+    .trim()
+    .toLowerCase()
+    .min(1, 'Ingresa tu usuario.')
+    .max(100, 'El usuario es demasiado largo.')
+    .regex(/^[a-z0-9]+$/, 'Usa letras sin acentos y números, sin espacios.'),
   password: z.string({ required_error: 'Ingresa tu contraseña.' }).min(1, 'Ingresa tu contraseña.'),
   remember: z.boolean().default(false),
 });

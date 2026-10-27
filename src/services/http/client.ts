@@ -3,7 +3,7 @@ import { apiConfig } from '@/config/api';
 import type { paths } from '@/types/generated/api';
 import { clearCsrfToken, CSRF_HEADER, getCsrfToken, isMutatingMethod } from './csrf';
 import { toApiError, toApiErrorFromResponse } from './errors';
-import { beginGlobalLoading, endGlobalLoading, isSilentLoadingUrl } from './loading';
+import { beginRequestLoading, isSilentLoadingUrl } from './loading';
 import { createTimedFetch } from './timed-fetch';
 import { getSessionVersion } from './session-version';
 
@@ -113,22 +113,23 @@ function createSessionMiddleware(): Middleware {
 
 /** Blocks the shell while a tracked API call is in flight (see `loading.ts`). */
 function createLoadingMiddleware(): Middleware {
+  const releases = new WeakMap<Request, () => void>();
   return {
     async onRequest({ request }) {
       if (!isSilentLoadingUrl(request.url)) {
-        beginGlobalLoading();
+        releases.set(request, beginRequestLoading());
       }
       return request;
     },
     async onResponse({ request, response }) {
-      if (!isSilentLoadingUrl(request.url)) {
-        endGlobalLoading();
-      }
+      releases.get(request)?.();
+      releases.delete(request);
       return response;
     },
     async onError({ request }) {
-      if (request && !isSilentLoadingUrl(request.url)) {
-        endGlobalLoading();
+      if (request) {
+        releases.get(request)?.();
+        releases.delete(request);
       }
     },
   };

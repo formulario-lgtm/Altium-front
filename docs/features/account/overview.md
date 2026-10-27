@@ -53,3 +53,7 @@ Any authenticated user (own sessions). Listing/revoking other users' sessions (`
 
 - Unit: `password.schema.spec.ts`, `auth.store.spec.ts`
 - E2E: covered indirectly by the logout flow; no dedicated E2E yet.
+
+The account menu shows the current stable login username returned by `/auth/me`, separately from the person’s name and role. Email changes do not change this identifier.
+
+Password change centers the complete header/form/notice group horizontally at the top of the available shell area, with a 520px maximum width. The heading and submit action are centered; field labels retain their normal alignment. The group keeps the normal shell spacing below the top bar, while small screens and validation messages remain scrollable.

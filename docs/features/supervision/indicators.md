@@ -48,3 +48,5 @@ Seller “behind goal” chips on the dashboard: compliance **&lt; 70%** with a 
 | `FIRST_REVIEW_HOURS` | HOURS | USER (administrative) |
 
 Closed (past) months: PATCH requires `reason` (min. 3 chars); UI confirms before save.
+
+Goals and goal-derived compliance tracking are temporarily paused. Their formulas above remain documented for reactivation; current screens omit target/compliance indicators and API goal lookups return no target without reading stored goals. Monthly operations use the supervisor-home contract definitions described in [Home](../home/overview.md#supervisor-monthly-workspace-2026-10-27).

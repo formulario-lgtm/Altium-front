@@ -7,6 +7,7 @@ import PageHeader from '@/components/common/PageHeader.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import {
   useDownloadSaleDocumentMutation,
+  useDownloadSaleDocumentsMutation,
   useExportSaleMutation,
   useReturnSaleMutation,
   useSaleDocumentsQuery,
@@ -69,6 +70,7 @@ const returnMutation = useReturnSaleMutation();
 const assigneeMutation = useSetSaleAssigneeMutation();
 const exportMutation = useExportSaleMutation();
 const downloadMutation = useDownloadSaleDocumentMutation(saleId);
+const archiveMutation = useDownloadSaleDocumentsMutation(saleId);
 
 const sale = computed(() => saleQuery.data.value);
 const canReview = computed(() => auth.hasPermission('sales.review'));
@@ -359,17 +361,27 @@ async function assignToMe(): Promise<void> {
               documentsQuery.error.value ? apiErrorMessage(documentsQuery.error.value) : undefined
             "
             :download-error="
-              downloadMutation.error.value
-                ? apiErrorMessage(downloadMutation.error.value)
-                : undefined
+              archiveMutation.error.value
+                ? apiErrorMessage(archiveMutation.error.value)
+                : downloadMutation.error.value
+                  ? apiErrorMessage(downloadMutation.error.value)
+                  : undefined
             "
             :downloading-id="
               downloadMutation.isPending.value
                 ? downloadMutation.variables.value?.documentId
                 : undefined
             "
+            :downloading-all="archiveMutation.isPending.value"
             @retry="documentsQuery.refetch()"
-            @download="downloadMutation.mutate($event)"
+            @download="
+              archiveMutation.reset();
+              downloadMutation.mutate($event);
+            "
+            @download-all="
+              downloadMutation.reset();
+              archiveMutation.mutate();
+            "
           />
 
           <v-card v-else-if="section === 'observations'" class="pa-4 pa-md-6">

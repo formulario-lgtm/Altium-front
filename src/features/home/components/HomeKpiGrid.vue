@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { MONTHLY_GOALS_ENABLED, isGoalMetric } from '@/config/features';
 import type { RouteLocationRaw } from 'vue-router';
 import { useRouter } from 'vue-router';
 import type { HomeKpi } from '@/services/http';
@@ -13,6 +15,9 @@ const props = defineProps<{
   compactMobile?: boolean;
 }>();
 
+const visibleKpis = computed(() =>
+  props.kpis.filter((kpi) => MONTHLY_GOALS_ENABLED || !isGoalMetric(kpi.code)),
+);
 const router = useRouter();
 const auth = useAuthStore();
 
@@ -33,11 +38,11 @@ function isClickable(kpi: HomeKpi): boolean {
 <template>
   <v-row dense class="mb-2">
     <v-col
-      v-for="kpi in kpis"
+      v-for="kpi in visibleKpis"
       :key="kpi.code"
       :cols="compactMobile ? 6 : 12"
       sm="6"
-      lg="3"
+      :lg="visibleKpis.length === 3 ? 4 : 3"
       class="d-flex"
     >
       <KpiMetricCard

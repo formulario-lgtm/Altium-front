@@ -5,10 +5,10 @@ import {
   sanitizeAuditPayload,
 } from '@/features/audit/utils/sanitize-json';
 import {
-  readRememberedEmail,
-  REMEMBERED_EMAIL_KEY,
-  saveRememberedEmail,
-} from '@/features/auth/utils/remembered-email';
+  readRememberedUsername,
+  REMEMBERED_USERNAME_KEY,
+  saveRememberedUsername,
+} from '@/features/auth/utils/remembered-username';
 import {
   groupPermissionsByResource,
   isProtectedPermission,
@@ -53,14 +53,14 @@ describe('sanitizeAuditPayload', () => {
   });
 });
 
-describe('remembered email', () => {
-  it('stores only the email and removes it when unchecked', () => {
-    saveRememberedEmail('ana@altium.example', true);
-    expect(readRememberedEmail()).toBe('ana@altium.example');
-    expect(Object.keys(window.localStorage)).toEqual([REMEMBERED_EMAIL_KEY]);
+describe('remembered username', () => {
+  it('stores only the username and removes it when unchecked', () => {
+    saveRememberedUsername('aperez', true);
+    expect(readRememberedUsername()).toBe('aperez');
+    expect(Object.keys(window.localStorage)).toEqual([REMEMBERED_USERNAME_KEY]);
 
-    saveRememberedEmail('ana@altium.example', false);
-    expect(readRememberedEmail()).toBe('');
+    saveRememberedUsername('aperez', false);
+    expect(readRememberedUsername()).toBe('');
   });
 });
 
@@ -191,8 +191,8 @@ describe('sales helpers', () => {
     expect(body.taxInfo).toBeNull();
     expect(body.version).toBe(2);
     expect(body.billing).not.toHaveProperty('cbu');
-    expect(body.billing).not.toHaveProperty('cardNumber');
-    expect(body.billing).not.toHaveProperty('cvv');
+    expect(body.billing?.cardNumber).toBeNull();
+    expect(body.billing?.cvv).toBeNull();
   });
 });
 

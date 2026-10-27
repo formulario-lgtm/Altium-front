@@ -114,9 +114,9 @@ describe('sale presentation readiness', () => {
     model.taxInfo = { monotaxCategory: 'A', currentInsurance: 'Obra social' };
     expect(getSaleReadiness(model, docs).ready).toBe(true);
   });
-  it('requires alternative payer details when the holder is not paying, without hidden card fields', () => {
+  it('requires alternative payer details when the holder is not paying', () => {
     const model = completeModel();
-    model.billing = { paymentMethod: 'CARD', holderIsPayer: false };
+    model.billing = { paymentMethod: 'CBU', holderIsPayer: false };
     expect(getSaleReadiness(model, docs).pending).toHaveLength(3);
     Object.assign(model.billing, {
       payerIdentifier: '20123456786',
@@ -125,13 +125,15 @@ describe('sale presentation readiness', () => {
     });
     expect(getSaleReadiness(model, docs).ready).toBe(true);
   });
-  it('checks card metadata and expiration, never requiring a full card number', () => {
+  it('requires full card data and a valid expiration', () => {
     const model = completeModel();
     model.billing = {
       paymentMethod: 'CARD',
       holderIsPayer: true,
       cardBrand: 'Visa',
       cardLastFour: '4242',
+      cardNumber: '4242424242424242',
+      cvv: '123',
       cardExpiryMonth: 10,
       cardExpiryYear: 2026,
     };
@@ -139,8 +141,47 @@ describe('sale presentation readiness', () => {
     model.billing.cardExpiryMonth = 9;
     expect(getSaleReadiness(model, docs).ready).toBe(false);
     model.billing.cardExpiryYear = 2030;
-    model.billing.cardLastFour = '123';
+    model.billing.cardNumber = '123';
     expect(getSaleReadiness(model, docs).ready).toBe(false);
+  });
+  it('requires card details for a third-party payer and limits the CVV to 3 or 4 digits', () => {
+    const model = completeModel();
+    model.billing = {
+      paymentMethod: 'CARD',
+      holderIsPayer: false,
+      payerIdentifier: '20123456786',
+      payerEmail: 'payer@example.com',
+      payerPhone: '1122223333',
+      cardBrand: 'Visa',
+      cardNumber: '4242424242424242',
+      cvv: '1234',
+      cardExpiryMonth: 12,
+      cardExpiryYear: 2030,
+    };
+    expect(getSaleReadiness(model, docs).ready).toBe(true);
+    model.billing.cvv = '12345';
+    expect(getSaleReadiness(model, docs).pending.map((item) => item.path)).toContain('billing.cvv');
+    model.billing.cvv = '12';
+    expect(getSaleReadiness(model, docs).ready).toBe(false);
+  });
+  it('counts missing card images in billing, while optional OTHER never blocks submit', () => {
+    const model = completeModel();
+    const documents = {
+      ...docs,
+      requiredCategories: [
+        {
+          documentType: 'CARD_FRONT' as const,
+          label: 'Tarjeta frente',
+          saleMemberId: null,
+          satisfied: false,
+        },
+      ],
+    };
+    expect(getSaleReadiness(model, documents).bySection.billing.total).toBe(4);
+    expect(
+      getSaleReadiness(model, documents).pending.some((item) => item.section === 'billing'),
+    ).toBe(true);
+    expect(getSaleReadiness(model, docs).ready).toBe(true);
   });
   it('rejects invalid emails, future dates, zero measurements and invalid tax identifiers', () => {
     const model = completeModel();

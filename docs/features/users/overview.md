@@ -17,9 +17,9 @@ Administer CRM accounts: list, search, filter, create, edit, change status and s
 ## Expected behavior
 
 - Server-side table (`v-data-table-server`) with offset pagination (`limit` 10/25/50/100, `offset`), search `q` (debounced 300 ms, max 100 chars), filters `status` and `roleId` (role filter only when the user can read roles).
-- Columns: name + email, role, status (`StatusBadge`), last login, actions menu.
+- Columns: name + username + email, role, status (`StatusBadge`), last login, actions menu.
 - **Create** (`users.create`): first/last name, email, role → user is created `PENDING`; the backend sends an activation link through its notification port (no link is shown in the UI).
-- **Edit** (`users.update`): sends only changed fields. Own role is locked (backend forbids self role changes). Note shown: changing email/role revokes the user's sessions.
+- **Edit** (`users.update`): sends only changed fields. Own role is locked (backend forbids self role changes). Username stays read-only and stable. Role changes revoke sessions; email edits invalidate old activation/reset links and preserve sessions.
 - **Status** (`users.update_status`): Reactivar / Suspender / Deshabilitar through `ConfirmDialog`. `PENDING` users cannot be set to `ACTIVE` (they must activate). Hidden for the current user.
 - **Password link** (`users.reset_password`): “Reenviar activación” (PENDING) or “Enviar restablecimiento” (ACTIVE) with confirmation. Success copy says the request was registered — it does not claim delivery.
 - Backend `409` details (e.g. last SUPER_ADMIN) are shown in the dialog.
@@ -63,3 +63,7 @@ Administer CRM accounts: list, search, filter, create, edit, change status and s
 
 - Soft delete (`DELETE /api/v1/users/{id}`) is not exposed in the UI.
 - User detail page.
+
+## Login username
+
+Creation shows a read-only preview from first initial + complete surname (NFD → lowercase ASCII letters/digits). The API resolves collisions and the success message displays the actual assigned username including any suffix. Edit shows the saved username; name/email edits do not regenerate it. The list displays username separately from email and search matches both. The shell user menu displays the current username. Generated OpenAPI `UserDto`/`AuthUserDto` are the source of truth.

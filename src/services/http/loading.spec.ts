@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   beginGlobalLoading,
+  beginGlobalTask,
+  beginRequestLoading,
+  clearRequestLoading,
   endGlobalLoading,
   isSilentLoadingUrl,
   resetGlobalLoading,
@@ -31,6 +34,29 @@ describe('global loading tracker', () => {
     expect(pendingCount.value).toBe(1);
     endGlobalLoading();
     expect(isLoading.value).toBe(false);
+  });
+
+  it('releases each UI task once without unlocking concurrent backend work', () => {
+    const release = beginGlobalTask();
+    beginGlobalLoading();
+    release();
+    release();
+    expect(useGlobalLoadingState().pendingCount.value).toBe(1);
+    endGlobalLoading();
+    expect(useGlobalLoadingState().isLoading.value).toBe(false);
+  });
+
+  it('abandons old-session requests without letting their late completion unlock new work', () => {
+    const stale = beginRequestLoading();
+    const navigation = beginGlobalTask();
+    clearRequestLoading();
+    const current = beginRequestLoading();
+    stale();
+    expect(useGlobalLoadingState().pendingCount.value).toBe(2);
+    current();
+    expect(useGlobalLoadingState().pendingCount.value).toBe(1);
+    navigation();
+    expect(useGlobalLoadingState().isLoading.value).toBe(false);
   });
 
   it('does not go below zero on extra end', () => {

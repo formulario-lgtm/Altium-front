@@ -25,8 +25,8 @@ const roles = [
   {
     role: 'supervisor',
     permissions: SUPERVISOR_PERMISSIONS,
-    first: 'supervisor-priorities',
-    second: 'supervisor-progress',
+    first: 'supervisor-sellers-panel',
+    second: 'supervisor-administratives-panel',
     primary: 'Vendedores',
   },
   {
@@ -61,6 +61,26 @@ function fixture(role: Role, empty = false) {
   if (role === 'supervisor') {
     const home = supervisorHomeFixture();
     if (empty) {
+      home.sellers = [];
+      home.administratives = [];
+      home.sellerTotals = {
+        salesPresented: 0,
+        submitted: 0,
+        inReview: 0,
+        approved: 0,
+        rejected: 0,
+        returned: 0,
+      };
+      home.administrativeTotals = {
+        reviewsStarted: 0,
+        approved: 0,
+        rejected: 0,
+        returns: 0,
+        currentWorkload: 0,
+      };
+      home.kpis = home.kpis.map((kpi) => ({ ...kpi, value: 0, availability: 'ZERO' }));
+      home.unassigned = 0;
+      home.followUpsOverdue = 0;
       home.sellersBehindPace = [];
       home.dailyPresented = [];
       home.alerts = [];
@@ -190,7 +210,11 @@ test.describe('Operational role homes', () => {
           expect(
             await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
           ).toBe(true);
-          await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true });
+          await page.screenshot({
+            path: testInfo.outputPath('home.png'),
+            fullPage: true,
+            animations: 'disabled',
+          });
         });
       }
     }
@@ -221,15 +245,17 @@ test.describe('Operational role homes', () => {
           await expect(home.getByText('Tu cola está al día')).toBeVisible();
           await expect(home.getByText('Sin alertas operativas')).toBeVisible();
         } else {
-          await expect(
-            home.getByTestId('home-goal-progress').getByText('Sin objetivo', { exact: true }),
-          ).toBeVisible();
+          await expect(home.getByTestId('home-goal-progress')).toHaveCount(0);
           await expect(home.getByRole('progressbar')).toHaveCount(0);
         }
         expect(
           await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         ).toBe(true);
-        await page.screenshot({ path: testInfo.outputPath('home.png'), fullPage: true });
+        await page.screenshot({
+          path: testInfo.outputPath('home.png'),
+          fullPage: true,
+          animations: 'disabled',
+        });
       });
     }
   }
@@ -271,7 +297,7 @@ test.describe('Operational role homes', () => {
         .getByTestId('supervisor-home')
         .getByRole('button', { name: /Pendientes de gestión admin/ }),
     ).toHaveCount(0);
-    await page.getByTestId('home-seller-pace-list').getByRole('link').first().click();
+    await page.getByTestId('supervisor-sellers-panel').getByRole('link').first().click();
     await expect(page).toHaveURL(/\/supervision\/sellers\/.+\?/);
     const url = new URL(page.url());
     expect(url.searchParams.get('year')).toBe('2026');
@@ -314,57 +340,19 @@ test.describe('Operational role homes', () => {
     await expect(alerts.getByText('Presentadas pendientes')).toBeVisible();
   });
 
-  for (const state of ['zero', 'unavailable', 'exceeded'] as const) {
-    test(`supervisor goal ${state} shows honest progress`, async ({ page }) => {
-      await mockApi(page, { authenticated: true, permissions: SUPERVISOR_PERMISSIONS });
-      const home = supervisorHomeFixture();
-      home.compliance = {
-        hasGoal: true,
-        targetIsZero: state === 'zero',
-        targetValue: state === 'zero' ? 0 : 10,
-        compliancePercent: state === 'exceeded' ? 160 : null,
-      };
-      await page.route('**/api/v1/home/supervisor?*', (route) => route.fulfill({ json: home }));
-      await page.goto('/');
-      const progress = page.getByTestId('home-goal-progress');
-      await expect(
-        progress.getByText(
-          state === 'zero' ? 'Objetivo en cero' : state === 'unavailable' ? 'Sin datos' : '160%',
-          { exact: true },
-        ),
-      ).toBeVisible();
-      if (state === 'exceeded')
-        await expect(progress.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
-      else await expect(progress.getByRole('progressbar')).toHaveCount(0);
-    });
-  }
-
-  test('supervisor comparison reports an independent error and can retry', async ({ page }) => {
+  test('supervisor summary reports a request error and can retry', async ({ page }) => {
     await mockApi(page, { authenticated: true, permissions: SUPERVISOR_PERMISSIONS });
     let fail = true;
-    await page.route('**/api/v1/supervision/sellers?*', (route) =>
+    await page.route('**/api/v1/home/supervisor?*', (route) =>
       fail
-        ? route.fulfill({
-            status: 503,
-            contentType: 'application/problem+json',
-            json: {
-              type: 'about:blank',
-              title: 'Servicio no disponible',
-              status: 503,
-              detail: 'No se pudo cargar la comparación.',
-            },
-          })
-        : route.fulfill({
-            json: { items: [] } satisfies components['schemas']['SellerListResponseDto'],
-          }),
+        ? route.fulfill({ status: 503, json: { status: 503, title: 'Servicio no disponible' } })
+        : route.fulfill({ json: supervisorHomeFixture() }),
     );
     await page.goto('/');
-    await expect(page.getByTestId('supervisor-priorities')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
     fail = false;
     await page.getByRole('button', { name: 'Reintentar' }).click();
-    await expect(
-      page.getByText('No hay vendedores con un objetivo y cumplimiento disponible para comparar.'),
-    ).toBeVisible();
+    await expect(page.getByTestId('supervisor-sellers-panel')).toBeVisible();
+    await expect(page.getByTestId('supervisor-administratives-panel')).toBeVisible();
   });
 });

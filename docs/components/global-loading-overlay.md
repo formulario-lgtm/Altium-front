@@ -2,11 +2,11 @@
 
 | Field        | Value       |
 | ------------ | ----------- |
-| Last updated | 2026-10-25  |
+| Last updated | 2026-10-27  |
 | Version      | 0.1.0       |
 | Status       | Implemented |
 
-Full-screen blocking loader while the app waits on the backend.
+Full-screen blocking loader while the app waits on backend requests, navigation or explicit frontend work.
 
 ## Purpose
 
@@ -18,26 +18,30 @@ Full-screen blocking loader while the app waits on the backend.
 
 `src/components/common/GlobalLoadingOverlay.vue`
 
-Mounted once in `AppShellLayout` and `AuthLayout` (inside `v-app` for theme tokens).
+Mounted once in `App.vue`, inside the single root `v-app`. Layout changes do not recreate or interrupt the blocker. Theme synchronization also lives at this root.
 
 ## How it turns on
 
-The openapi-fetch client middleware in `src/services/http/client.ts` calls `beginGlobalLoading` / `endGlobalLoading` (`src/services/http/loading.ts`) for every tracked request. Multipart document upload (raw `fetch`) does the same in `try/finally`.
+The openapi-fetch client middleware in `src/services/http/client.ts` uses a `beginRequestLoading()` token and its release callback (`src/services/http/loading.ts`) for every tracked request. Multipart document upload (raw `fetch`) does the same in `try/finally`.
 
 **Silent (no overlay):** `GET /api/v1/notifications/unread-count`, `GET /health` — background polls must not freeze the shell.
 
-**Show delay:** ~180 ms so fast responses do not flash the overlay.
+**Immediate blocking:** no delay or transition. Route content becomes native `inert` immediately, disabling mouse/touch, keyboard and focus on underlying controls. The status receives focus, a capture listener blocks keyboard shortcuts/Enter/Tab/Escape while busy, and focus cannot escape to teleported menus. Previous focus is restored if its element still exists when all tracked work finishes.
+
+`installNavigationLoading` starts before auth guards and ends on navigation completion/error (including lazy route imports). Redirects replace the current navigation task without a loading gap; stale completions cannot unlock a newer navigation. Login holds an explicit task until session updates and `router.replace` + first render complete. Role home imports hold another task until their first render starts remote queries, preserving the blocker after navigation resolves.
+
+Use `beginGlobalTask()` for explicit UI operations. Its returned release callback is idempotent and must run in `finally`; overlapping requests and navigation keep independent counts. The root overlay clears only when the last task finishes. Silent polls remain non-blocking.
 
 ## Manual use
 
 ```ts
-import { beginGlobalLoading, endGlobalLoading } from '@/services/http';
+import { beginGlobalTask } from '@/services/http/loading';
 
-beginGlobalLoading();
+const release = beginGlobalTask();
 try {
   await customBackendWork();
 } finally {
-  endGlobalLoading();
+  release();
 }
 ```
 
@@ -46,3 +50,5 @@ Prefer going through `apiClient` so tracking is automatic.
 ## Design
 
 Uses `--altium-glass`, `--altium-glass-border`, `--altium-card-shadow`, and Vuetify `primary` progress — no one-off palette.
+
+HTTP loading tokens belong to the current session. Advancing/clearing the session releases stale request blockers (including uploads), while navigation/UI tasks remain active. A late response from an old session cannot decrement another task or block the next login.

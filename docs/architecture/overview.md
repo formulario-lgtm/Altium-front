@@ -41,3 +41,7 @@ Altium CRM frontend is a **feature-oriented SPA**: Vue 3 + Vite, Vuetify for UI,
 - Document object storage upload UI once Spaces is configured; payment tokenization / CBU capture.
 - Charts (ECharts) and advanced grids (AG Grid) when first needed.
 - Netlify deploy using `netlify.toml`.
+
+## Global presentation lifecycle
+
+`App.vue` owns the single themed `v-app` and persistent global loading component. Layouts provide chrome/main content; they do not mount nested apps or separate blockers. Navigation loading is installed before authentication guards and tracks lazy routes, cancellation and errors. Root route content is inert while backend/navigation/UI tasks are pending. See [GlobalLoadingOverlay](../components/global-loading-overlay.md).

@@ -41,7 +41,7 @@ test.describe('authentication', () => {
       releaseRoles();
       await expect(page).toHaveURL(/\/login\?redirect=.*users.*reason=expired/);
       await expect(page.getByTestId('global-loading')).not.toBeVisible();
-      await page.getByLabel('Correo electrónico').fill('ana.perez@altium.example');
+      await page.getByLabel('Usuario', { exact: true }).fill('aperez');
       await page.getByLabel('Contraseña', { exact: true }).fill(VALID_PASSWORD);
       await page.getByRole('button', { name: 'Iniciar sesión' }).click();
       await expect(page).toHaveURL(/\/users$/);
@@ -62,7 +62,7 @@ test.describe('authentication', () => {
       offline ? route.abort('failed') : route.fallback(),
     );
     await page.goto('/login?redirect=%2Fusers&reason=expired');
-    await page.getByLabel('Correo electrónico').fill('ana.perez@altium.example');
+    await page.getByLabel('Usuario', { exact: true }).fill('aperez');
     await page.getByLabel('Contraseña', { exact: true }).fill(VALID_PASSWORD);
     await page.getByRole('button', { name: 'Iniciar sesión' }).click();
     await expect(page.getByTestId('login-form').getByRole('alert')).toContainText(
@@ -84,11 +84,11 @@ test.describe('authentication', () => {
     await mockApi(page);
     await page.goto('/login');
 
-    await page.getByLabel('Correo electrónico').fill('ana.perez@altium.example');
+    await page.getByLabel('Usuario', { exact: true }).fill('aperez');
     await page.getByLabel('Contraseña', { exact: true }).fill('wrong-password');
     await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
-    await expect(page.getByRole('alert')).toContainText('Correo o contraseña incorrectos.');
+    await expect(page.getByRole('alert')).toContainText('Usuario o contraseña incorrectos.');
     await expect(page).toHaveURL(/\/login/);
   });
 
@@ -96,7 +96,7 @@ test.describe('authentication', () => {
     const api = await mockApi(page);
     await page.goto('/users');
 
-    await page.getByLabel('Correo electrónico').fill('ana.perez@altium.example');
+    await page.getByLabel('Usuario', { exact: true }).fill('aperez');
     await page.getByLabel('Contraseña', { exact: true }).fill(VALID_PASSWORD);
     await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
@@ -124,9 +124,9 @@ test.describe('authentication', () => {
     await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible();
     await expect(page.getByText('Tu sesión terminó')).toBeVisible();
 
-    const email = page.getByLabel('Correo electrónico');
+    const email = page.getByLabel('Usuario', { exact: true });
     await expect(email).toBeEnabled();
-    await email.fill('ana.perez@altium.example');
+    await email.fill('aperez');
     await page.getByLabel('Contraseña', { exact: true }).fill(VALID_PASSWORD);
     await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
@@ -145,4 +145,28 @@ test.describe('authentication', () => {
     await page.goto('/audit');
     await expect(page.getByRole('heading', { name: 'Acceso denegado' })).toBeVisible();
   });
+});
+
+test('remembers the username only and sends normalized credentials without email', async ({
+  page,
+}) => {
+  await mockApi(page);
+  await page.goto('/login');
+  await page.getByLabel('Usuario', { exact: true }).fill('  APerez ');
+  await page.getByLabel('Contraseña', { exact: true }).fill(VALID_PASSWORD);
+  await page.getByLabel('Recordar mi usuario').check();
+  const login = page.waitForRequest('**/api/v1/auth/login');
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  expect((await login).postDataJSON()).toEqual({ username: 'aperez', password: VALID_PASSWORD });
+  await expect(page).toHaveURL(/\/home$|\/$/);
+  await page.getByTestId('user-menu').click();
+  await expect(page.getByText('Usuario: aperez', { exact: true })).toBeVisible();
+  await page.getByTestId('logout').click();
+  await expect(page.getByLabel('Usuario', { exact: true })).toHaveValue('aperez');
+  expect(await page.evaluate(() => localStorage.getItem('altium.auth.rememberedUsername'))).toBe(
+    'aperez',
+  );
+  expect(await page.evaluate(() => localStorage.getItem('altium.auth.rememberedEmail'))).toBeNull();
+  await page.getByRole('link', { name: '¿Olvidaste tu contraseña?' }).click();
+  await expect(page.getByLabel('Correo electrónico')).toHaveValue('');
 });

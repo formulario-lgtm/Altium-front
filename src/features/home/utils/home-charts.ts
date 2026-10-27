@@ -1,3 +1,4 @@
+import { MONTHLY_GOALS_ENABLED } from '@/config/features';
 import type { EChartsCoreOption } from 'echarts/core';
 import type { HomeSeriesPoint } from '@/services/http';
 import {
@@ -178,6 +179,22 @@ export function buildTeamPerformanceOption(
   }[],
   palette: ChartPalette,
 ): EChartsCoreOption {
+  if (!MONTHLY_GOALS_ENABLED)
+    return {
+      tooltip: { trigger: 'axis' },
+      grid: { left: 40, right: 16, top: 24, bottom: 50 },
+      xAxis: { type: 'category', data: teams.map((team) => team.teamName), ...baseAxis(palette) },
+      yAxis: { type: 'value', minInterval: 1, ...baseAxis(palette) },
+      series: [
+        {
+          name: 'Presentadas',
+          type: 'bar',
+          barMaxWidth: 32,
+          data: teams.map((team) => team.salesPresented),
+          itemStyle: { color: palette.primary },
+        },
+      ],
+    };
   return {
     tooltip: { trigger: 'axis' },
     legend: {

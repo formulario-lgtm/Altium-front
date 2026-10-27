@@ -32,6 +32,15 @@ describe('home-labels', () => {
     ).toBe('admin');
   });
 
+  it('prefers the supervisor role even when administrative home permission is also granted', () => {
+    expect(resolveHomeVariant(() => true, 'SUPERVISOR')).toBe('supervisor');
+    expect(
+      resolveHomeVariant((code) =>
+        ['home.supervisor.read', 'home.administrative.read'].includes(code),
+      ),
+    ).toBe('supervisor');
+  });
+
   it('never invents 0% when there is no goal', () => {
     expect(
       formatHomeCompliance({

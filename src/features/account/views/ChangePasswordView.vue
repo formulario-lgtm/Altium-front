@@ -58,52 +58,71 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div style="max-width: 520px">
-    <PageHeader
-      title="Cambiar contraseña"
-      subtitle="Al cambiarla se cierran tus otras sesiones; esta sesión sigue activa."
-    />
+  <div class="change-password-page" data-testid="change-password-page">
+    <section class="change-password-page__content" aria-label="Cambiar contraseña">
+      <PageHeader
+        class="text-center"
+        title="Cambiar contraseña"
+        subtitle="Al cambiarla se cierran tus otras sesiones; esta sesión sigue activa."
+      />
 
-    <v-alert v-if="auth.mustChangePassword" type="warning" class="mb-4">
-      Debes cambiar tu contraseña antes de continuar usando Altium.
-    </v-alert>
-    <v-alert v-if="changed" type="success" class="mb-4" data-testid="change-password-success">
-      Contraseña actualizada.
-    </v-alert>
+      <v-alert v-if="auth.mustChangePassword" type="warning" class="mb-4">
+        Debes cambiar tu contraseña antes de continuar usando Altium.
+      </v-alert>
+      <v-alert v-if="changed" type="success" class="mb-4" data-testid="change-password-success">
+        Contraseña actualizada.
+      </v-alert>
 
-    <v-card>
-      <v-card-text>
-        <v-form novalidate @submit.prevent="onSubmit">
-          <v-alert v-if="errorMessage" type="error" density="compact" class="mb-4" role="alert">
-            {{ errorMessage }}
-          </v-alert>
-          <PasswordField
-            v-model="currentPassword"
-            v-bind="currentPasswordProps"
-            label="Contraseña actual"
-            autocomplete="current-password"
-            class="mb-4"
-          />
-          <PasswordField
-            v-model="newPassword"
-            v-bind="newPasswordProps"
-            label="Nueva contraseña"
-            autocomplete="new-password"
-            :hint="PASSWORD_POLICY_HINT"
-            class="mb-4"
-          />
-          <PasswordField
-            v-model="confirmPassword"
-            v-bind="confirmPasswordProps"
-            label="Repetir nueva contraseña"
-            autocomplete="new-password"
-            class="mb-6"
-          />
-          <v-btn type="submit" color="primary" :loading="mutation.isPending.value">
-            Guardar contraseña
-          </v-btn>
-        </v-form>
-      </v-card-text>
-    </v-card>
+      <v-card>
+        <v-card-text>
+          <v-form novalidate @submit.prevent="onSubmit">
+            <v-alert v-if="errorMessage" type="error" density="compact" class="mb-4" role="alert">
+              {{ errorMessage }}
+            </v-alert>
+            <PasswordField
+              v-model="currentPassword"
+              v-bind="currentPasswordProps"
+              label="Contraseña actual"
+              autocomplete="current-password"
+              class="mb-4"
+            />
+            <PasswordField
+              v-model="newPassword"
+              v-bind="newPasswordProps"
+              label="Nueva contraseña"
+              autocomplete="new-password"
+              :hint="PASSWORD_POLICY_HINT"
+              class="mb-4"
+            />
+            <PasswordField
+              v-model="confirmPassword"
+              v-bind="confirmPasswordProps"
+              label="Repetir nueva contraseña"
+              autocomplete="new-password"
+              class="mb-6"
+            />
+            <div class="d-flex justify-center">
+              <v-btn type="submit" color="primary" :loading="mutation.isPending.value">
+                Guardar contraseña
+              </v-btn>
+            </div>
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </section>
   </div>
 </template>
+
+<style scoped lang="scss">
+.change-password-page {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.change-password-page__content {
+  width: 100%;
+  max-width: 520px;
+  min-width: 0;
+}
+</style>

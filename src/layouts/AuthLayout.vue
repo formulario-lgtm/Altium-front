@@ -1,10 +1,6 @@
 <script setup lang="ts">
-import GlobalLoadingOverlay from '@/components/common/GlobalLoadingOverlay.vue';
 import AltiumMark from '@/components/layout/AltiumMark.vue';
 import ThemeToggleButton from '@/components/layout/ThemeToggleButton.vue';
-import { useThemeSync } from '@/composables/useThemeSync';
-
-useThemeSync();
 
 const highlights = [
   { icon: 'mdi-chart-bar', label: 'Procesos más\neficientes' },
@@ -14,7 +10,7 @@ const highlights = [
 </script>
 
 <template>
-  <v-app>
+  <div class="altium-auth">
     <v-main class="auth-stage">
       <div class="auth-stage__atmosphere" aria-hidden="true">
         <span class="auth-stage__glow auth-stage__glow--tl" />
@@ -62,9 +58,7 @@ const highlights = [
         </section>
       </div>
     </v-main>
-
-    <GlobalLoadingOverlay />
-  </v-app>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -90,7 +84,7 @@ const highlights = [
   color: var(--auth-text);
 }
 
-:global(.v-theme--light) .auth-stage {
+.v-theme--light .auth-stage {
   --auth-bg: #eef3f9;
   --auth-text: #15233a;
   --auth-muted: #5f7088;
@@ -137,11 +131,11 @@ const highlights = [
   background: radial-gradient(circle, rgba(55, 120, 220, 0.35) 0%, transparent 70%);
 }
 
-:global(.v-theme--light) .auth-stage__glow--tl {
+.v-theme--light .auth-stage__glow--tl {
   background: radial-gradient(circle, rgba(80, 140, 230, 0.35) 0%, transparent 68%);
 }
 
-:global(.v-theme--light) .auth-stage__glow--br {
+.v-theme--light .auth-stage__glow--br {
   background: radial-gradient(circle, rgba(100, 160, 240, 0.22) 0%, transparent 70%);
 }
 
@@ -181,7 +175,7 @@ const highlights = [
   mask-image: radial-gradient(ellipse at 40% 40%, black 10%, transparent 72%);
 }
 
-:global(.v-theme--light) .auth-stage__dots {
+.v-theme--light .auth-stage__dots {
   opacity: 0.28;
   background-image: radial-gradient(rgba(60, 100, 160, 0.35) 1.1px, transparent 1.1px);
 }
@@ -319,7 +313,7 @@ const highlights = [
   -webkit-backdrop-filter: blur(22px) saturate(1.2);
 }
 
-:global(.v-theme--light) .auth-stage__panel {
+.v-theme--light .auth-stage__panel {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.65) inset,
     0 20px 50px rgba(25, 43, 69, 0.1),

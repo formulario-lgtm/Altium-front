@@ -12,6 +12,16 @@ describe('chart-theme', () => {
     expect(light.text).toBe(altiumTokens.light.textPrimary);
   });
 
+  it('uses distinct visible series colors instead of duplicate blues or surface fills', () => {
+    for (const dark of [false, true]) {
+      const palette = chartPalette(dark);
+      const tokens = dark ? altiumTokens.dark : altiumTokens.light;
+      expect(new Set(palette.series).size).toBe(palette.series.length);
+      expect(palette.series).not.toContain(tokens.surfaceElevated);
+      expect(palette.series).not.toContain(tokens.background);
+    }
+  });
+
   it('builds axis styles from the palette', () => {
     const palette = chartPalette(false);
     const axis = baseAxis(palette);

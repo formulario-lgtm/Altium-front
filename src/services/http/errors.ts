@@ -31,7 +31,7 @@ const SAFE_MESSAGE_BY_KIND: Record<ApiErrorKind, string> = {
 
 /** User-facing copy for backend error codes documented in Altium-back (auth guide). */
 const SAFE_MESSAGE_BY_CODE: Record<string, string> = {
-  AUTH_INVALID_CREDENTIALS: 'Correo o contraseña incorrectos.',
+  AUTH_INVALID_CREDENTIALS: 'Usuario o contraseña incorrectos.',
   AUTH_ACCOUNT_PENDING: 'La cuenta aún no fue activada. Revisa el enlace de activación.',
   AUTH_ACCOUNT_SUSPENDED: 'La cuenta está suspendida. Contacta a un administrador.',
   AUTH_ACCOUNT_DISABLED: 'La cuenta está deshabilitada. Contacta a un administrador.',
@@ -50,8 +50,7 @@ const SAFE_MESSAGE_BY_CODE: Record<string, string> = {
   DOCUMENT_LOCKED: 'No se puede modificar la documentación de una venta ya presentada.',
   FILE_INVALID: 'El archivo no es válido. Usá JPEG, PNG o PDF dentro del tamaño permitido.',
   STORAGE_ERROR: 'No se pudo guardar el archivo. Intentá de nuevo en unos minutos.',
-  PAYMENT_SENSITIVE_DATA_REJECTED:
-    'No envíes número completo de tarjeta ni CVV. Usá CBU/CVU/ALIAS en el campo correspondiente.',
+  PAYMENT_SENSITIVE_DATA_REJECTED: 'Usá CBU/CVU/ALIAS en el campo correspondiente.',
 };
 
 /** Safe, user-facing message for any thrown value (prefers known backend codes). */

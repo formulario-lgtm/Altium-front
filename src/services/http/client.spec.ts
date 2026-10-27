@@ -104,7 +104,7 @@ describe('session middleware', () => {
       fetch: vi.fn(async () => problem(401, 'AUTH_INVALID_CREDENTIALS')) as unknown as typeof fetch,
     });
 
-    await client.POST('/api/v1/auth/login', { body: { email: 'a@b.co', password: 'x' } });
+    await client.POST('/api/v1/auth/login', { body: { username: 'aperez', password: 'x' } });
     unregister();
 
     expect(handler).not.toHaveBeenCalled();

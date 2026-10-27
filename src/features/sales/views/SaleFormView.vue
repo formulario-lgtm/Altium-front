@@ -479,6 +479,19 @@ async function onSubmitConfirm(): Promise<void> {
               :field-errors="allFieldErrors"
               @clear-field-error="clearFieldError"
             />
+            <SaleDocuments
+              v-if="
+                form.model.value.billing.paymentMethod === 'CARD' ||
+                documentsQuery.data.value?.items.some((doc) =>
+                  ['PAYMENT_PROOF', 'CARD_FRONT', 'CARD_BACK'].includes(doc.documentType),
+                )
+              "
+              class="mt-4"
+              purpose="billing"
+              :sale-id="saleId"
+              :documents="documentsQuery.data.value"
+              :editable="form.editable.value"
+            />
           </template>
 
           <template v-else-if="section === 'documents'">

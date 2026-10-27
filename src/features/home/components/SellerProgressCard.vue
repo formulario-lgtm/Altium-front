@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MONTHLY_GOALS_ENABLED } from '@/config/features';
 import { computed } from 'vue';
 import { useTheme } from 'vuetify';
 import type { SellerHome } from '@/services/http';
@@ -36,58 +37,62 @@ const option = computed(() =>
     <v-card-text class="d-flex flex-column flex-grow-1">
       <div class="d-flex align-start justify-space-between ga-3 mb-4">
         <div>
-          <h2 id="seller-progress-title" class="text-h6">Tu avance del mes</h2>
+          <h2 id="seller-progress-title" class="text-h6">Ventas del mes</h2>
           <p class="text-body-2 text-medium-emphasis mb-0">{{ period }}</p>
         </div>
         <v-avatar color="primary" variant="tonal" rounded="lg" size="40"
-          ><v-icon icon="mdi-target"
+          ><v-icon icon="mdi-chart-bar"
         /></v-avatar>
       </div>
-      <template v-if="usableGoal">
-        <div class="d-flex align-baseline justify-space-between ga-2 mb-2">
-          <span class="text-h5 font-weight-bold">{{ formatHomeCompliance(home.compliance) }}</span>
-          <span class="text-body-2 text-medium-emphasis"
-            >Objetivo: {{ home.compliance.targetValue }} ventas</span
-          >
+      <template v-if="MONTHLY_GOALS_ENABLED">
+        <template v-if="usableGoal">
+          <div class="d-flex align-baseline justify-space-between ga-2 mb-2">
+            <span class="text-h5 font-weight-bold">{{
+              formatHomeCompliance(home.compliance)
+            }}</span>
+            <span class="text-body-2 text-medium-emphasis"
+              >Objetivo: {{ home.compliance.targetValue }} ventas</span
+            >
+          </div>
+          <v-progress-linear
+            :model-value="progress"
+            color="primary"
+            height="8"
+            rounded
+            aria-label="Cumplimiento del objetivo mensual"
+          />
+          <p class="text-body-2 text-medium-emphasis mt-2 mb-0">
+            {{
+              home.remainingToGoal === 0
+                ? '¡Alcanzaste tu objetivo mensual!'
+                : home.remainingToGoal != null
+                  ? `Te ${home.remainingToGoal === 1 ? 'falta 1 venta' : `faltan ${home.remainingToGoal} ventas`} para alcanzar tu objetivo.`
+                  : 'Seguí tu avance con cada venta presentada.'
+            }}
+          </p>
+        </template>
+        <div v-else>
+          <p class="text-subtitle-2 mb-1">
+            {{
+              home.compliance.targetIsZero
+                ? 'Objetivo mensual en cero'
+                : home.compliance.hasGoal
+                  ? 'Avance no disponible'
+                  : 'Sin objetivo mensual'
+            }}
+          </p>
+          <p class="text-body-2 text-medium-emphasis mb-0">
+            {{
+              home.compliance.targetIsZero
+                ? 'Tu objetivo está configurado en cero.'
+                : home.compliance.hasGoal
+                  ? 'Todavía no está disponible el cálculo de cumplimiento.'
+                  : 'Tu supervisor puede configurar el objetivo de este mes.'
+            }}
+            Mientras tanto, cada venta cuenta.
+          </p>
         </div>
-        <v-progress-linear
-          :model-value="progress"
-          color="primary"
-          height="8"
-          rounded
-          aria-label="Cumplimiento del objetivo mensual"
-        />
-        <p class="text-body-2 text-medium-emphasis mt-2 mb-0">
-          {{
-            home.remainingToGoal === 0
-              ? '¡Alcanzaste tu objetivo mensual!'
-              : home.remainingToGoal != null
-                ? `Te ${home.remainingToGoal === 1 ? 'falta 1 venta' : `faltan ${home.remainingToGoal} ventas`} para alcanzar tu objetivo.`
-                : 'Seguí tu avance con cada venta presentada.'
-          }}
-        </p>
       </template>
-      <div v-else>
-        <p class="text-subtitle-2 mb-1">
-          {{
-            home.compliance.targetIsZero
-              ? 'Objetivo mensual en cero'
-              : home.compliance.hasGoal
-                ? 'Avance no disponible'
-                : 'Sin objetivo mensual'
-          }}
-        </p>
-        <p class="text-body-2 text-medium-emphasis mb-0">
-          {{
-            home.compliance.targetIsZero
-              ? 'Tu objetivo está configurado en cero.'
-              : home.compliance.hasGoal
-                ? 'Todavía no está disponible el cálculo de cumplimiento.'
-                : 'Tu supervisor puede configurar el objetivo de este mes.'
-          }}
-          Mientras tanto, cada venta cuenta.
-        </p>
-      </div>
       <v-divider class="my-4" />
       <div class="d-flex flex-wrap align-center justify-space-between ga-2">
         <h3 class="text-subtitle-2">Presentadas por día</h3>

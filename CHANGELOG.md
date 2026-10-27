@@ -18,20 +18,40 @@ Section headings used in this repository:
 
 ### Corrección de errores
 
+- Cobranza separa sus campos del autocompletado de credenciales: CBU/alias sin autocompletado y tarjeta identificada como datos de pago, conservando el enmascaramiento visual y los valores ya guardados.
+
+- Carga global continua e inmediata durante login, navegación, importación de pantallas y consultas iniciales; una sola instancia por encima de la app, bloqueo de clics/teclado y protección ante doble envío. Inicio carga únicamente la vista del rol activo para reducir el trabajo del primer ingreso.
+
+- Cambio de tema del login corregido: selectores de modo claro aislados a sus elementos, evitando que la opacidad de la decoración afecte toda la aplicación. Verificación visual de ambos temas y persistencia al recargar.
+
 - Codificación UTF-8 corregida en las pantallas de administrativos, vendedores y objetivos de supervisión; acentos y símbolos legibles. Nuevo control `check:encoding` integrado en `pnpm check` para prevenir archivos con codificación inválida.
 
 
 ### Cambios técnicos
+
+- Objetivos pausados temporalmente: sin navegación, creación, administración ni seguimiento en ningún rol; indicadores, columnas y series de cumplimiento ocultos. Datos e historial conservados y acceso API bloqueado.
 
 - Normalización del formato y saltos de línea LF según Prettier, EditorConfig y Git, incluidos los archivos existentes en Windows, para restablecer los chequeos globales. Guía de mantenimiento del formato documentada.
 
 
 ### Nuevo
 
+- Login por usuario estable (inicial + apellido), con recordatorio opcional del usuario. Correo separado para contacto y recuperación; vista previa del usuario al crear cuentas, identificador definitivo visible en listados y menú, y edición sin cambiar el acceso.
+
 - Circuito de resolución con **Aprobada** / **Rechazada**: acciones del administrativo, confirmación y motivo obligatorio de rechazo, estado final visible para vendedor y demás roles, historial y notificaciones. Filtros/etiquetas actualizados, bloqueo de nuevas gestiones en ventas cerradas y recuperación ante conflicto de versión.
 
 
 ### Ajuste UX/UI
+
+- Documentación de ventas incorpora Descargar todo en el detalle del vendedor y la revisión administrativa: un ZIP con los adjuntos disponibles, estados de carga/error y descarga individual conservada.
+
+- Cobranza pregunta primero quién paga: número completo de tarjeta y CVV/CVC (hasta 4 dígitos), visibilidad controlada, frente/dorso independientes dentro de Cobranza y Otra documentación opcional en Documentación. Validaciones y revisión administrativa actualizadas; datos sensibles cifrados por la API.
+
+- Cambio de contraseña ubicado arriba y centrado horizontalmente en la pantalla, con título, formulario y acción alineados al centro y adaptación a móvil.
+
+- Inicio del supervisor con resumen mensual en dos columnas: vendedores y gestión administrativa, gráficos de participación, estados y totales por persona, carga actual y accesos a Equipos/Vendedores/Administrativos. La selección del inicio respeta el rol aunque tenga permisos operativos adicionales.
+
+- Campo Usuario del login sin texto de ejemplo, evitando su superposición con la etiqueta al validar.
 
 - Menú de notificaciones más ancho y adaptable, título destacado y número/titular junto a la fecha en una sola línea.
 

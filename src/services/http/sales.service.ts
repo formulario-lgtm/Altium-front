@@ -22,7 +22,7 @@ import type {
 import { apiClient, parseApiResult, parseEmptyResult, REQUEST_ID_HEADER } from './client';
 import { CSRF_HEADER, csrfHeaders, getCsrfToken } from './csrf';
 import { toApiErrorFromResponse } from './errors';
-import { beginGlobalLoading, endGlobalLoading } from './loading';
+import { beginRequestLoading } from './loading';
 
 type RequestOptions = { signal?: AbortSignal };
 
@@ -220,7 +220,7 @@ export async function uploadSaleDocument(
     headers.set(CSRF_HEADER, csrf);
   }
 
-  beginGlobalLoading();
+  const release = beginRequestLoading();
   try {
     const response = await fetch(`${apiConfig.baseURL}/api/v1/sales/${id}/documents`, {
       method: 'POST',
@@ -241,7 +241,7 @@ export async function uploadSaleDocument(
 
     return (await response.json()) as SaleDocumentMeta;
   } finally {
-    endGlobalLoading();
+    release();
   }
 }
 
@@ -280,6 +280,38 @@ export async function downloadSaleDocument(
       fallbackFilename,
     ),
   };
+}
+
+/** One ZIP; retain the global blocker until the response body is fully received. */
+export async function downloadSaleDocuments(id: string): Promise<{ blob: Blob; filename: string }> {
+  const release = beginRequestLoading();
+  try {
+    const result = await apiClient.GET('/api/v1/sales/{id}/documents/download', {
+      params: { path: { id } },
+      parseAs: 'blob',
+    });
+    if (result.error || !result.data) {
+      if (result.response) {
+        let body: unknown = result.error;
+        try {
+          body = await result.response.clone().json();
+        } catch {
+          /* keep result.error */
+        }
+        throw toApiErrorFromResponse(result.response, body);
+      }
+      throw result.error;
+    }
+    return {
+      blob: result.data,
+      filename: filenameFromDisposition(
+        result.response.headers.get('content-disposition'),
+        'documentos-venta.zip',
+      ),
+    };
+  } finally {
+    release();
+  }
 }
 
 /** Binary export — uses parseAs blob from the typed client. */

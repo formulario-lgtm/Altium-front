@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MONTHLY_GOALS_ENABLED } from '@/config/features';
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useTheme } from 'vuetify';
@@ -105,21 +106,21 @@ function openSale(id: string): void {
 
     <template v-else-if="sellerQuery.data.value">
       <v-row dense class="mb-4">
-        <v-col cols="12" md="3">
+        <v-col cols="12" :md="MONTHLY_GOALS_ENABLED ? 3 : 4">
           <v-card class="pa-4 h-100">
             <p class="text-caption text-medium-emphasis mb-1">Presentadas</p>
             <p class="text-h5 font-weight-bold mb-1">{{ sellerQuery.data.value.salesPresented }}</p>
             <p class="text-caption text-medium-emphasis mb-0">{{ KPI_HELP.salesPresented }}</p>
           </v-card>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col v-if="MONTHLY_GOALS_ENABLED" cols="12" md="3">
           <v-card class="pa-4 h-100">
             <p class="text-caption text-medium-emphasis mb-2">Cumplimiento</p>
             <ComplianceChip :compliance="sellerQuery.data.value.compliance" />
             <p class="text-caption text-medium-emphasis mt-2 mb-0">{{ KPI_HELP.compliance }}</p>
           </v-card>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" :md="MONTHLY_GOALS_ENABLED ? 3 : 4">
           <v-card class="pa-4 h-100">
             <p class="text-caption text-medium-emphasis mb-1">Devueltas (stock)</p>
             <p class="text-h5 font-weight-bold mb-1">{{ sellerQuery.data.value.returnedStock }}</p>
@@ -128,7 +129,7 @@ function openSale(id: string): void {
             </p>
           </v-card>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" :md="MONTHLY_GOALS_ENABLED ? 3 : 4">
           <v-card class="pa-4 h-100">
             <p class="text-caption text-medium-emphasis mb-1">Cola operativa</p>
             <p class="text-body-2 mb-0">

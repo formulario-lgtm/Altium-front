@@ -55,6 +55,7 @@ export {
   uploadSaleDocument,
   deleteSaleDocument,
   downloadSaleDocument,
+  downloadSaleDocuments,
   exportSaleExcel,
 } from './sales.service';
 export type { UploadSaleDocumentInput } from './sales.service';

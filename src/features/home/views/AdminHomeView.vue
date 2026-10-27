@@ -184,7 +184,7 @@ const additionalAlerts = computed(() =>
         <v-col cols="12" lg="6" class="d-flex">
           <HomeChartCard
             title="Rendimiento por equipos"
-            subtitle="Ventas presentadas y porcentaje de cumplimiento de cada equipo."
+            subtitle="Ventas presentadas por equipo en el período."
             :option="teamOption"
             :has-data="hasTeamData"
             height="220px"

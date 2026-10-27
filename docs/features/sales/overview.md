@@ -43,15 +43,15 @@ Section nav (sidebar desktop / select mobile):
 2. Integrantes — titular obligatorio; cónyuge / hijos dinámicos; edad calculada (not persisted); FUM when sex=F and age>12; preexistencias detail when Sí.
 3. Contacto y domicilio.
 4. Situación laboral (`DEREGULATED`) or impositiva (`MONOTAX`); hidden for `VOLUNTARY`. Incompatible payloads are cleared before PATCH.
-5. Cobranza — TC (marca + últimos 4 + vencimiento) o CBU/CVU/ALIAS textual en `paymentMedium`. Never send `cardNumber` / `cvv` / dedicated `cbu` field.
-6. Documentación — categorías requeridas desde la API; subida multipart (JPEG/PNG/PDF) a Spaces vía `POST .../documents`, descarga y eliminación en borrador/devuelta.
+5. Cobranza — first holder-as-payer, then payment method. Card: brand, full number (13–19 digits), CVV/CVC (3–4 digits), expiration, and separate front/back JPEG/PNG images. Both holder and third-party card payers need the card data; third parties also need identity/contact. CBU/CVU/alias uses paymentMedium. Full card fields/images are encrypted by the API.
+6. Documentación — required non-card API categories plus optional Otra documentación (OTHER); subida multipart (JPEG/PNG/PDF) a Spaces vía `POST .../documents`, descarga y eliminación en borrador/devuelta.
 7. Observaciones.
 
 Autosave: debounce 800 ms + save on section change. Status: cambios pendientes / guardando / guardado / error. `version` on every PATCH; HTTP 409 `VERSION_CONFLICT` → warn and “Recuperar versión actual” (no silent overwrite).
 
 The capture UI marks required inputs with `*`, shows the current step, family size, per-section completion and a global requirements progress bar. **Ver pendientes** groups missing/invalid requirements and opens the corresponding section. The reference `simulador-formulario-altium.html` was used for field requirements and conditional visibility; its browser-local storage/export implementation is not used. Layout/colors/controls remain part of the Altium design system.
 
-`getSaleReadiness` uses Zod-backed field checks on the existing typed form model. It counts only active requirements: each family member; holder-only marital status; FUM for female members older than 12; preexisting-condition detail when selected; employment/employer CUITs only for deregulated sales; tax category/current coverage only for monotax; and either holder payment metadata or alternative payer ID/email/phone. Age and observations remain optional/derived. Non-empty but invalid emails, tax IDs, dates, measurements, card last-four/expiration do not count as complete. Card capture follows the API (brand, last four, expiration); CBU/CVU/alias uses `paymentMedium`, without adding unsupported full-card/dedicated CBU fields.
+`getSaleReadiness` uses Zod-backed field checks on the existing typed form model. It counts only active requirements: each family member; holder-only marital status; FUM for female members older than 12; preexisting-condition detail when selected; employment/employer CUITs only for deregulated sales; tax category/current coverage only for monotax; and either holder payment metadata or alternative payer ID/email/phone. Age and observations remain optional/derived. Non-empty but invalid emails, tax IDs, dates, measurements, full card number, CVV/CVC and expiration do not count as complete. Card capture sends typed full-number/CVV fields for server encryption and derives the last four for masked summaries. Card image completion belongs to the billing step. OTHER attachments do not affect readiness; CBU/CVU/alias still uses paymentMedium.
 
 **Presentar venta** is disabled until required fields and API document categories are complete, the latest draft save succeeded and document verification is no longer pending/failed. Missing/failed document data blocks presentation and offers retry in the documentation step. The detail-screen presentation action uses the same readiness check, preventing a bypass. Draft saving and navigation remain possible while incomplete. Confirmation rechecks readiness and stops if the final save fails; server-side validation remains authoritative.
 
@@ -108,7 +108,7 @@ There are **no** `sales.submit` / `sales.export` codes in the API catalog. Docum
 
 ## Limitations (intentional)
 
-- No full PAN/CVV; CBU/CVU/ALIAS is stored as operational text (`paymentMedium`). Encrypted `encrypted_cbu` remains unused.
+- Full PAN/CVV and card images are encrypted by the API using a server-only key; no secrets are placed in localStorage or Excel. CBU/CVU/alias remains operational text (paymentMedium). This does not establish PCI DSS compliance; authorization/retention remains a deployment prerequisite.
 - No client-side Excel generation (uses API export).
 - No sale dashboards/charts.
 - Document binaries are never Base64-encoded or kept in `localStorage`.
@@ -133,3 +133,19 @@ Date filters and form dates use [DateField](../../components/date-field.md): the
 `SaleAssigneeNotice` displays the current administrative responsible user near the page heading (or Sin administrativo asignado), matching the administrative review and remaining visible without scrolling to operation metadata.
 
 Shared document presentation can receive the sale members to identify the person associated with each file; uploaded-file metadata shows date, size and status without truncating the caption.
+
+## Billing capture update (2026-10-27)
+
+The payer question precedes payment method in visual and keyboard order. Number and CVV fields accept digits only, hide values initially, and allow explicit visibility toggles. Draft autosave can retain incomplete values, while presentation requires the complete applicable fields and CARD_FRONT/CARD_BACK. Front/back files upload independently from billing, are stored privately with application encryption, and survive reopening a draft. Documentation offers optional OTHER uploads using the same private upload/download/delete flow; old PAYMENT_PROOF files remain accessible from billing and no longer count as required card documents.
+
+Seller and administrative read-only billing reuse SalePaymentSecrets to reveal/hide authorized full number and CVV. Supervisors receive masked metadata and cannot access card images. Do not place real card data in screenshots/tests. There is no processor/insurer authorization integration or automatic post-authorization cleanup; encryption is not PCI DSS certification. Before production collection of real cards, establish compliant authorization/retention controls, including removal of CVV from fields and images after authorization.
+
+Regression coverage: sale-billing.spec.ts verifies ordering, numeric capture, CVV length, persisted reload, separate front/back uploads, optional OTHER, both viewport sizes/themes and administrative visibility. Backend tests cover authenticated encryption, tamper/cross-sale rejection, missing-key failure, derived last-four metadata and supervisor restrictions.
+
+Billing inputs use stable financial names and separate autocomplete identities: bank reference disables browser autocomplete; card number and security code use the section-sale-billing cc-number/cc-csc tokens. Card masking is visual (-webkit-text-security in supported browsers), without password input types that could make credential managers treat billing as login. Visibility toggles still work. The CRM never defaults paymentMedium to the signed-in username, and previously autosaved values are preserved for user review rather than silently cleared.
+
+## Download all documents
+
+SaleDetailDocuments shows Descargar todo at the top in seller detail and administrative review, using a single authenticated ZIP endpoint. Available with uploaded files, disabled while loading, on metadata errors or when only pending files exist. Individual downloads remain available. The API includes only uploaded files visible to the user (including optional documents and card images only within existing restrictions), with distinct safe names for repeated filenames. Failed or cancelled streams are not treated as successful partial downloads.
+
+The mutation shows loading and prevents duplicate requests; the global blocker remains active until the ZIP body is fully received. Download errors are shown inside the shared panel and can be retried. The ZIP is not persisted in browser storage or on the server. Regression coverage: sale-document-archive.spec.ts (seller/admin views, mobile/light and desktop/dark, a single named ZIP download with original bytes, error/retry and no-upload state).

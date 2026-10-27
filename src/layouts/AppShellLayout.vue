@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import GlobalLoadingOverlay from '@/components/common/GlobalLoadingOverlay.vue';
 import AppHeader from '@/components/layout/AppHeader.vue';
 import AppNavigation from '@/components/layout/AppNavigation.vue';
 import { useNavigationItems } from '@/composables/useNavigationItems';
-import { useThemeSync } from '@/composables/useThemeSync';
 import { useLogoutMutation } from '@/features/auth/composables/useAuthMutations';
 import { useAuthStore } from '@/stores/auth.store';
-
-useThemeSync();
 
 const auth = useAuthStore();
 const { items } = useNavigationItems();
@@ -23,7 +19,7 @@ function logout(): void {
 </script>
 
 <template>
-  <v-app class="altium-shell">
+  <div class="altium-shell">
     <div class="altium-shell__atmosphere" aria-hidden="true">
       <span class="altium-shell__glow altium-shell__glow--tl" />
       <span class="altium-shell__glow altium-shell__glow--br" />
@@ -32,6 +28,7 @@ function logout(): void {
 
     <AppHeader
       :user-name="auth.displayName"
+      :username="auth.user?.username"
       :role-code="auth.roleCode"
       :show-nav-toggle="!auth.mustChangePassword"
       :logging-out="logoutMutation.isPending.value"
@@ -48,7 +45,5 @@ function logout(): void {
         <router-view />
       </v-container>
     </v-main>
-
-    <GlobalLoadingOverlay />
-  </v-app>
+  </div>
 </template>

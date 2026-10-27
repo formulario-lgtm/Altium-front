@@ -4,6 +4,7 @@ import { useForm } from 'vee-validate';
 import { computed, watch } from 'vue';
 import { vuetifyFieldConfig } from '@/composables/vuetifyField';
 import type { Role, User } from '@/services/http';
+import { usernamePreview } from '../utils/username-preview';
 import { userFormSchema, type UserFormValues } from '../schemas/user.schema';
 
 const props = withDefaults(
@@ -38,6 +39,9 @@ const { defineField, handleSubmit, resetForm, setErrors } = useForm({
 const [firstName, firstNameProps] = defineField('firstName', vuetifyFieldConfig);
 const [lastName, lastNameProps] = defineField('lastName', vuetifyFieldConfig);
 const [email, emailProps] = defineField('email', vuetifyFieldConfig);
+const loginUsername = computed(
+  () => props.user?.username ?? usernamePreview(firstName.value ?? '', lastName.value ?? ''),
+);
 const [roleId, roleIdProps] = defineField('roleId', vuetifyFieldConfig);
 
 watch(open, (isOpen) => {
@@ -80,6 +84,20 @@ const onSubmit = handleSubmit((values) => emit('submit', values));
             </v-col>
             <v-col cols="12">
               <v-text-field
+                :model-value="loginUsername"
+                label="Usuario de acceso"
+                readonly
+                prepend-inner-icon="mdi-account-outline"
+                :hint="
+                  isEdit
+                    ? 'Se conserva al cambiar el nombre o el correo.'
+                    : 'Se genera al crear la cuenta. Si ya existe, se agrega un número.'
+                "
+                persistent-hint
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
                 v-model="email"
                 v-bind="emailProps"
                 label="Correo electrónico"
@@ -100,7 +118,8 @@ const onSubmit = handleSubmit((values) => emit('submit', values));
             </v-col>
           </v-row>
           <p v-if="isEdit" class="text-caption text-medium-emphasis mt-2 mb-0">
-            Cambiar el correo o el rol cierra las sesiones activas del usuario.
+            Cambiar el rol cierra las sesiones activas. Cambiar el correo conserva el usuario de
+            acceso e invalida los enlaces de activación o recuperación anteriores.
           </p>
         </v-card-text>
         <v-card-actions class="px-6 pb-4">

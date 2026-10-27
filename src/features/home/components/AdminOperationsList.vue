@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MONTHLY_GOALS_ENABLED } from '@/config/features';
 import { computed } from 'vue';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
 import type { AdminHome, HomePeriodTeamQuery } from '@/services/http';
@@ -55,6 +56,9 @@ const rows = computed(() => [
     to: { name: 'users' },
   },
 ]);
+const visibleRows = computed(() =>
+  rows.value.filter((item) => MONTHLY_GOALS_ENABLED || item.key !== 'goals'),
+);
 function destination(to: RouteLocationRaw | null) {
   return accessibleHomeRoute(router, to, auth.hasPermission) ?? undefined;
 }
@@ -62,7 +66,12 @@ function destination(to: RouteLocationRaw | null) {
 
 <template>
   <v-list class="bg-transparent pa-0" lines="two" data-testid="admin-operations">
-    <v-list-item v-for="row in rows" :key="row.key" :value="row.key" :to="destination(row.to)">
+    <v-list-item
+      v-for="row in visibleRows"
+      :key="row.key"
+      :value="row.key"
+      :to="destination(row.to)"
+    >
       <template #prepend
         ><v-icon
           :icon="row.icon"

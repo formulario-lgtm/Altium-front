@@ -14,6 +14,7 @@ import {
 } from '../composables/useSales';
 import {
   documentStatusLabel,
+  documentTypeLabel,
   formatFileSize,
   SALE_DOCUMENT_ACCEPT,
   SALE_DOCUMENT_MAX_BYTES,
@@ -25,8 +26,9 @@ const props = withDefaults(
     documents: SaleDocuments | null | undefined;
     loading?: boolean;
     editable?: boolean;
+    purpose?: 'documentation' | 'billing';
   }>(),
-  { loading: false, editable: false },
+  { loading: false, editable: false, purpose: 'documentation' },
 );
 
 const uploadMutation = useUploadSaleDocumentMutation(() => props.saleId);
@@ -38,7 +40,51 @@ const actionError = ref<string | null>(null);
 const deleteTarget = ref<SaleDocumentMeta | null>(null);
 const deleteOpen = ref(false);
 
-const categories = computed(() => props.documents?.requiredCategories ?? []);
+type UploadCategory = RequiredDocumentCategory & { required: boolean; allowUpload: boolean };
+const categories = computed<UploadCategory[]>(() => {
+  if (!props.documents) return [];
+  const inSection = (type: string) =>
+    props.purpose === 'billing'
+      ? ['CARD_FRONT', 'CARD_BACK', 'PAYMENT_PROOF'].includes(type)
+      : !['CARD_FRONT', 'CARD_BACK', 'PAYMENT_PROOF'].includes(type);
+  const result: UploadCategory[] = props.documents.requiredCategories
+    .filter(
+      (category) => inSection(category.documentType) && category.documentType !== 'PAYMENT_PROOF',
+    )
+    .map((category) => ({ ...category, required: true, allowUpload: true }));
+  if (props.purpose === 'documentation') {
+    result.push({
+      documentType: 'OTHER',
+      label: 'Otra documentación',
+      saleMemberId: null,
+      satisfied: false,
+      required: false,
+      allowUpload: true,
+    });
+  }
+  for (const doc of props.documents.items.filter((doc) => inSection(doc.documentType))) {
+    if (
+      !result.some(
+        (category) =>
+          category.documentType === doc.documentType &&
+          (category.saleMemberId ?? null) === (doc.saleMemberId ?? null),
+      )
+    ) {
+      result.push({
+        documentType: doc.documentType,
+        saleMemberId: doc.saleMemberId,
+        label:
+          doc.documentType === 'PAYMENT_PROOF'
+            ? 'Archivo de cobranza existente'
+            : documentTypeLabel(doc.documentType),
+        satisfied: false,
+        required: false,
+        allowUpload: doc.documentType !== 'PAYMENT_PROOF',
+      });
+    }
+  }
+  return result;
+});
 const items = computed(() => props.documents?.items ?? []);
 
 function categoryKey(category: RequiredDocumentCategory): string {
@@ -58,7 +104,9 @@ function pickFile(category: RequiredDocumentCategory): void {
   actionError.value = null;
   const input = document.createElement('input');
   input.type = 'file';
-  input.accept = SALE_DOCUMENT_ACCEPT;
+  input.accept = ['CARD_FRONT', 'CARD_BACK'].includes(category.documentType)
+    ? 'image/jpeg,image/png'
+    : SALE_DOCUMENT_ACCEPT;
   input.onchange = () => {
     const file = input.files?.[0];
     if (file) void uploadFile(category, file);
@@ -120,7 +168,9 @@ async function downloadDoc(doc: SaleDocumentMeta): Promise<void> {
   <div>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Adjuntá JPEG, PNG o PDF (máx. 10 MB). Los archivos se guardan de forma privada en el
-      almacenamiento de Altium.
+      almacenamiento de Altium.<template v-if="purpose === 'billing'">
+        Para la tarjeta, usá imágenes JPEG o PNG.</template
+      >
     </p>
 
     <v-alert
@@ -145,24 +195,31 @@ async function downloadDoc(doc: SaleDocumentMeta): Promise<void> {
       <v-card
         v-for="category in categories"
         :key="categoryKey(category)"
+        :data-testid="`sale-document-${categoryKey(category)}`"
         variant="outlined"
         class="pa-3 pa-sm-4"
       >
         <div class="d-flex flex-wrap align-start justify-space-between ga-3 mb-2">
           <div class="min-w-0">
-            <p class="text-subtitle-2 font-weight-medium mb-1">{{ category.label }} *</p>
+            <p class="text-subtitle-2 font-weight-medium mb-1">
+              {{ category.label }}<span v-if="category.required"> *</span>
+            </p>
             <div class="d-flex flex-wrap align-center ga-2">
               <v-chip
                 size="small"
-                :color="category.satisfied ? 'success' : 'warning'"
+                :color="
+                  category.required ? (category.satisfied ? 'success' : 'warning') : 'secondary'
+                "
                 variant="tonal"
               >
-                {{ category.satisfied ? 'Completo' : 'Pendiente' }}
+                {{
+                  category.required ? (category.satisfied ? 'Completo' : 'Pendiente') : 'Opcional'
+                }}
               </v-chip>
             </div>
           </div>
           <v-btn
-            v-if="editable"
+            v-if="editable && category.allowUpload"
             color="primary"
             variant="tonal"
             prepend-icon="mdi-upload"

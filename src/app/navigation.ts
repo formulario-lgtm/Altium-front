@@ -12,7 +12,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
     title: 'Vendedores',
     icon: 'mdi-account-tie-outline',
     routeName: 'supervision-sellers',
-    description: 'Rendimiento y cumplimiento de vendedores del equipo.',
+    description: 'Ventas, estados y devoluciones de vendedores del equipo.',
   },
   {
     title: 'Administrativos',

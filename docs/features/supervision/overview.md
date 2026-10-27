@@ -78,3 +78,7 @@ Sale status transitions from this module, assignment-admin UI, email/push, inven
 ## Text encoding
 
 Administrative, seller and goal views use UTF-8 for accented labels and punctuation. `check:encoding` prevents invalid source bytes/replacement characters, and the supervision E2E suite asserts accented subtitles and table headings.
+
+## Temporary goals pause (2026-10-27)
+
+Monthly goals are disabled via `src/config/features.ts`, matching the backend feature switch. The Objetivos menu/shortcuts and seller goal/compliance columns/cards are hidden; direct goals navigation redirects home for permitted users and never fetches goals. The API also denies all goal endpoints with 403. Existing stored targets, history, views and permissions remain for future reactivation. Sales review follow-ups stay active and are unrelated to goal tracking. Sellers still see presentation counts, returns and daily sales evolution.

@@ -1,3 +1,4 @@
+import { MONTHLY_GOALS_ENABLED } from '@/config/features';
 import type { RouteComponent, RouteRecordRaw } from 'vue-router';
 
 /** Guest page wrapped in `AuthLayout`; one parent per path so nothing collides with `/`. */
@@ -82,6 +83,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'supervision/goals',
         name: 'supervision-goals',
+        beforeEnter: () => (MONTHLY_GOALS_ENABLED ? true : { name: 'home' }),
         component: () => import('@/features/supervision/views/SupervisionGoalsView.vue'),
         meta: { title: 'Objetivos', permissions: ['supervision.analytics.read'] },
       },

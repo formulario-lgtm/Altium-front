@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SalePaymentSecrets from '@/features/sales/components/SalePaymentSecrets.vue';
 import type { Sale } from '@/services/http';
 import EmptyState from '@/components/common/EmptyState.vue';
 import SaleDetailFields from '@/features/sales/components/SaleDetailFields.vue';
@@ -193,5 +194,6 @@ function memberFields(member: Sale['members'][number]) {
           : []),
       ]"
     />
+    <SalePaymentSecrets :card-number="sale.billing?.cardNumber" :cvv="sale.billing?.cvv" />
   </v-card>
 </template>

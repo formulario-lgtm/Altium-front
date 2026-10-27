@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MONTHLY_GOALS_ENABLED } from '@/config/features';
 import { computed } from 'vue';
 import type { HomeCompliance } from '@/services/http';
 import { formatHomeCompliance } from '../utils/home-labels';
@@ -17,7 +18,7 @@ const progress = computed(() =>
 </script>
 
 <template>
-  <div class="mb-4" data-testid="home-goal-progress">
+  <div v-if="MONTHLY_GOALS_ENABLED" class="mb-4" data-testid="home-goal-progress">
     <div class="d-flex flex-wrap align-baseline justify-space-between ga-2 mb-2">
       <span class="text-h5 font-weight-bold">{{
         compliance.hasGoal && !compliance.targetIsZero && compliance.compliancePercent == null
