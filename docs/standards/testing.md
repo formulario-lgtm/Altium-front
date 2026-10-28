@@ -18,6 +18,8 @@
 
 ## Expectations
 
+Manual end-to-end scenarios: [Seller and administrative happy-path checklist](../guides/happy-path-checklist.md).
+
 - Cover stores, pure helpers (guards, schemas, payload builders), the HTTP client (CSRF, 401 hook) and critical shared components.
 - Form tests submit through VeeValidate and assert visible error messages.
 - E2E never needs a live backend: `mockApi(page)` intercepts `/api/v1/**` and `/health` with `route.fulfill`, using shapes typed from `src/types/generated/api.ts`. Extend it per feature.

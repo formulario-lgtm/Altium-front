@@ -3,6 +3,7 @@ node_modules/
 
 # Build
 dist/
+dist-share/
 coverage/
 *.tsbuildinfo
 node_modules/.tmp/

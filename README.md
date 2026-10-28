@@ -14,6 +14,9 @@ pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173).
 
+For temporary access from other PCs, see [local sharing](docs/guides/local-sharing.md)
+(`pnpm share:build` / `pnpm share:serve`).
+
 ## Commands
 
 | Script               | Purpose                             |

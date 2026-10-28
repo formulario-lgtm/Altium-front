@@ -13,6 +13,10 @@ function createMetaEnv(overrides: Partial<ImportMetaEnv> = {}): ImportMetaEnv {
 }
 
 describe('loadAppEnv', () => {
+  it('supports a same-origin API for the shared build', () => {
+    expect(loadAppEnv(createMetaEnv({ VITE_API_BASE_URL: '/' })).apiBaseUrl).toBe('');
+  });
+
   it('normalizes trailing slashes on the API base URL', () => {
     const env = loadAppEnv(
       createMetaEnv({

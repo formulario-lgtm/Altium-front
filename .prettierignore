@@ -1,4 +1,6 @@
 dist
+dist-share
+tmp/share
 coverage
 node_modules
 pnpm-lock.yaml

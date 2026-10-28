@@ -29,12 +29,16 @@ Section headings used in this repository:
 
 ### Cambios técnicos
 
+- Modo `share` para compartir la app local por un enlace HTTPS temporal: compilación aislada sin source maps, API y cookies bajo el mismo origen mediante proxy local, comandos y guía de inicio/cierre.
+
 - Objetivos pausados temporalmente: sin navegación, creación, administración ni seguimiento en ningún rol; indicadores, columnas y series de cumplimiento ocultos. Datos e historial conservados y acceso API bloqueado.
 
 - Normalización del formato y saltos de línea LF según Prettier, EditorConfig y Git, incluidos los archivos existentes en Windows, para restablecer los chequeos globales. Guía de mantenimiento del formato documentada.
 
 
 ### Nuevo
+
+- Checklist Markdown de 46 casos de happy path para vendedores y administrativos, con casillas de seguimiento, resultados esperados y espacio para evidencia.
 
 - Login por usuario estable (inicial + apellido), con recordatorio opcional del usuario. Correo separado para contacto y recuperación; vista previa del usuario al crear cuentas, identificador definitivo visible en listados y menú, y edición sin cambiar el acceso.
 

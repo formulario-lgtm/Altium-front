@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import vuetify from 'vite-plugin-vuetify';
 import { vuetifyOptimizeDeps } from './scripts/vuetify-optimize-deps';
+import { createSharingConfig } from './scripts/sharing-config';
 
 /**
  * Pre-bundle Vuetify components used across lazy routes.
@@ -10,7 +11,8 @@ import { vuetifyOptimizeDeps } from './scripts/vuetify-optimize-deps';
  * Without this, the first visit to a screen triggers Vite dep re-optimization
  * and a full page reload (blank flash / bounce back to `/`).
  */
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  ...createSharingConfig(mode),
   plugins: [
     vue(),
     vuetify({
@@ -32,12 +34,4 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
-  preview: {
-    port: 4173,
-    host: true,
-  },
-  build: {
-    target: 'es2022',
-    sourcemap: true,
-  },
-});
+}));

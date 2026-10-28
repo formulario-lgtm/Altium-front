@@ -9,6 +9,8 @@ export default tseslint.config(
   {
     ignores: [
       'dist/**',
+      'dist-share/**',
+      'tmp/share/**',
       'coverage/**',
       'node_modules/**',
       'playwright-report/**',

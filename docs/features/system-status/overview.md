@@ -20,6 +20,7 @@ Technical screen to verify runtime and optional API connectivity, plus the forbi
 
 - Runtime summary (framework, state libs, API base URL).
 - If `VITE_ENABLE_HEALTH_CHECK=true`, probe `GET {API}/health` via TanStack Query; otherwise an informative chip.
+- Temporary sharing uses the public origin for API calls and proxies `/health` to the local API; see [local sharing](../../guides/local-sharing.md).
 - Forbidden: `EmptyState` with “Ir al inicio”.
 
 ## Components
