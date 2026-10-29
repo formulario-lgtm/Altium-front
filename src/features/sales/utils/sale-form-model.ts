@@ -125,7 +125,7 @@ export function formModelToUpdateBody(model: SaleFormModel): UpdateSaleBody {
     observations: model.observations,
     members: model.members.map((member, index) => ({
       ...member,
-      displayOrder: member.displayOrder ?? index,
+      displayOrder: index,
     })),
     contact: model.contact,
     billing: {
@@ -153,7 +153,10 @@ export function formModelToUpdateBody(model: SaleFormModel): UpdateSaleBody {
     body.employment = {
       currentInsurance: model.employment.currentInsurance,
       grossSalary: model.employment.grossSalary,
-      employers: model.employment.employers,
+      employers: model.employment.employers.map((employer, index) => ({
+        ...employer,
+        displayOrder: index,
+      })),
     };
     body.taxInfo = null;
   } else if (customerType === 'MONOTAX') {

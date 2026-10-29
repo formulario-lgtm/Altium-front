@@ -16,7 +16,13 @@ Section headings used in this repository:
 
 ## [Unreleased]
 
+### Nuevo
+
+- Acción Borrar en listado y detalle de ventas: solo el vendedor propietario puede borrar borradores nunca presentados, con confirmación y restricciones verificadas por la API.
+
 ### Corrección de errores
+
+- Alta de ventas: validar los datos cargados antes de guardar o cambiar de sección, mantener visible el primer campo inválido y mostrar el resumen de errores; sin validación al perder foco ni pedidos mientras se escribe. Los borradores incompletos siguen permitidos.
 
 - Cobranza separa sus campos del autocompletado de credenciales: CBU/alias sin autocompletado y tarjeta identificada como datos de pago, conservando el enmascaramiento visual y los valores ya guardados.
 
@@ -46,6 +52,8 @@ Section headings used in this repository:
 
 
 ### Ajuste UX/UI
+
+- Carga de ventas sin guardados al escribir: Guardar borrador o cambio de sección, sin PATCH si no hay cambios. Guardado local sin bloquear la pantalla, sin recargar el detalle ni perder foco/ediciones en curso; consultas de documentos solo cuando cambian sus requisitos. Se mantienen versiones, validación, verificación de adjuntos y sesión; aviso antes de salir con cambios sin guardar.
 
 - Documentación de ventas incorpora Descargar todo en el detalle del vendedor y la revisión administrativa: un ZIP con los adjuntos disponibles, estados de carga/error y descarga individual conservada.
 

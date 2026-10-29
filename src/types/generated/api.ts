@@ -550,7 +550,11 @@ export interface paths {
         get: operations["Sales_getSale"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete an own sale draft
+         * @description SELLER only, owning seller only, DRAFT and never presented. Soft deletion with audit; other roles cannot delete.
+         */
+        delete: operations["Sales_deleteSale"];
         options?: never;
         head?: never;
         /**
@@ -3985,6 +3989,74 @@ export interface operations {
             };
             /** @description Resource not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    Sales_deleteSale: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description CSRF token; must equal the CSRF cookie value (returned by login and GET /auth/me). Header name is configurable via CSRF_HEADER_NAME. */
+                "x-csrf-token": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Draft deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation or request error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Authentication required or session invalid */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Missing permission or invalid CSRF token */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Conflict with current state */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

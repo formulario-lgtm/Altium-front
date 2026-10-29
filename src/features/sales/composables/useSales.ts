@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 import {
   createSale,
+  deleteSale,
   deleteSaleDocument,
   downloadSaleDocument,
   downloadSaleDocuments,
@@ -17,6 +18,7 @@ import {
   updateSale,
   uploadSaleDocument,
   type CreateSaleBody,
+  type Sale,
   type ReturnSaleBody,
   type SaleListQuery,
   type UpdateSaleBody,
@@ -57,7 +59,7 @@ export function useSaleQuery(
 export function useSaleDocumentsQuery(id: MaybeRefOrGetter<string>) {
   return useQuery({
     queryKey: computed(() => queryKeys.sales.documents(toValue(id))),
-    queryFn: ({ signal }) => getSaleDocuments(toValue(id), { signal }),
+    queryFn: ({ signal }) => getSaleDocuments(toValue(id), { signal, background: true }),
     enabled: computed(() => Boolean(toValue(id))),
   });
 }
@@ -95,13 +97,58 @@ export function useCreateSaleMutation() {
   });
 }
 
+export function useDeleteSaleMutation() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteSale(id),
+    onSuccess: async (_, id) => {
+      // Stop in-flight reads before evicting the deleted draft; never refetch its detail.
+      const keys = [
+        queryKeys.sales.detail(id),
+        queryKeys.sales.documents(id),
+        queryKeys.sales.history(id),
+      ];
+      await Promise.all(keys.map((queryKey) => client.cancelQueries({ queryKey })));
+      keys.forEach((queryKey) => client.removeQueries({ queryKey }));
+      await Promise.all([
+        client.invalidateQueries({ queryKey: [...queryKeys.sales.all, 'list'] }),
+        client.invalidateQueries({ queryKey: queryKeys.home.all, refetchType: 'none' }),
+        client.invalidateQueries({ queryKey: queryKeys.supervision.all, refetchType: 'none' }),
+      ]);
+    },
+  });
+}
+
 export function useUpdateSaleMutation() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: UpdateSaleBody }) => updateSale(id, body),
     onSuccess: async (sale) => {
+      const previous = client.getQueryData<Sale>(queryKeys.sales.detail(sale.id));
       client.setQueryData(queryKeys.sales.detail(sale.id), sale);
-      await client.invalidateQueries({ queryKey: queryKeys.sales.all });
+      // A draft response is authoritative: do not immediately fetch the same detail again.
+      await client.invalidateQueries({
+        queryKey: [...queryKeys.sales.all, 'list'],
+        refetchType: 'none',
+      });
+      await client.invalidateQueries({ queryKey: queryKeys.home.all, refetchType: 'none' });
+      const documentContext = (value?: Sale) =>
+        JSON.stringify(
+          value && {
+            customerType: value.customerType,
+            paymentMethod: value.billing?.paymentMethod,
+            members: value.members.map(({ id, memberType, firstName, lastName }) => ({
+              id,
+              memberType,
+              firstName,
+              lastName,
+            })),
+          },
+        );
+      if (documentContext(previous) !== documentContext(sale)) {
+        // Verification owns its inline state; do not hold the draft save open for another GET.
+        void client.invalidateQueries({ queryKey: queryKeys.sales.documents(sale.id) });
+      }
     },
   });
 }

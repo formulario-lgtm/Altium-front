@@ -102,7 +102,7 @@ export function buildSale(overrides: Partial<Schemas['SaleDto']> = {}): Schemas[
       {
         id: 'a1b2c3d4-4444-4000-8000-000000000004',
         memberType: 'HOLDER',
-        cuil: '27301234567',
+        cuil: '27301234568',
         firstName: 'Ana',
         lastName: 'Pérez',
         sex: 'FEMALE',
@@ -132,7 +132,7 @@ export function buildSale(overrides: Partial<Schemas['SaleDto']> = {}): Schemas[
       employers: [
         {
           id: 'a1b2c3d4-5555-4000-8000-000000000005',
-          employerCuit: '30712345678',
+          employerCuit: '30712345671',
           displayOrder: 0,
         },
       ],

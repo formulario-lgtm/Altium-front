@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue';
 import ErrorState from '@/components/common/ErrorState.vue';
@@ -21,6 +21,7 @@ import { getSaleReadiness } from '../utils/sale-readiness';
 import SaleDocuments from '../components/SaleDocuments.vue';
 import SaleSaveStatus from '../components/SaleSaveStatus.vue';
 import SaleSectionNav, { type SaleSectionId } from '../components/SaleSectionNav.vue';
+import { useSaleLeaveGuard } from '../composables/useSaleLeaveGuard';
 import { useSaleForm } from '../composables/useSaleForm';
 import {
   useHealthInsurersQuery,
@@ -28,6 +29,7 @@ import {
   useSaleDocumentsQuery,
   useSubmitSaleMutation,
 } from '../composables/useSales';
+import { createSaleFormRowKey } from '../utils/sale-form-row-key';
 import { emptyMember } from '../utils/sale-form-model';
 import { fieldErrorProps, saleFieldPathLabel } from '../utils/sale-field-errors';
 import { formatSaleNumber } from '@/utils/format';
@@ -38,12 +40,16 @@ const router = useRouter();
 const saleId = computed(() => String(route.params.id));
 
 const form = useSaleForm(saleId);
+const leaveGuard = useSaleLeaveGuard(form);
 const insurersQuery = useHealthInsurersQuery();
 const plansQuery = useHealthPlansQuery(computed(() => form.model.value?.healthInsurerId ?? null));
 const documentsQuery = useSaleDocumentsQuery(saleId);
 const submitMutation = useSubmitSaleMutation();
 
 const section = ref<SaleSectionId>('details');
+const formElement = ref<HTMLElement>();
+const changingSection = ref(false);
+const memberKey = createSaleFormRowKey();
 const submitConfirm = ref(false);
 const submitError = ref<string | null>(null);
 const submitFieldErrors = ref<Record<string, string>>({});
@@ -73,9 +79,11 @@ const presentationHint = computed(() =>
     ? `Completá o corregí ${readiness.value.pending.length} requisitos antes de presentar.`
     : form.saveStatus.value === 'error'
       ? 'Guardá el borrador sin errores antes de presentar.'
-      : !canPresent.value
-        ? 'Esperá a que finalicen el guardado y la verificación de documentos.'
-        : 'La venta está lista para presentar.',
+      : form.hasUnsavedChanges.value && form.saveStatus.value !== 'saving'
+        ? 'Guardá el borrador o cambiá de sección para guardar tus cambios antes de presentar.'
+        : !canPresent.value
+          ? 'Esperá a que finalicen el guardado y la verificación de documentos.'
+          : 'La venta está lista para presentar.',
 );
 
 function fieldProps(path: string) {
@@ -119,11 +127,39 @@ const sections = computed(() => {
   return base;
 });
 
-watch(section, async (next, prev) => {
-  if (prev && next !== prev && form.editable.value) {
-    await form.persist();
+async function revealErrors(): Promise<void> {
+  const firstField = Object.keys(allFieldErrors.value)[0];
+  if (!firstField) return;
+  section.value = sectionForField(firstField);
+  await nextTick();
+  const input = formElement.value?.querySelector<HTMLElement>(
+    '.v-input--error input, .v-input--error textarea',
+  );
+  input?.focus();
+  (input ?? formElement.value?.querySelector('[role="alert"]'))?.scrollIntoView({
+    block: 'center',
+    behavior: 'smooth',
+  });
+}
+
+async function saveDraft(): Promise<boolean> {
+  submitError.value = null;
+  submitFieldErrors.value = {};
+  const saved = await form.persist();
+  if (!saved) await revealErrors();
+  return Boolean(saved) && !form.hasUnsavedChanges.value;
+}
+
+async function requestSection(next: SaleSectionId): Promise<void> {
+  if (next === section.value || changingSection.value) return;
+  changingSection.value = true;
+  try {
+    if (form.editable.value && !(await saveDraft())) return;
+    section.value = next;
+  } finally {
+    changingSection.value = false;
   }
-});
+}
 
 watch(
   () => form.model.value?.customerType,
@@ -173,7 +209,7 @@ function goSection(delta: number): void {
   const ids = sections.value.map((s) => s.id);
   const current = ids.indexOf(section.value);
   const next = ids[current + delta];
-  if (next) section.value = next;
+  if (next) void requestSection(next);
 }
 
 function addSpouse(): void {
@@ -195,7 +231,8 @@ function removeMemberAt(index: number): void {
 
 function updateMemberAt(index: number, member: SaleMemberInput): void {
   if (!form.model.value) return;
-  form.model.value.members[index] = member;
+  const current = form.model.value.members[index];
+  if (current) Object.assign(current, member);
 }
 
 function sectionForField(field: string): SaleSectionId {
@@ -204,6 +241,8 @@ function sectionForField(field: string): SaleSectionId {
   if (field.startsWith('employment')) return 'employment';
   if (field.startsWith('taxInfo')) return 'tax';
   if (field.startsWith('billing')) return 'billing';
+  if (field.startsWith('documents')) return 'documents';
+  if (field === 'observations') return 'notes';
   return 'details';
 }
 
@@ -212,15 +251,17 @@ async function onSubmitConfirm(): Promise<void> {
   if (!canPresent.value) return;
   submitError.value = null;
   submitFieldErrors.value = {};
-  const saved = await form.persist();
+  const saved = await form.persist({ force: true });
   if (
     !saved ||
     form.versionConflict.value ||
     !readiness.value.ready ||
     form.saveStatus.value !== 'saved' ||
     documentsQuery.error.value
-  )
+  ) {
+    await revealErrors();
     return;
+  }
   try {
     const sale = await submitMutation.mutateAsync(saleId.value);
     await router.push({ name: 'sale-detail', params: { id: sale.id } });
@@ -228,20 +269,29 @@ async function onSubmitConfirm(): Promise<void> {
     submitError.value = apiErrorMessage(error);
     if (isApiError(error) && error.kind === 'validation') {
       submitFieldErrors.value = fieldErrorsToMap(error);
-      const firstField = Object.keys(submitFieldErrors.value)[0];
-      if (firstField) section.value = sectionForField(firstField);
+      await revealErrors();
     }
   }
 }
 </script>
 
 <template>
-  <div>
+  <div ref="formElement">
+    <ConfirmDialog
+      v-model="leaveGuard.open.value"
+      title="Hay cambios sin guardar"
+      message="Si salís ahora, perderás los cambios que todavía no guardaste."
+      confirm-text="Salir sin guardar"
+      cancel-text="Seguir editando"
+      color="warning"
+      @confirm="leaveGuard.confirm"
+      @cancel="leaveGuard.cancel"
+    />
     <PageHeader
       :title="
         form.sale.value ? `Venta ${formatSaleNumber(form.sale.value.saleNumber)}` : 'Editar venta'
       "
-      subtitle="Completá la venta a tu ritmo. Tu avance se guarda automáticamente en Altium."
+      subtitle="Guardá tu avance con Guardar borrador o al cambiar de sección."
     >
       <template #actions>
         <div class="d-flex flex-wrap align-center ga-3">
@@ -281,19 +331,14 @@ async function onSubmitConfirm(): Promise<void> {
     </v-alert>
 
     <v-alert
-      v-if="submitError"
+      v-if="submitError || Object.keys(allFieldErrors).length"
       type="error"
       variant="tonal"
       class="mb-4"
-      :title="submitError"
-      closable
-      @click:close="
-        submitError = null;
-        submitFieldErrors = {};
-      "
+      :title="submitError ?? 'Corregí los datos indicados antes de guardar o avanzar.'"
     >
-      <ul v-if="Object.keys(submitFieldErrors).length" class="mt-2 mb-0">
-        <li v-for="(message, field) in submitFieldErrors" :key="field">
+      <ul v-if="Object.keys(allFieldErrors).length" class="mt-2 mb-0">
+        <li v-for="(message, field) in allFieldErrors" :key="field">
           <strong>{{ saleFieldPathLabel(field) }}:</strong> {{ message }}
         </li>
       </ul>
@@ -303,27 +348,29 @@ async function onSubmitConfirm(): Promise<void> {
       v-if="form.model.value"
       :readiness="readiness"
       :sections="sections"
-      @navigate="section = $event"
+      @navigate="requestSection"
     />
     <v-row v-if="form.model.value" align="start">
       <v-col cols="12" md="3" class="d-none d-md-block">
         <v-card class="pa-2 position-sticky" style="top: 5rem">
           <SaleSectionNav
-            v-model="section"
+            :model-value="section"
             :sections="sections"
             :completion="readiness.bySection"
+            @update:model-value="requestSection"
           />
         </v-card>
       </v-col>
 
       <v-col cols="12" md="9">
         <v-select
-          v-model="section"
+          :model-value="section"
           class="d-md-none mb-4"
           :items="sections"
           item-title="label"
           item-value="id"
           label="Sección"
+          @update:model-value="requestSection"
         />
 
         <v-card class="pa-4 pa-md-6 mb-4">
@@ -382,7 +429,11 @@ async function onSubmitConfirm(): Promise<void> {
                   label="Plan *"
                   required
                   clearable
-                  :disabled="!form.editable.value || !form.model.value.healthInsurerId"
+                  :disabled="
+                    !form.editable.value ||
+                    !form.model.value.healthInsurerId ||
+                    plansQuery.isFetching.value
+                  "
                   v-bind="fieldProps('healthPlanId')"
                   @update:model-value="clearFieldError('healthPlanId')"
                 />
@@ -414,7 +465,7 @@ async function onSubmitConfirm(): Promise<void> {
             />
             <FamilyMemberCard
               v-for="row in spouseRows"
-              :key="row.member.id ?? `spouse-${row.index}`"
+              :key="memberKey(row.member)"
               :member="row.member"
               :index="row.index"
               removable
@@ -426,7 +477,7 @@ async function onSubmitConfirm(): Promise<void> {
             />
             <FamilyMemberCard
               v-for="(row, childIndex) in children"
-              :key="row.member.id ?? `child-${row.index}`"
+              :key="memberKey(row.member)"
               :member="row.member"
               :index="row.index"
               :child-index="childIndex + 1"
@@ -491,6 +542,13 @@ async function onSubmitConfirm(): Promise<void> {
               :sale-id="saleId"
               :documents="documentsQuery.data.value"
               :editable="form.editable.value"
+              :disabled="
+                form.hasUnsavedChanges.value ||
+                form.saveStatus.value === 'saving' ||
+                documentsQuery.isFetching.value ||
+                Boolean(documentsQuery.error.value)
+              "
+              :requires-save="form.hasUnsavedChanges.value"
             />
           </template>
 
@@ -515,6 +573,13 @@ async function onSubmitConfirm(): Promise<void> {
               :documents="documentsQuery.data.value"
               :loading="documentsQuery.isFetching.value"
               :editable="form.editable.value"
+              :disabled="
+                form.hasUnsavedChanges.value ||
+                form.saveStatus.value === 'saving' ||
+                documentsQuery.isFetching.value ||
+                Boolean(documentsQuery.error.value)
+              "
+              :requires-save="form.hasUnsavedChanges.value"
             />
           </template>
 
@@ -540,7 +605,8 @@ async function onSubmitConfirm(): Promise<void> {
                 v-if="form.editable.value"
                 variant="tonal"
                 :loading="form.saveStatus.value === 'saving'"
-                @click="form.persist()"
+                :disabled="form.saveStatus.value === 'saving'"
+                @click="saveDraft()"
               >
                 Guardar borrador
               </v-btn>

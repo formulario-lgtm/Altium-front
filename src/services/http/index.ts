@@ -39,6 +39,7 @@ export {
   listSales,
   getSale,
   createSale,
+  deleteSale,
   updateSale,
   submitSale,
   returnSale,

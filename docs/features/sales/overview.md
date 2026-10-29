@@ -8,7 +8,7 @@
 
 ## Goal
 
-Capture and present health-insurance sales (prepagas) for sellers and admins with permission, using the NestJS sales API. Drafts autosave with optimistic concurrency; presentation runs server-side validation.
+Capture and present health-insurance sales (prepagas) for sellers and admins with permission, using the NestJS sales API. Drafts save explicitly or when changing sections, with optimistic concurrency; presentation runs server-side validation.
 
 ## Routes
 
@@ -47,7 +47,7 @@ Section nav (sidebar desktop / select mobile):
 6. Documentación — required non-card API categories plus optional Otra documentación (OTHER); subida multipart (JPEG/PNG/PDF) a Spaces vía `POST .../documents`, descarga y eliminación en borrador/devuelta.
 7. Observaciones.
 
-Autosave: debounce 800 ms + save on section change. Status: cambios pendientes / guardando / guardado / error. `version` on every PATCH; HTTP 409 `VERSION_CONFLICT` → warn and “Recuperar versión actual” (no silent overwrite).
+Saving: Guardar borrador or a section change; there is no typing timer. Clean section changes skip PATCH. Status: cambios pendientes / guardando / guardado / error. `version` on every PATCH; HTTP 409 `VERSION_CONFLICT` → warn and “Recuperar versión actual” (no silent overwrite).
 
 The capture UI marks required inputs with `*`, shows the current step, family size, per-section completion and a global requirements progress bar. **Ver pendientes** groups missing/invalid requirements and opens the corresponding section. The reference `simulador-formulario-altium.html` was used for field requirements and conditional visibility; its browser-local storage/export implementation is not used. Layout/colors/controls remain part of the Altium design system.
 
@@ -55,9 +55,9 @@ The capture UI marks required inputs with `*`, shows the current step, family si
 
 **Presentar venta** is disabled until required fields and API document categories are complete, the latest draft save succeeded and document verification is no longer pending/failed. Missing/failed document data blocks presentation and offers retry in the documentation step. The detail-screen presentation action uses the same readiness check, preventing a bypass. Draft saving and navigation remain possible while incomplete. Confirmation rechecks readiness and stops if the final save fails; server-side validation remains authoritative.
 
-Pending debounce timers are cleared on manual persistence to avoid a duplicate save after presentation. Updates from a PATCH's query-cache refresh cannot overwrite edits made while saving; the current local model keeps those edits and adopts the new version before the next save.
+Save requests are serialized and use detached snapshots. Responses merge only version and server-assigned member/employer identities into the existing model, preserving focus and newer keystrokes; newer edits remain unsaved until the next explicit save or section change. A successful draft response updates the detail cache directly, without refetching the same sale. Lists/home are marked stale without immediate reload, and document requirements refresh only when their sale-type/payment/member context changes. Canonical display order binds new family/employer identities to the correct local entries. Local row keys remain stable when persistent ids arrive, and member field updates keep the existing reactive object rather than replacing it.
 
-Presentar: confirm dialog → persist → `POST .../submit` → detail (read-only). Validation errors (Problem Details `errors[].field`, e.g. `members[0].cuil`) mark the matching Vuetify fields in red with the server message, show a humanized summary above the form, and jump to the related section. Editing a field clears its error. Autosave validation uses the same bindings via `useSaleForm.fieldErrors`. `RETURNED` sales can be edited and re-submitted.
+Presentar: confirm dialog → persist → `POST .../submit` → detail (read-only). Validation errors (Problem Details `errors[].field`, e.g. `members[0].cuil`) mark the matching Vuetify fields in red with the server message, show a humanized summary above the form, and jump to the related section. Editing a field clears its error. Draft validation uses the same bindings via `useSaleForm.fieldErrors`. `RETURNED` sales can be edited and re-submitted.
 
 ### Detalle (`SaleDetailView`)
 
@@ -96,13 +96,13 @@ Globals reused: `PageHeader`, `StatusBadge`, `ConfirmDialog`, `EmptyState`, `Err
 
 ### Permission mapping (backend contract)
 
-| UI action               | Permission     |
-| ----------------------- | -------------- |
-| List/detail             | `sales.read`   |
-| Nueva venta             | `sales.create` |
-| Edit/autosave/Presentar | `sales.update` |
-| Devolver                | `sales.return` |
-| Export Excel            | `sales.read`   |
+| UI action           | Permission     |
+| ------------------- | -------------- |
+| List/detail         | `sales.read`   |
+| Nueva venta         | `sales.create` |
+| Edit/save/Presentar | `sales.update` |
+| Devolver            | `sales.return` |
+| Export Excel        | `sales.read`   |
 
 There are **no** `sales.submit` / `sales.export` codes in the API catalog. Document upload/delete require `sales.update`; list/download require `sales.read`.
 
@@ -117,7 +117,7 @@ There are **no** `sales.submit` / `sales.export` codes in the API catalog. Docum
 
 - Unit: `tests/unit/feature-utils.spec.ts` (search, age/FUM, editability, form body sanitization).
 - E2E: `tests/e2e/sales.spec.ts` (seller nav, list, create→edit, theme, present vs return CTAs).
-- Unit: `sale-readiness.spec.ts` (conditional requirements, payment branches, FUM age boundary, validation and document availability); `useSaleForm.spec.ts` (in-flight edits and debounce cancellation).
+- Unit: `sale-readiness.spec.ts` (conditional requirements, payment branches, FUM age boundary, validation and document availability); `useSaleForm.spec.ts` (explicit saves, concurrent edits, identity reconciliation, conflicts and unchanged-save deduplication).
 - E2E: `tests/e2e/sale-form.spec.ts` (desktop/mobile in both themes, required markers/progress, presentation after completing and saving data, failed final persistence, document retry, and detail readiness).
 
 - E2E: `tests/e2e/sale-detail.spec.ts` (desktop/mobile in both themes, labelled data, member disclosures, document progress/long filenames, newest history first, draft editing and document error recovery).
@@ -136,7 +136,7 @@ Shared document presentation can receive the sale members to identify the person
 
 ## Billing capture update (2026-10-27)
 
-The payer question precedes payment method in visual and keyboard order. Number and CVV fields accept digits only, hide values initially, and allow explicit visibility toggles. Draft autosave can retain incomplete values, while presentation requires the complete applicable fields and CARD_FRONT/CARD_BACK. Front/back files upload independently from billing, are stored privately with application encryption, and survive reopening a draft. Documentation offers optional OTHER uploads using the same private upload/download/delete flow; old PAYMENT_PROOF files remain accessible from billing and no longer count as required card documents.
+The payer question precedes payment method in visual and keyboard order. Number and CVV fields accept digits only, hide values initially, and allow explicit visibility toggles. Draft saving can retain incomplete values, while presentation requires the complete applicable fields and CARD_FRONT/CARD_BACK. Front/back files upload independently from billing, are stored privately with application encryption, and survive reopening a draft. Documentation offers optional OTHER uploads using the same private upload/download/delete flow; old PAYMENT_PROOF files remain accessible from billing and no longer count as required card documents.
 
 Seller and administrative read-only billing reuse SalePaymentSecrets to reveal/hide authorized full number and CVV. Supervisors receive masked metadata and cannot access card images. Do not place real card data in screenshots/tests. There is no processor/insurer authorization integration or automatic post-authorization cleanup; encryption is not PCI DSS certification. Before production collection of real cards, establish compliant authorization/retention controls, including removal of CVV from fields and images after authorization.
 
@@ -149,3 +149,25 @@ Billing inputs use stable financial names and separate autocomplete identities: 
 SaleDetailDocuments shows Descargar todo at the top in seller detail and administrative review, using a single authenticated ZIP endpoint. Available with uploaded files, disabled while loading, on metadata errors or when only pending files exist. Individual downloads remain available. The API includes only uploaded files visible to the user (including optional documents and card images only within existing restrictions), with distinct safe names for repeated filenames. Failed or cancelled streams are not treated as successful partial downloads.
 
 The mutation shows loading and prevents duplicate requests; the global blocker remains active until the ZIP body is fully received. Download errors are shown inside the shared panel and can be retried. The ZIP is not persisted in browser storage or on the server. Regression coverage: sale-document-archive.spec.ts (seller/admin views, mobile/light and desktop/dark, a single named ZIP download with original bytes, error/retry and no-upload state).
+
+## Responsive draft workflow (2026-10-28)
+
+Typing updates local values, progress and validation only. Saving occurs through Guardar borrador, changing a form section, or final presentation confirmation. Changes made during a pending save stay intact and require the next explicit action; there are no follow-up timers. Clean navigation between sections does not write or reload data. Inline Guardando/Cambios sin guardar feedback replaces the global blocker for draft PATCH, document metadata checks and dependent plan options. Other foreground operations (login, route loading, submission, uploads and administrative decisions) keep the normal blocker.
+
+The non-blocking client shares cookie credentials, CSRF, timeout, tracing and unauthorized handling with the main client. Late successful draft responses from a previous session are rejected before caching. Existing optimistic versions, backend validation, conflict recovery and verified-document requirements remain enforced. Presentation stays disabled until the latest edits are saved; final confirmation rechecks via a forced save. Upload/delete controls stay visible but disabled while draft changes or requirement verification are pending, avoiding stale member/category attachments.
+
+Leaving through app navigation asks before discarding unsaved changes; refreshing/closing the browser uses its native beforeunload protection. Pending writes finish before route-leave decisions. Login/session-expiry navigation is never blocked by the unsaved-changes dialog.
+
+Coverage: sale-draft-saving.spec.ts exercises no typing writes, explicit/section saves, focus stability under delayed responses, request counts, queued versions, upload gating, safe leave/cancel, conflict recovery and expired sessions. Unit coverage verifies detached snapshots, new member identities, no delayed writes, stale-session rejection and retained CSRF/session controls.
+
+### Validation before saving and section navigation
+
+Provided values are validated locally only on Guardar borrador, Anterior/Continuar, section navigation (desktop/mobile and progress links), and final presentation save. There is no blur validation or per-keystroke request. Incomplete drafts may keep missing required values; invalid supplied values (CUIL/CUIT check digit, emails, dates, measurements, payment data, numeric precision and API text limits) block saving and navigation. These checks reuse presentation rules. Missing documents are enforced on presentation, not draft saves.
+
+Section navigation waits for successful persistence and keeps the current section on failure. All field errors appear in a humanized summary and the first affected section/field is opened and focused, including server-only validation errors from any section. Correcting a field clears its displayed error; the next action revalidates it. Slow saves keep inline progress without the global overlay. If newer edits arrive during a save, the section stays open until those edits are saved too.
+
+### Delete an own draft
+
+The sales list and detail expose a shared Borrar action only for SELLER with sales.update, the owning seller ID, DRAFT status and no submittedAt. A confirmation dialog identifies the sale number; cancel sends no request. Failures remain in the dialog for review/retry. Successful deletion evicts detail/document/history caches, refreshes sales lists and marks role dashboards/analytics stale; detail returns to Mis ventas.
+
+DELETE /api/v1/sales/:id enforces the same restrictions server-side, including firstSubmittedAt and an atomic version guard. RETURNED and all later workflow statuses cannot be deleted, and SUPER_ADMIN has no exception. This uses the existing soft-delete field, retains audit and private attachment storage, and does not reuse sale numbers. Presentation/edition races return 409 and do not delete the sale.

@@ -1,5 +1,5 @@
 import type { HealthInsurerList, HealthPlanList } from './api-types';
-import { apiClient, parseApiResult } from './client';
+import { apiClient, backgroundApiClient, parseApiResult } from './client';
 
 type RequestOptions = { signal?: AbortSignal };
 
@@ -14,7 +14,7 @@ export async function listHealthPlans(
   insurerId: string,
   options?: RequestOptions,
 ): Promise<HealthPlanList> {
-  const result = await apiClient.GET('/api/v1/health-insurers/{id}/plans', {
+  const result = await backgroundApiClient.GET('/api/v1/health-insurers/{id}/plans', {
     params: { path: { id: insurerId } },
     signal: options?.signal,
   });

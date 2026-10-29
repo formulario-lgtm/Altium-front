@@ -52,3 +52,7 @@ Prefer going through `apiClient` so tracking is automatic.
 Uses `--altium-glass`, `--altium-glass-border`, `--altium-card-shadow`, and Vuetify `primary` progress — no one-off palette.
 
 HTTP loading tokens belong to the current session. Advancing/clearing the session releases stale request blockers (including uploads), while navigation/UI tasks remain active. A late response from an old session cannot decrement another task or block the next login.
+
+## Non-blocking form work
+
+Draft sale PATCH, document-metadata verification and dependent health-plan options use backgroundApiClient with inline loading/disabled states. It is created by the same factory as apiClient and retains credentials, CSRF, tracing, timeout and unauthorized hooks; it only omits the global loading counter. There is no request header or backend switch that bypasses security. Draft saves are action-driven and serialized, and stale-session responses cannot enter the detail cache. Foreground login/navigation/submission/upload/admin actions remain blocking. See [sales](../features/sales/overview.md#responsive-draft-workflow-2026-10-28).

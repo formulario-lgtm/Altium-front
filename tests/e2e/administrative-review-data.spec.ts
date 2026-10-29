@@ -92,7 +92,7 @@ test('administrative can read full personal and medical data for every family me
   await expect(members.first().locator('dd')).toContainText([
     'Ana',
     'Pérez',
-    '27301234567',
+    '27301234568',
     '10/05/1990',
     '36 años',
     'Femenino',
@@ -180,7 +180,7 @@ test('all employer CUITs and multiline seller observations remain available', as
   });
   await page.route(`**/api/v1/sales/${sale.id}`, (route) => route.fulfill({ json: sale }));
   await page.goto(`/administrative/sales/${sale.id}?section=employment`);
-  await expect(page.getByTestId('admin-sale-employment')).toContainText('30712345678');
+  await expect(page.getByTestId('admin-sale-employment')).toContainText('30712345671');
   await expect(page.getByTestId('admin-sale-employment')).toContainText('30709876543');
   await page.goto(`/administrative/sales/${sale.id}?section=details`);
   await expect(page.getByTestId('admin-sale-details')).toContainText(

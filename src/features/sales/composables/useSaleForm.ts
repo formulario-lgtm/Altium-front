@@ -1,4 +1,4 @@
-import { computed, ref, watch, type Ref } from 'vue';
+import { computed, onScopeDispose, ref, watch, type Ref } from 'vue';
 import {
   apiErrorMessage,
   fieldErrorsToMap,
@@ -11,98 +11,166 @@ import {
   saleToFormModel,
   type SaleFormModel,
 } from '../utils/sale-form-model';
+import { validateSaleDraft } from '../utils/sale-draft-validation';
+import { getSessionVersion } from '@/services/http/session-version';
 import { canEditSaleStatus } from '../utils/sale-labels';
 import { useSaleQuery, useUpdateSaleMutation } from './useSales';
 
 export type SaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
 
+function fingerprint(model: SaleFormModel): string {
+  return JSON.stringify({ ...formModelToUpdateBody(model), version: 0 });
+}
+
 export function useSaleForm(saleId: Ref<string>) {
   const saleQuery = useSaleQuery(saleId);
   const updateMutation = useUpdateSaleMutation();
-
   const model = ref<SaleFormModel | null>(null);
   const saveStatus = ref<SaveStatus>('idle');
   const saveError = ref<string | null>(null);
   const fieldErrors = ref<Record<string, string>>({});
   const versionConflict = ref(false);
-  const hydrated = ref(false);
-  const suppressAutosave = ref(false);
-  /** Serialize PATCH calls so concurrent autosaves cannot race on the same version. */
-  let saveChain: Promise<Sale | null> = Promise.resolve(null);
-  let dirtyAfterSave = false;
-  let saveTimer: ReturnType<typeof setTimeout> | undefined;
-  function scheduleSave(): void {
-    if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-      void persist();
-    }, 800);
-  }
-
   const sale = computed(() => saleQuery.data.value);
   const editable = computed(() => canEditSaleStatus(sale.value?.status));
+  const revision = ref(0);
+  const savedRevision = ref(0);
+  const hasUnsavedChanges = computed(
+    () => Boolean(model.value) && revision.value !== savedRevision.value,
+  );
+  let baseline = '';
+  let applyingServer = false;
+  let disposed = false;
+  let saveChain: Promise<Sale | null> = Promise.resolve(null);
+  onScopeDispose(() => {
+    disposed = true;
+  });
+
+  function hydrate(next: Sale): void {
+    applyingServer = true;
+    model.value = saleToFormModel(next);
+    baseline = fingerprint(model.value);
+    revision.value = 0;
+    savedRevision.value = 0;
+    versionConflict.value = false;
+    saveError.value = null;
+    fieldErrors.value = {};
+    saveStatus.value = 'saved';
+    applyingServer = false;
+  }
+
+  watch(
+    saleId,
+    () => {
+      applyingServer = true;
+      model.value = null;
+      baseline = '';
+      revision.value = 0;
+      savedRevision.value = 0;
+      versionConflict.value = false;
+      saveStatus.value = 'idle';
+      applyingServer = false;
+    },
+    { flush: 'sync' },
+  );
 
   watch(
     () => saleQuery.data.value,
     (next) => {
+      if (!next || next.id !== saleId.value || disposed) return;
       if (
-        !next ||
-        (hydrated.value && (saveStatus.value === 'saving' || saveStatus.value === 'dirty'))
+        model.value &&
+        (hasUnsavedChanges.value || saveStatus.value === 'saving' || versionConflict.value)
       )
         return;
-      suppressAutosave.value = true;
-      model.value = saleToFormModel(next);
-      hydrated.value = true;
-      versionConflict.value = false;
-      queueMicrotask(() => {
-        suppressAutosave.value = false;
-        if (saveStatus.value !== 'error') saveStatus.value = 'saved';
-      });
+      if (model.value?.version === next.version) return;
+      hydrate(next);
     },
     { immediate: true },
   );
 
-  async function runPersist(): Promise<Sale | null> {
-    if (!model.value || !editable.value || versionConflict.value) return null;
+  // Track edits synchronously; typing never starts a network request or a timer.
+  watch(
+    model,
+    () => {
+      if (!model.value || applyingServer || !editable.value || disposed) return;
+      revision.value++;
+      if (saveStatus.value !== 'saving' && !versionConflict.value) saveStatus.value = 'dirty';
+    },
+    { deep: true, flush: 'sync' },
+  );
 
-    saveStatus.value = 'saving';
-    saveError.value = null;
+  async function runPersist(id: string, force: boolean): Promise<Sale | null> {
+    if (!model.value || !editable.value || versionConflict.value || disposed || id !== saleId.value)
+      return null;
+    const validationErrors = validateSaleDraft(model.value);
+    if (Object.keys(validationErrors).length) {
+      fieldErrors.value = validationErrors;
+      saveStatus.value = 'error';
+      saveError.value = 'Corregí los datos indicados antes de guardar o avanzar.';
+      return null;
+    }
     fieldErrors.value = {};
-    dirtyAfterSave = false;
-
-    const body: UpdateSaleBody = formModelToUpdateBody(model.value);
+    saveError.value = null;
+    if (!force && saveStatus.value !== 'error' && fingerprint(model.value) === baseline) {
+      savedRevision.value = revision.value;
+      saveStatus.value = 'saved';
+      return sale.value ?? null;
+    }
+    saveStatus.value = 'saving';
+    const sentRevision = revision.value;
+    const session = getSessionVersion();
+    // Form values are JSON-only DTO data; detach the snapshot from subsequent keystrokes.
+    const snapshot = JSON.parse(JSON.stringify(model.value)) as SaleFormModel;
+    const memberRefs = [...model.value.members];
+    const employerRefs = [...model.value.employment.employers];
+    const body: UpdateSaleBody = formModelToUpdateBody(snapshot);
     try {
-      const updated = await updateMutation.mutateAsync({ id: saleId.value, body });
-      suppressAutosave.value = true;
-      if (dirtyAfterSave && model.value) model.value.version = updated.version;
-      else model.value = saleToFormModel(updated);
-      saveStatus.value = dirtyAfterSave ? 'dirty' : 'saved';
-      queueMicrotask(() => {
-        suppressAutosave.value = false;
+      const updated = await updateMutation.mutateAsync({ id, body });
+      if (disposed || id !== saleId.value || !model.value || session !== getSessionVersion())
+        return null;
+      applyingServer = true;
+      model.value.version = updated.version;
+      // Merge server identities without replacing fields, moving focus or losing in-flight edits.
+      snapshot.members.forEach((member, index) => {
+        const stored = updated.members.find((row) =>
+          member.id ? row.id === member.id : row.displayOrder === index,
+        );
+        if (!stored) return;
+        member.id = stored.id;
+        const local = memberRefs[index];
+        if (local && model.value!.members.includes(local)) local.id = stored.id;
       });
-      if (dirtyAfterSave) {
-        dirtyAfterSave = false;
-        scheduleSave();
-      }
+      snapshot.employment.employers.forEach((employer, index) => {
+        const stored = updated.employment?.employers.find((row) =>
+          employer.id ? row.id === employer.id : row.displayOrder === index,
+        );
+        if (!stored) return;
+        employer.id = stored.id;
+        const local = employerRefs[index];
+        if (local && model.value!.employment.employers.includes(local)) local.id = stored.id;
+      });
+      baseline = fingerprint(snapshot);
+      savedRevision.value = sentRevision;
+      saveStatus.value = hasUnsavedChanges.value ? 'dirty' : 'saved';
+      applyingServer = false;
       return updated;
     } catch (error: unknown) {
-      if (isApiError(error) && (error.code === 'VERSION_CONFLICT' || error.kind === 'conflict')) {
+      if (disposed || id !== saleId.value || session !== getSessionVersion()) return null;
+      applyingServer = false;
+      if (isApiError(error) && (error.code === 'VERSION_CONFLICT' || error.kind === 'conflict'))
         versionConflict.value = true;
-        saveStatus.value = 'error';
-        saveError.value = apiErrorMessage(error);
-        return null;
-      }
-      if (isApiError(error) && error.kind === 'validation') {
+      if (isApiError(error) && error.kind === 'validation')
         fieldErrors.value = fieldErrorsToMap(error);
-      }
       saveStatus.value = 'error';
       saveError.value = apiErrorMessage(error);
       return null;
     }
   }
 
-  function persist(): Promise<Sale | null> {
-    if (saveTimer) clearTimeout(saveTimer);
-    const next = saveChain.then(runPersist, runPersist);
+  /** Explicit saves are serialized; unchanged section changes do not issue another PATCH. */
+  function persist(options: { force?: boolean } = {}): Promise<Sale | null> {
+    const id = saleId.value;
+    const next = saveChain.then(() => runPersist(id, options.force ?? false));
     saveChain = next.then(
       () => null,
       () => null,
@@ -110,28 +178,14 @@ export function useSaleForm(saleId: Ref<string>) {
     return next;
   }
 
-  watch(
-    model,
-    () => {
-      if (!hydrated.value || suppressAutosave.value || !editable.value) return;
-      if (versionConflict.value) return;
-      if (saveStatus.value === 'saving') {
-        dirtyAfterSave = true;
-        return;
-      }
-      saveStatus.value = 'dirty';
-      scheduleSave();
-    },
-    { deep: true },
-  );
-
   async function reloadFromServer(): Promise<void> {
-    if (saveTimer) clearTimeout(saveTimer);
-    versionConflict.value = false;
-    saveStatus.value = 'idle';
-    await saleQuery.refetch();
-    saveStatus.value = 'saved';
-    saveError.value = null;
+    await saveChain;
+    const result = await saleQuery.refetch();
+    if (result.error) {
+      saveError.value = apiErrorMessage(result.error);
+      return;
+    }
+    if (result.data && result.data.id === saleId.value) hydrate(result.data);
   }
 
   return {
@@ -143,7 +197,9 @@ export function useSaleForm(saleId: Ref<string>) {
     saveError,
     fieldErrors,
     versionConflict,
+    hasUnsavedChanges,
     persist,
     reloadFromServer,
+    waitForPendingSave: () => saveChain,
   };
 }

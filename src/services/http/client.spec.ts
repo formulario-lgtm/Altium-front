@@ -174,6 +174,41 @@ describe('createApiClient', () => {
     expect(isLoading.value).toBe(false);
   });
 
+  it('background requests keep CSRF, cookies, tracing and 401 handling without blocking the shell', async () => {
+    setCsrfToken('csrf-background');
+    const handler = vi.fn();
+    const unregister = onUnauthorized(handler);
+    let finish!: (response: Response) => void;
+    const gate = new Promise<Response>((resolve) => {
+      finish = resolve;
+    });
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const request = new Request(input);
+      expect(request.headers.get('x-csrf-token')).toBe('csrf-background');
+      expect(request.headers.get(REQUEST_ID_HEADER)).toBeTruthy();
+      expect(request.credentials).toBe('include');
+      expect(request.signal).toBeDefined();
+      return gate;
+    });
+    const client = createApiClient({
+      baseUrl: 'http://api.test',
+      background: true,
+      fetch: fetchMock as typeof fetch,
+    });
+    const pending = client.PATCH('/api/v1/sales/{id}', {
+      params: { path: { id: 'sale' } },
+      body: { version: 1 },
+    });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    expect(useGlobalLoadingState().pendingCount.value).toBe(0);
+    finish(problem(401, 'UNAUTHORIZED'));
+    const result = await pending;
+    expect(handler).toHaveBeenCalledOnce();
+    expect(getCsrfToken()).toBeNull();
+    expect(() => parseApiResult(result)).toThrow();
+    unregister();
+  });
+
   it('attaches x-request-id and credentials include', async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const request = new Request(input, init);

@@ -10,6 +10,7 @@ export type SaleRequirement = {
   label: string;
   section: SaleSectionId;
   valid: boolean;
+  supplied: boolean;
 };
 export type SectionCompletion = { complete: number; total: number };
 const text = (value: unknown) => z.string().trim().min(1).safeParse(value).success;
@@ -48,7 +49,14 @@ export function getSaleReadiness(model: SaleFormModel | null, documents?: SaleDo
     value: unknown,
     validate: (value: unknown) => boolean = text,
     label = saleFieldPathLabel(path),
-  ) => requirements.push({ section, path, label, valid: validate(value) });
+  ) =>
+    requirements.push({
+      section,
+      path,
+      label,
+      valid: validate(value),
+      supplied: value != null && value !== '' && (typeof value !== 'string' || value.trim() !== ''),
+    });
   if (model) {
     add('details', 'healthInsurerId', model.healthInsurerId);
     add('details', 'customerType', model.customerType);
@@ -74,7 +82,7 @@ export function getSaleReadiness(model: SaleFormModel | null, documents?: SaleDo
         'members',
         `${path}.weightKg`,
         member.weightKg,
-        (value) => positive(value) && Number(value) >= 0.1,
+        (value) => positive(value) && Number(value) >= 0.1 && Number(value) <= 500,
       );
       add(
         'members',
@@ -183,6 +191,7 @@ export function getSaleReadiness(model: SaleFormModel | null, documents?: SaleDo
         (value) =>
           z.number().int().min(now.getFullYear()).max(2100).safeParse(value).success &&
           (Number(value) > now.getFullYear() ||
+            billing.cardExpiryMonth == null ||
             Number(billing.cardExpiryMonth) >= now.getMonth() + 1),
       );
     }

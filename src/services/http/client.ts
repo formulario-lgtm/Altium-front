@@ -58,6 +58,8 @@ export type CreateApiClientOptions = {
   withCredentials?: boolean;
   /** Injectable fetch (tests). Timeouts still apply unless overridden. */
   fetch?: typeof fetch;
+  /** Local save/progress UI owns these requests; auth, CSRF and timeouts remain identical. */
+  background?: boolean;
 };
 
 function createRequestId(): string {
@@ -150,11 +152,13 @@ export function createApiClient(options: CreateApiClientOptions = {}): Client<pa
     fetch: createTimedFetch(timeoutMs, baseFetch),
   });
 
-  client.use(createTracingMiddleware(), createSessionMiddleware(), createLoadingMiddleware());
+  client.use(createTracingMiddleware(), createSessionMiddleware());
+  if (!options.background) client.use(createLoadingMiddleware());
   return client;
 }
 
 export const apiClient = createApiClient();
+export const backgroundApiClient = createApiClient({ background: true });
 
 /**
  * Converts openapi-fetch `{ data, error, response }` into data or a thrown ApiError.

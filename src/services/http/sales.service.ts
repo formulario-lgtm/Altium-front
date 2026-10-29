@@ -19,12 +19,20 @@ import type {
   SaleStatusHistory,
   UpdateSaleBody,
 } from './api-types';
-import { apiClient, parseApiResult, parseEmptyResult, REQUEST_ID_HEADER } from './client';
+import {
+  apiClient,
+  backgroundApiClient,
+  parseApiResult,
+  parseEmptyResult,
+  REQUEST_ID_HEADER,
+} from './client';
 import { CSRF_HEADER, csrfHeaders, getCsrfToken } from './csrf';
+import { ApiError } from './types';
+import { getSessionVersion } from './session-version';
 import { toApiErrorFromResponse } from './errors';
 import { beginRequestLoading } from './loading';
 
-type RequestOptions = { signal?: AbortSignal };
+type RequestOptions = { signal?: AbortSignal; background?: boolean };
 
 export type UploadSaleDocumentInput = {
   file: File;
@@ -74,12 +82,28 @@ export async function createSale(body: CreateSaleBody = {}): Promise<Sale> {
   return parseApiResult(result);
 }
 
+export async function deleteSale(id: string): Promise<void> {
+  const result = await apiClient.DELETE('/api/v1/sales/{id}', {
+    params: { path: { id }, header: csrfHeaders() },
+  });
+  parseEmptyResult(result);
+}
+
 export async function updateSale(id: string, body: UpdateSaleBody): Promise<Sale> {
-  const result = await apiClient.PATCH('/api/v1/sales/{id}', {
+  const session = getSessionVersion();
+  const result = await backgroundApiClient.PATCH('/api/v1/sales/{id}', {
     params: { path: { id }, header: csrfHeaders() },
     body,
   });
-  return parseApiResult(result);
+  const sale = parseApiResult(result);
+  if (session !== getSessionVersion()) {
+    throw new ApiError({
+      kind: 'cancelled',
+      code: 'SESSION_CHANGED',
+      message: 'La sesión cambió durante el guardado.',
+    });
+  }
+  return sale;
 }
 
 export async function submitSale(id: string): Promise<Sale> {
@@ -189,7 +213,8 @@ export async function getSaleDocuments(
   id: string,
   options?: RequestOptions,
 ): Promise<SaleDocuments> {
-  const result = await apiClient.GET('/api/v1/sales/{id}/documents', {
+  const client = options?.background ? backgroundApiClient : apiClient;
+  const result = await client.GET('/api/v1/sales/{id}/documents', {
     params: { path: { id } },
     signal: options?.signal,
   });

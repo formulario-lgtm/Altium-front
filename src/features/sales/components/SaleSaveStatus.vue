@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
   <div class="sale-save-status text-caption" role="status" aria-live="polite">
-    <span v-if="status === 'dirty'" class="text-medium-emphasis">Cambios pendientes…</span>
+    <span v-if="status === 'dirty'" class="text-medium-emphasis">Cambios sin guardar</span>
     <span v-else-if="status === 'saving'" class="text-medium-emphasis">
       <v-progress-circular indeterminate size="12" width="2" class="me-1" />
       Guardando…

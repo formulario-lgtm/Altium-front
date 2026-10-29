@@ -35,7 +35,7 @@ Full reference: [visual-identity.md](../architecture/visual-identity.md).
 | Data lists      | `v-card` > `v-data-table-server`                                                                                                                                    |
 | Status          | `StatusBadge` (includes sale `DRAFT` / `SUBMITTED` / `RETURNED`)                                                                                                    |
 | Person identity | `UserAvatar` + name/email stack                                                                                                                                     |
-| Blocking load   | `GlobalLoadingOverlay` while the API client has in-flight tracked calls                                                                                             |
+| Blocking load   | `GlobalLoadingOverlay` for foreground calls; narrowly scoped background form work uses inline state (see [loading](../components/global-loading-overlay.md))        |
 | Shell           | `AppShellLayout` (atmosphere + glass drawer/bar)                                                                                                                    |
 
 ## Rules

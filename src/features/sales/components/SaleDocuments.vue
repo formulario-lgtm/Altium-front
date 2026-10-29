@@ -26,9 +26,17 @@ const props = withDefaults(
     documents: SaleDocuments | null | undefined;
     loading?: boolean;
     editable?: boolean;
+    disabled?: boolean;
+    requiresSave?: boolean;
     purpose?: 'documentation' | 'billing';
   }>(),
-  { loading: false, editable: false, purpose: 'documentation' },
+  {
+    loading: false,
+    editable: false,
+    disabled: false,
+    requiresSave: false,
+    purpose: 'documentation',
+  },
 );
 
 const uploadMutation = useUploadSaleDocumentMutation(() => props.saleId);
@@ -100,7 +108,7 @@ function docsForCategory(category: RequiredDocumentCategory): SaleDocumentMeta[]
 }
 
 function pickFile(category: RequiredDocumentCategory): void {
-  if (!props.editable || uploadMutation.isPending.value) return;
+  if (!props.editable || props.disabled || uploadMutation.isPending.value) return;
   actionError.value = null;
   const input = document.createElement('input');
   input.type = 'file';
@@ -115,6 +123,7 @@ function pickFile(category: RequiredDocumentCategory): void {
 }
 
 async function uploadFile(category: RequiredDocumentCategory, file: File): Promise<void> {
+  if (!props.editable || props.disabled) return;
   if (file.size > SALE_DOCUMENT_MAX_BYTES) {
     actionError.value = 'El archivo supera el máximo de 10 MB.';
     return;
@@ -166,6 +175,9 @@ async function downloadDoc(doc: SaleDocumentMeta): Promise<void> {
 
 <template>
   <div>
+    <v-alert v-if="requiresSave" type="info" density="compact" class="mb-4">
+      Guardá el borrador para actualizar los requisitos y habilitar la carga de archivos.
+    </v-alert>
     <p class="text-body-2 text-medium-emphasis mb-4">
       Adjuntá JPEG, PNG o PDF (máx. 10 MB). Los archivos se guardan de forma privada en el
       almacenamiento de Altium.<template v-if="purpose === 'billing'">
@@ -224,7 +236,7 @@ async function downloadDoc(doc: SaleDocumentMeta): Promise<void> {
             variant="tonal"
             prepend-icon="mdi-upload"
             :loading="busyCategoryKey === categoryKey(category)"
-            :disabled="uploadMutation.isPending.value"
+            :disabled="disabled || uploadMutation.isPending.value"
             @click="pickFile(category)"
           >
             {{ docsForCategory(category).length ? 'Agregar archivo' : 'Subir archivo' }}
@@ -264,6 +276,7 @@ async function downloadDoc(doc: SaleDocumentMeta): Promise<void> {
                   variant="text"
                   size="small"
                   color="error"
+                  :disabled="disabled || uploadMutation.isPending.value"
                   aria-label="Eliminar"
                   @click="askDelete(doc)"
                 />

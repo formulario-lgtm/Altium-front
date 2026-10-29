@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SaleDeleteButton from '../components/SaleDeleteButton.vue';
 import DateField from '@/components/common/DateField.vue';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -274,6 +275,7 @@ function openEdit(id: string): void {
             >
               Presentar
             </v-btn>
+            <SaleDeleteButton :sale="item" compact />
           </div>
         </template>
         <template #no-data>

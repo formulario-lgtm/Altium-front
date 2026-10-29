@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue';
 import ErrorState from '@/components/common/ErrorState.vue';
 import PageHeader from '@/components/common/PageHeader.vue';
 import StatusBadge from '@/components/common/StatusBadge.vue';
 import EmptyState from '@/components/common/EmptyState.vue';
+import SaleDeleteButton from '../components/SaleDeleteButton.vue';
 import SaleDetailData from '../components/SaleDetailData.vue';
 import SaleDetailFields from '../components/SaleDetailFields.vue';
 import SaleDetailDocuments from '../components/SaleDetailDocuments.vue';
@@ -35,6 +36,7 @@ import {
 } from '../utils/sale-labels';
 
 const route = useRoute();
+const router = useRouter();
 const auth = useAuthStore();
 const saleId = computed(() => String(route.params.id));
 
@@ -185,6 +187,7 @@ async function onReturn(): Promise<void> {
           >
             Exportar Excel
           </v-btn>
+          <SaleDeleteButton v-if="sale" :sale="sale" @deleted="router.replace({ name: 'sales' })" />
         </div>
       </template>
     </PageHeader>

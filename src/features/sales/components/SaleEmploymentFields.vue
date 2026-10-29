@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { createSaleFormRowKey } from '../utils/sale-form-row-key';
 import type { SaleFormModel } from '../utils/sale-form-model';
 import { fieldErrorProps } from '../utils/sale-field-errors';
+const employerKey = createSaleFormRowKey();
 const model = defineModel<SaleFormModel['employment']>({ required: true });
 const props = defineProps<{ disabled?: boolean; fieldErrors: Readonly<Record<string, string>> }>();
 const emit = defineEmits<{ 'clear-field-error': [string] }>();
@@ -19,7 +21,7 @@ function addEmployer() {
     <h2 class="text-h6 mb-4">Situación laboral</h2>
     <div
       v-for="(employer, index) in model.employers"
-      :key="employer.id ?? index"
+      :key="employerKey(employer)"
       class="d-flex ga-2 align-center mb-2"
     >
       <v-text-field

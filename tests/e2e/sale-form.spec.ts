@@ -117,6 +117,8 @@ test.describe('Sale capture UX and presentation readiness', () => {
     await email.fill('');
     await expect(page.getByRole('button', { name: 'Presentar venta' })).toBeDisabled();
     await email.fill('nuevo@altium.example');
+    await expect(page.getByRole('button', { name: 'Presentar venta' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Guardar borrador', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Presentar venta' })).toBeEnabled();
     await page.getByRole('button', { name: 'Presentar venta' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Presentar', exact: true }).click();
